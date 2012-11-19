@@ -1,0 +1,16 @@
+To Move RapidSMS-Rwanda  from old rapidsms to new the current rapidsms (rapidsms==0.96a) 
+
+Few steps needs to be carried out:
+
+Modify: the application by removing all import from rapidsms.webui no longer existing in the version of rapidsms.
+
+
+
+
+1) Login:
+2) Apps:
+	a) locations:
+
+		Need of customizing contrib.locations models
+
+

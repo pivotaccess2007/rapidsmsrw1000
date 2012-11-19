@@ -1,0 +1,244 @@
+
+{% block title %}Report Log{% endblock %}
+
+{% block javascripts %}
+<script language="javascript" type="text/javascript" src="/static/webapp/javascripts/jquery-1.4.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="/static/webapp/javascripts/jquery.table2csv.0.1.1.min.js"></script>
+<!--[if IE]><script type="text/javascript" src="/static/webapp/javascripts/excanvas.pack.js"></script>
+<![endif]-->
+<script type="text/javascript" src="/static/webapp/javascripts/jquery.flot.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/downloadify/js/downloadify.min.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/downloadify/js/swfobject.js"></script>
+<script language="javascript" type="text/javascript" src="/static/webapp/javascripts/jquery.flot.multi.js"></script>
+
+<link type="text/css" rel="stylesheet" href="/static/webapp/stylesheets/modules.css" />
+<link rel="stylesheet" type="text/css" href="/static/webapp/stylesheets/tabview.css" ></link>
+<script type="text/javascript" src="/static/webapp/javascripts/tabview.js"></script>
+<script type="text/javascript"
+    src="/static/webapp/javascripts/stats.js"></script>
+
+<link rel="stylesheet" type="text/css"
+    href="/static/webapp/stylesheets/stats.css" />
+<link type="text/css" rel="stylesheet" href="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.css"></link>
+<script type="text/javascript" src="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.js"></script>
+
+<script type="text/javascript"> 
+ 
+jQuery(function() {
+  jQuery("#log").table2csv({
+   callback: function (csv) {
+
+	var j$ = jQuery.noConflict();
+      j$(document).ready( function () {
+        //var exportdata = j$("#table-design").html();
+ 
+        Downloadify.create('downloadify_l',{
+              filename: function(){
+                  return j$('#filename_l').val();
+              },
+              data: function(){
+                  return csv;
+              },onComplete: function(){ 
+	    	alert('The file has been saved!'); 
+	  	},
+	  	onCancel: function(){ 
+	    	alert('You have cancelled the saving of this file.');
+	  	},
+	  	onError: function(){ 
+	    	alert('Error!  Damn!'); 
+	  	},
+	  	transparent: false,
+              swf: "/static/webapp/javascripts/downloadify/media/downloadify.swf",
+              downloadImage:"/static/webapp/javascripts/downloadify/images/download.png",
+              width: 100,
+              height: 30,
+              transparent: true,
+              append: false
+          });
+      });//http://ugeshgali.blogspot.com/2012/01/export-to-excel-in-salesforce-from.html
+    //alert(csv);
+	//window.location.href = 'data:text/csv;charset=UTF-8,'+ encodeURIComponent(csv);
+   }
+  });
+
+});
+function deroulement(form)
+  {
+	path=document.URL	
+
+if ((form.province.value=="") || (form.district.value=="") || (form.location.value==""))
+	{
+		if (path.indexOf("?") < 0 && path.indexOf("start_date") <0 ){ window.location=path+'?start_date='+form.start_date.value+'&end_date='+form.end_date.value;
+	}
+		
+		else {
+			path=path.replace(/(start_date=)[^\&]+/, '$1' + form.start_date.value);
+			path=path.replace(/(end_date=)[^\&]+/, '$1' + form.end_date.value);
+			window.location=path;
+			}
+       }
+
+else {
+	form.submit();	
+	}
+
+ }
+$('#popupBoxClose').click( function() {           
+            $('#container').fadeOut("slow");
+        });
+
+function hideMe(id){
+var popup = document.getElementById(id);
+	
+    popup.style.display = 'none';
+}
+
+function showPopup(id) {
+	
+    var popup = document.getElementById(id);
+	
+    popup.style.display = 'block';
+	
+  }
+
+</script>
+<style type="text/css">
+#table-design thead ,#table-design th , #table-design td {
+	border:solid black 1px
+	}
+
+  .popup {
+   display:none; /* Hide the DIV */
+    position:fixed;  
+    _position:absolute; /* hack for internet explorer 6 */  
+    height:300px;  
+    width:800px;  
+    background:#FFFFFF;  
+    left: 200px;
+    top: 150px;
+    z-index:100; /* Layering ( on-top of others), if you have lots of layers: I just maximized, you can change it yourself */
+    margin-left: 15px;  
+   
+    /* additional features, can be omitted */
+    border:2px solid #3a499e;      
+    padding:15px;  
+    font-size:15px;  
+    -moz-box-shadow: 0 0 5px #3a499e;
+    -webkit-box-shadow: 0 0 5px #d7d7d7;
+    box-shadow: 0 0 5px #3a499e;
+	  }
+	  
+	  a{ 
+cursor: pointer; 
+text-decoration:none; 
+}
+
+/* This is for the positioning of the Close Link */
+#popupBoxClose {
+    font-size:20px;  
+    line-height:15px;  
+    right:5px;  
+    top:5px;  
+    position:absolute;  
+    color:#6fa5e2;  
+    font-weight:500;      
+}
+
+</style>
+{% endblock %}
+
+{% block page_tabs %}
+<ul id="page-tabs">
+	<li class="page"><a href="/ubuzima/reminders">Reminders</a></li>
+	<li class="page"><a href="/ubuzima/alerts">Alerts</a></li>
+	<li class="page"><a href="/ubuzima/stats">Statistics</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+{% load reporters-tags %}
+<div>
+    <form class="topstrip">
+        <h2>Filtering</h2>
+        <table width="100%">
+            <thead>
+                <tr><th colspan="2">Period</th><th>Location</th><th></th><th></th><th></th><th></th></tr>
+                <tr><th>Start</th><th>End</th><th>Province</th><th>District</th><th>Health
+                        Centre</th><th></th><th></th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+            <input style="background-color: white"  type="text" id="pickstartdate" value="{{ start_date }}"  name="start_date" 					readonly="readonly"  onFocus="displayCalendar(form.start_date,'dd.mm.yyyy',this)" size = "10"/></td>
+        <td><input style="background-color: white" type="text" id="pickenddate" value="{{ end_date }}"  name="end_date" 					readonly="readonly"  onFocus="displayCalendar(form.end_date,'dd.mm.yyyy',this)" size = "10" />
+                    </td>
+                    <td>
+            <select name="province" id="provchoose"><option></option>
+                {%  for loc in filters.province %}<option value="{{ loc.id }}" {% if loc.selected and request.GET.province %} selected="selected"{% endif %}>{{ loc.name }}</option>{%  endfor %}
+            </select>
+                    </td>
+                    <td>
+            <select name="district" id="distchoose"><option></option>
+                {%  for loc in filters.district %}<option value="{{ loc.id }}"{% if loc.selected and request.GET.district %} selected="selected"{% endif %}>{{ loc.name }}</option>{%  endfor %}
+            </select>
+                    </td>
+                    <td>
+            <select name="location" id="locchoose"><option></option>
+                {%  for loc in filters.location %}<option value="{{ loc.id }}"{% if loc.selected and request.GET.location %} selected="selected"{% endif %}>{{ loc.name }}</option>{%  endfor %}
+            </select>
+                    </td>
+                    <td>
+            <input type="button" value="Update Filters"  onClick="return deroulement(this.form);"/>
+                    </td><td><a href={{request.url}}?csv{%if postqn%}&{{postqn}}{%endif%}>Export Reports Log</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+    <div class="clear-hack"></div>
+</div>
+<h2>All Reports {%if not request.GET.province and not request.GET.district and not request.GET.location %}<p style=" text-align:center; ">{{usrloc.location}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%else%}<p style=" text-align:center; ">{{locationname}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%endif%}</h2> 
+{% load pagination-tags %}
+
+
+
+<table width="100%"> 
+    <thead>
+        <tr>
+        	<th>Id</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Type</th>
+            <th>Reporter</th>
+            <th>Patient</th>
+            <th>Message</th>
+        </tr>
+    </thead>
+    <tbody>
+    	{% for report in report_list %}
+            <tr>
+            	<td {%if report.is_risky %} class="lagging"{%endif%}><a href="/ubuzima/report/{{report.pk}}">{{report.pk}}</a></td>
+                <td>{{report.created|date:"d.m.Y"}}</td>
+                <td><a href="/ubuzima/location/{{report.location.pk}}">{{report.location.name}}</a></td>
+                <td><a href="/ubuzima/type/{{report.type.pk}}">{{report.type.name}}</a></td>
+                <td><a href="/ubuzima/reporter/{{report.reporter.pk}}">{{report.reporter.alias}}</a></td>
+                <td><a href="/ubuzima/patient/{{report.patient.pk}}">{{report.patient.national_id}}</a></td>
+                <td>{{report.summary}}</td>
+		<!-- {%for f in report.fields.all %}<td>{{f.value}}</td>{%endfor%} -->
+            </tr>
+        {% endfor %}
+    </tbody>
+    
+    <tfoot>
+			<tr>
+				<td colspan="10">
+					{% paginator report_list %}
+				</td>
+			</tr>
+			<tr>
+				<td colspan="10">
+				Matching Reports: {{ report_list.paginator.count }}
+				</td>
+			</tr>
+	</tfoot>
+</table>
+{% endblock %}
