@@ -1,16 +1,15 @@
-To Move RapidSMS-Rwanda  from old rapidsms to new the current rapidsms (rapidsms==0.96a) 
+To Move RapidSMS-Rwanda  from old rapidsms to new the current rapidsms (rapidsms==0.10.0 and django.1.4.2) 
 
-Few steps needs to be carried out:
+Keep points:
 
-Modify: the application by removing all import from rapidsms.webui no longer existing in the version of rapidsms.
+***All the card logic is rewritten following the new rapidsms KeywordHandler style
+***All the apps forked from the old rapidsms contrib apps are replaced and/or adapted to  the new rapidsms.0.10.0 philosophy
+***we are using the kannel-fake-sms to test the flow incoming/outgoing messages, but still rely on kannel backend too much in our production
+***still using the default recent router (BlockingRouter)
+***Mention the structure is the same as the New rapidsms project templates
+***All apps was modified to move to meet the new template
 
+Procedure to setup rapidsmsrw1000 running :
 
-
-
-1) Login:
-2) Apps:
-	a) locations:
-
-		Need of customizing contrib.locations models
-
+TODO ....coming soon
 
