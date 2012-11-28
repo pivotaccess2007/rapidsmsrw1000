@@ -1,0 +1,7 @@
+from django.db import models
+from django.forms import ModelForm
+from ubuzima.models import Chw
+
+class ChwForm(ModelForm):
+	class Meta:
+		model = Chw
