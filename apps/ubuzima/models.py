@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import *
-from apps.logger.models import IncomingMessage
-from apps.reporters.models import Reporter
-from apps.locations.models import Location
+#from rapidsmsrw1000.apps.logger.models import IncomingMessage
+from rapidsmsrw1000.apps.reporters.models import Reporter
+from rapidsmsrw1000.apps.locations.models import Location
 from django.utils.translation import ugettext as _
 import datetime
 from decimal import Decimal

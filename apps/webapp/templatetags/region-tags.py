@@ -4,7 +4,7 @@
 
 import os
 #from rapidsms.webui import settings
-import settings
+import rapidsmsrw1000.settings
 from django import template
 register = template.Library()
 

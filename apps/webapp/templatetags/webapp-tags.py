@@ -3,9 +3,9 @@
 from django import template
 register = template.Library()
 
-from apps.webapp.app import App as webui_app
+from rapidsmsrw1000.apps.webapp.app import App as webui_app
 #from rapidsms.webui.settings import RAPIDSMS_APPS as app_conf
-from settings import INSTALLED_APPS as app_conf
+from rapidsmsrw1000.settings import INSTALLED_APPS as app_conf
 @register.tag(name="ifhasperm")
 def do_perm_check(parser, token):
     # save everything between the beginning and ending tags

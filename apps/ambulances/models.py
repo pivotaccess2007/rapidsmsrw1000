@@ -1,6 +1,6 @@
 from django.db import models
-from apps.reporters.models import *
-from apps.locations.models import *
+from rapidsmsrw1000.apps.reporters.models import *
+from rapidsmsrw1000.apps.locations.models import *
 
 class AmbulanceDriver(models.Model):
     phonenumber = models.CharField(max_length = 20)

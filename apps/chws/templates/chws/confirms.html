@@ -1,0 +1,152 @@
+{% extends base_template %}
+{% block title %}CHWs -Confirmations{% endblock %}
+{% block javascripts %}
+<script type="text/javascript" src="/static/webapp/javascripts/jquery.flot.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/jquery.flot.pie.pack.js"></script>
+<script type="text/javascript"
+    src="/static/webapp/javascripts/jquery.datepick.min.js"></script>
+<link rel="stylesheet" type="text/css"
+    href="/static/webapp/stylesheets/jquery.datepick.css" />
+<link rel="stylesheet" type="text/css"
+    href="/static/webapp/stylesheets/stats.css" />
+
+<script type="text/javascript"> 
+$(function()
+{
+$('#provchoose').change(function(evt)
+    {	
+        if ($(this).attr('value') != ''){window.location = window.location.pathname + '?province=' +
+        $(this).attr('value');
+	} else {
+			window.location = window.location.pathname;			
+			}
+    });
+
+condDisableDistricts();
+$('#distchoose').change(function()
+    {
+        if ($(this).attr('value') != ''){ window.location = window.location.pathname + '?district=' +
+        $(this).attr('value') + '&province=' + $('#provchoose').attr('value');
+	}
+		else {
+			window.location = window.location.pathname + '?'+ '&province=' + $('#provchoose').attr('value');			
+			}
+    });
+
+condDisableLocations();
+$('#locchoose').change(function()
+    {
+       if ($(this).attr('value') != '') { window.location = window.location.pathname + '?facility=' +
+        $(this).attr('value') + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value') ;
+	} 
+		else{
+			window.location = window.location.pathname + '?' + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value');
+			}
+    });
+
+});
+
+
+function condDisableDistricts()
+{
+    var loc = window.location.toString();
+    if(loc.search(/province/) != -1) return;
+    $('#dst').hide();
+    $('#distchoose').hide();
+}
+
+function condDisableLocations()
+{
+    var loc = window.location.toString();
+    if(loc.search(/district/) != -1) return;
+    $('#hc').hide();
+    $('#locchoose').hide();
+}
+</script>
+
+{% endblock %}
+
+{% block content %}
+    {% load pagination-tags %}
+
+
+
+<table width="100%"> 
+    <thead>
+        <tr>
+        	<th>Reporter NID</th>
+		<th>Telephone</th>
+            	<th>Names</th>
+		<th>Village</th>
+		<th>Health Centre</th>
+		<th>District</th>
+		
+		<!--<th>Cell</th>
+		<th>Sector</th>
+		
+		 <th>Province</th> -->
+            
+            
+        </tr>
+    </thead>
+    <tbody>
+	<tr>
+			                    
+                    <td>
+	    <label id = "prv">Province:</label>
+            <select name="province" id="provchoose"><option></option>
+                {%  for prv in prvs %}<option value="{{prv.id}}" {% if prv.selected  %} selected="selected"{% endif %}>{{ prv.name }}</option>{%  endfor %}
+            </select>
+                    </td>
+                    <td>
+	    <label id = "dst">District:</label>
+            <select name="district" id="distchoose"><option></option>
+            	{%  for dst in dsts %}<option value="{{dst.id}}" {% if dst.selected  %} selected="selected"{% endif %}>{{ dst.name }}</option>{%  endfor %}  
+            </select>
+                    </td>
+                    <td>
+	    <label id = "hc">Health Centre:</label>
+            <select name="location" id="locchoose"><option></option>
+              {%  for hc in hcs %}<option value="{{hc.id}}" {% if hc.selected  %} selected="selected"{% endif %}>{{ hc.name }}</option>{%  endfor %}  
+            </select>
+                    </td>
+                    <td><a href="/chws/confirms?excel{%if request.GET.province%}&province={{request.GET.province}}{%endif%}{%if request.GET.district%}&district={{request.GET.district}}{%endif%}{%if request.GET.facility%}&facility={{request.GET.facility}}{%endif%}">Export To Excel</a>
+                    </td>
+                </tr>
+
+    	{% for p in confirms.object_list %}
+            <tr>
+            	
+                <td>{{p.reporter.national_id}}</td>
+                <td>{{p.reporter.telephone_moh}}</td>
+		<td>{{p.reporter.surname}} {{p.reporter.given_name}}</td>
+		<td>{{p.reporter.village.name}}</td>
+		<td>{{p.reporter.health_centre.name}}</td>
+		<td>{{p.reporter.district.name}}</td>
+		<!-- <td>{{p.reporter.cell.name}}</td>
+		<td>{{p.reporter.sector.name}}</td>
+		
+		 <td>{{p.reporter.province.name}}</td> -->
+            </tr>
+        {% endfor %}
+    </tbody>
+    
+    <tfoot>
+			<tr>
+				<td colspan="9">
+					{% paginator confirms %}
+				</td>
+			</tr>
+			<tr>
+				<td colspan="9">
+				Matching Reporters: {{ confirms.paginator.count }}
+				</td>
+			</tr>
+	</tfoot>
+</table>
+
+{% endblock %}
+
+

@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import *
-from apps.logger.models import IncomingMessage
-from apps.reporters.models import Reporter
-from apps.locations.models import Location
+from logger.models import IncomingMessage
+from reporters.models import Reporter
+from locations.models import Location
 from django.utils.translation import ugettext as _
 import datetime
 from decimal import Decimal
@@ -65,7 +65,7 @@ class FieldType(models.Model):
 class Patient(models.Model):
     location = models.ForeignKey(Location)
     national_id = models.CharField(max_length = 20, unique = True)
-    telephone = models.CharField(max_length = 13 ,related_name = 'pattel', null = True)
+    telephone = models.CharField(max_length = 13 , null = True)
     village    = models.CharField(max_length=255, null=True)
     cell = models.ForeignKey(Location, related_name = 'patcell', null=True, blank=True)
     sector = models.ForeignKey(Location, related_name = 'patsector', null=True, blank=True)

@@ -1,50 +1,35 @@
-from django.conf.urls.defaults import *
 from django.conf import settings
+from django.conf.urls import patterns, include, url
+from django.conf.urls.static import static
 from django.contrib import admin
+from django.conf.urls.defaults import *
+from rapidsms.backends.kannel.views import KannelBackendView
 
-admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Example:
-    # (r'^my-project/', include('my_project.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    (r'^admin/', include(admin.site.urls)),
-    
+    url(r'^admin/', include(admin.site.urls)),
     # RapidSMS core URLs
-    #(r'^accounts/', include('apps.webapp.urls.login_logout')),
-    ('', include('webapp.urls')),
-    #url(r'^$', 'rapidsms.views.dashboard', name='rapidsms-dashboard'),
-    url(r'^$', 'webapp.views.dashboard', name='rapidsms-dashboard'),
-
+    (r'^accounts/', include('rapidsms.urls.login_logout')),
+    url(r'^$', 'rapidsmsrw1000.apps.webapp.views.dashboard', name='rapidsms-dashboard'),
     # RapidSMS contrib app URLs
-    (r'^ajax/', include('rapidsms.contrib.ajax.urls')),
     (r'^export/', include('rapidsms.contrib.export.urls')),
+    url(r'^httptester/$',
+        'rapidsms.contrib.httptester.views.generate_identity',
+        {'backend_name': 'message_tester'}, name='httptester-index'),
     (r'^httptester/', include('rapidsms.contrib.httptester.urls')),
     (r'^locations/', include('rapidsms.contrib.locations.urls')),
     (r'^messagelog/', include('rapidsms.contrib.messagelog.urls')),
     (r'^messaging/', include('rapidsms.contrib.messaging.urls')),
     (r'^registration/', include('rapidsms.contrib.registration.urls')),
     (r'^scheduler/', include('rapidsms.contrib.scheduler.urls')),
-  
-     ('', include('ubuzima.urls')),
-      ('', include('admin.urls')),
-	('', include('webapp.urls')),
-	('', include('reporters.urls')),
-	('', include('logger.urls')),
-	('', include('httptester.urls')),
-	
-	('', include('rapidsms_xforms.urls'))
-	
+    (r'^ubuzima/', include('rapidsmsrw1000.apps.ubuzima.urls')),
 
-)
+	# FAKE SMS FROM KANNEL EXTRA...
+    url(r"^backend/kannel-fake-smsc/$",
+        KannelBackendView.as_view(backend_name="kannel-fake-smsc")),
 
-if settings.DEBUG:
-    urlpatterns += patterns('',
-        # helper URLs file that automatically serves the 'static' folder in
-        # INSTALLED_APPS via the Django static media server (NOT for use in
-        # production)
-        (r'^', include('rapidsms.urls.static_media')),
-    )
+	# USB MODEM...
+    url(r"^backend/kannel-usb0-smsc/$",
+        KannelBackendView.as_view(backend_name="kannel-usb0-smsc")),
+
+) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

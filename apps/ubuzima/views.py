@@ -18,13 +18,13 @@ from django.template import loader, Context
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 ##############################
-from apps.reporters.models import *
-from apps.reporters.utils import *
+from rapidsmsrw1000.apps.reporters.models import *
+from rapidsmsrw1000.apps.reporters.utils import *
 from sys import getdefaultencoding
-from apps.ubuzima.models import *
-from apps.ubuzima.constants import *
-from apps.ubuzima.newborn_ind import *
-from apps.ubuzima.enum import *
+from rapidsmsrw1000.apps.ubuzima.models import *
+from rapidsmsrw1000.apps.ubuzima.constants import *
+from rapidsmsrw1000.apps.ubuzima.newborn_ind import *
+from rapidsmsrw1000.apps.ubuzima.enum import *
 from django.contrib.auth.models import *
 ##working with generic view
 from django.views.generic import ListView

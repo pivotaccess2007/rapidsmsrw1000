@@ -13,8 +13,8 @@ from django.contrib.auth.views import logout as django_logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt,csrf_protect
 #from rapidsms.webui import settings
-import settings
-from apps.ubuzima.views import *
+from rapidsmsrw1000.settings import *
+from rapidsmsrw1000.apps.ubuzima.views import *
 from rapidsms.contrib.locations.models import Location, LocationType
 
 def check_availability(req):
@@ -28,7 +28,7 @@ def login(req, template_name="webapp/login.html"):
     # this view, and the one below, is overridden because 
     # we need to set the base template to use somewhere  
     # somewhere that the login page can access it.
-    req.base_template = settings.BASE_TEMPLATE 
+    req.base_template = BASE_TEMPLATE 
     #area={}
     #locs=Report.objects.values_list('location', flat=True).distinct()
     #req.session['locs']=locs

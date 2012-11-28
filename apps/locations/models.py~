@@ -46,8 +46,8 @@ class Location(models.Model):
     nation = models.ForeignKey("Location", related_name="location_nation", null=True, blank=True,
         help_text="The nation of this Location. Although it is not enforced, it" +\
                   "is expected that the province will be of a different LocationType")
-    population = models.IntegerField(default = 0)
-    women = models.IntegerField(default = 0)
+    population = models.DecimalField(max_digits=8, decimal_places=6, blank=True, null=True, help_text="Population")
+    women = models.DecimalField(max_digits=8, decimal_places=6, blank=True, null=True, help_text="Number of Women")
     latitude  = models.DecimalField(max_digits=8, decimal_places=6, blank=True, null=True, help_text="The physical latitude of this location")
     longitude = models.DecimalField(max_digits=8, decimal_places=6, blank=True, null=True, help_text="The physical longitude of this location")
     

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from apps.ubuzima.models import *
+from rapidsmsrw1000.apps.ubuzima.models import *
 
 admin.site.register(Report)
 admin.site.register(ReportType)
