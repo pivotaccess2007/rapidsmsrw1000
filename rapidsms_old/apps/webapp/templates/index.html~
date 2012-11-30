@@ -1,0 +1,138 @@
+<!--This is a pivot access source code "Designed by Fiacre RUGWIZANGOGA"-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{% load i18n %}
+{% load region-tags %}
+
+{% load webapp-tags %}
+<html>
+  
+
+<head>
+    <title>{% block title %}{% endblock %}{% block title_suffix %} RapidSMS-Rwanda{% endblock %}</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		
+		
+		<script type="text/javascript" src="/static/webapp/javascripts/jquery.js"></script>
+		<link rel="Stylesheet" href="/static/webapp/stylesheets/sprockets.css" type="text/css" media="screen" />
+		<script type="text/javascript" src="/static/webapp/javascripts/sprockets.js"></script>
+ 
+
+
+</head>
+
+<body class="index">
+  
+<!--Logos -->
+<div id="new-header">
+      <div class="logonew">
+	<img  src="/static/webapp/images_new/rwandan_flag.png"/>
+      </div>
+      <div id="logonew2">
+	<img src="/static/webapp/images_new/unicef-logo.jpg"/>
+      </div>
+    </div>
+
+<!--End of Header-->	
+<!--Search -->
+
+<!--End of Search-->
+<div id="new-header2">
+ <div class="nav">
+  <ul>
+  
+    <li><a href="#">About Us</a></li>
+	<li><a href="#">Contact Us</a></li>    
+    <li><a href="#">News & Event</a></li>
+	<li>{% if user.is_authenticated %}
+               <a href="/accounts/logout/"><span>{% trans "Log out" %} {{ user.username }}</span></a>
+            {% else %}
+               <a href="/accounts/login/"><span> {% trans "Log in" %}</span> </a></h3>
+             {% endif %}</a></li>
+   
+  </ul>
+ </div>
+</div>
+  
+ 
+  <div class="container">
+      
+    <div class="box-container" id="products">
+      
+      <div class="headline"></div>
+       
+      
+       <a href="/ubuzima/dash/bir" class="box hover_container hover_target">
+        <div class="product bc">
+          <h1><span>Maternal Health</span> is about pregnant women Life</h1>
+          <p>Percentage of registered patients with risks, the number of red alert reports, the % of patient with red alert reports</p>
+          <img src="/static/webapp/images_new/arrow-left.png" width="69" height="69" class="arrow">
+        </div>
+        <img src="/static/webapp/images_new/mother.jpg" />
+        <h3><span>Maternal Health</span><sup></sup></h3>
+       <p class="action">Find out more</p>
+      </a>
+    
+       <a href="/ubuzima/newborn" class="box hover_container hover_target">
+        <div class="product bc">
+          <h1><span>A New Born</span> is a baby born until 42days</h1>
+          <img src="/static/webapp/images_new/arrow-left.png" width="69" height="69" class="arrow">
+        </div>
+        <img src="/static/webapp/images_new/bbaby.jpg" />
+        <h3><span>New Born</span><sup></sup></h3>
+		<p class="action">Find out more</p>
+        </a>
+    
+      <a href="/ubuzima/dash/pnc" class="box hover_container hover_target">
+        <div class="product bp">
+          <h1><span>P N C</span> is a Post-Natal care visit</h1>
+          <p>The post Natal Care visits are visits done by a Community Health Worker 2days after due date 6days after and 28days after.</p>
+          <img src="/static/webapp/images_new/arrow-right.png" width="69" height="69" class="arrow">
+        </div>
+        <img src="/static/webapp/images_new/mother-and-child.jpg" />
+        <h3><span>P N C</span><sup></sup></h3>
+        <p class="action">Find out more</p>
+      </a>
+    
+      <a href="/ubuzima/dash" class="box hover_container hover_target" >
+        <div class="product cf">
+          <h1><span>C C M</span> is a Community Case Management.</h1>
+          <p>The Community Case Management provides the missing link between hospital care and care at home. </p>
+          <img src="/static/webapp/images_new/arrow-right.png" width="69" height="69" class="arrow">
+        </div>
+        <img src="/static/webapp/images_new/ccm1.jpg" />
+        <h3><span>C C M</span><sup></sup></h3>
+        <p class="action">Find out more</p>
+      </a>
+    
+	
+     <a href="/ubuzima/nutrition" class="box end hover_container hover_target" >
+        <div class="product cf">
+          <h1><span>Nutrition</span> </h1>
+          <p>One of the most important things you can give your baby is a balanced, healthy diet.</p>
+          <img src="/static/webapp/images_new/arrow-right.png" width="69" height="69" class="arrow">
+        </div>
+        <img src="/static/webapp/images_new/nutrition.jpg" />
+        <h3><span>Nutrition</span><sup></sup></h3>
+        <p class="action">Find out more</p>
+      </a>
+	   
+	
+    </div>
+    
+    <hr />
+    
+    
+    
+      
+  
+  <p> &copy; 2012 The RapidSMS team, All rights reserved.&nbsp;</p>
+  
+  </div>
+    
+  </div>
+  
+</body>
+
+
+</html>

@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+# vim: ai ts=4 sts=4 et sw=4
+
+
+from django.contrib import admin
+from chws.models import *
+
+
+class SectorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code')
+    search_fields = ('name',)
+
+class CHWAdmin(admin.ModelAdmin):
+    list_display = ('national_id', 'telephone_moh',)
+    search_fields = ('national_id','telephone_moh',)
+
+
+admin.site.register(Role)
+admin.site.register(Reporter, CHWAdmin)
+admin.site.register(Nation)
+admin.site.register(Province)
+admin.site.register(District)
+admin.site.register(Sector, SectorAdmin)
+admin.site.register(Village)
+admin.site.register(Hospital)
+admin.site.register(HealthCentre)
+admin.site.register(RegistrationConfirmation)

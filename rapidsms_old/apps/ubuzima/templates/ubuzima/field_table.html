@@ -1,0 +1,44 @@
+{% load pagination-tags %}
+
+
+
+<table width="100%"> 
+    <thead>
+        <tr>
+        	<th>Id</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Type</th>
+            <th>Reporter</th>
+            <th>Patient</th>
+            <th>Message</th>
+        </tr>
+    </thead>
+    <tbody>
+    	{% for field in reports.object_list %}
+            <tr>
+            	<td {%if report.is_risky %} class="lagging"{%endif%}><a href="/ubuzima/report/{{field.report.pk}}">{{field.report.pk}}</a></td>
+                <td>{{report.created|date:"d.m.Y"}}</td>
+                <td><a href="/ubuzima/location/{{field.report.location.pk}}">{{field.report.location.name}}</a></td>
+                <td><a href="/ubuzima/type/{{field.report.type.pk}}">{{field.report.type.name}}</a></td>
+                <td><a href="/ubuzima/reporter/{{field.report.reporter.pk}}">{{field.report.reporter.alias}}</a></td>
+                <td><a href="/ubuzima/patient/{{field.report.patient.pk}}">{{field.report.patient.national_id}}</a></td>
+                <td>{{field.report.summary}}</td>
+		<!-- {%for f in report.fields.all %}<td>{{f.value}}</td>{%endfor%} -->
+            </tr>
+        {% endfor %}
+    </tbody>
+    
+    <tfoot>
+			<tr>
+				<td colspan="10">
+					{% paginator reports %}
+				</td>
+			</tr>
+			<tr>
+				<td colspan="10">
+				Matching Reports: {{ reports.paginator.count }}
+				</td>
+			</tr>
+	</tfoot>
+</table>

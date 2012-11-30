@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+# vim: ai ts=4 sts=4 et sw=4
+
+
+##DJANGO LIBRARY
+from django.utils.translation import ugettext as _
+from django.utils.translation import activate, get_language
+from decimal import *
+from exceptions import Exception
+import traceback
+from datetime import *
+from time import *
+from django.db.models import Q
+
+###DEVELOPED APPS
+
+from rapidsms.contrib.handlers.handlers.keyword import KeywordHandler
+
+
+class PreHandler (KeywordHandler):
+    """
+    Handle any message prefixed ``echo``, responding with the remainder
+    of the text. Useful for remotely testing internationalization.
+    """
+
+    keyword = "pre"
+    
+    def help(self):
+        self.respond("To echo some text, send: ECHO <ANYTHING>")
+
+    def handle(self, text):
+        print self.msg.connection.identity
+        self.respond(text)
+

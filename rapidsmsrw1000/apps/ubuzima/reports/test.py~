@@ -1,0 +1,13 @@
+from apps.ubuzima.app import *
+class Test():
+	
+	def test_me(self, text):
+		reporter, created = Reporter.objects.get_or_create(alias = "1198680069759062", village = "Muhoza", location = Location.objects.get(code = 'F316'))
+		connection = PersistantConnection(backend = PersistantBackend.objects.get(title = "pygsm"), identity = '078860270', reporter = reporter)
+		
+		message = rapidsms.message.Message( connection = connection, person = reporter, text = text)
+		message.reporter = reporter
+		app = App(rapidsms.app.App)
+		results = app.keyword.match(app, message.text)
+		func , captures = results
+		return func(app, message, *captures)

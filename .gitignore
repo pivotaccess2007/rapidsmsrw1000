@@ -1,8 +1,3 @@
-settings.py*
 *~
 *pyc
-wsgi.py
-*.log
-pip-requires.txt
-webapp_cyusa*
-*old_*
+*.old
