@@ -1,18 +1,10 @@
 #!/usr/bin/env python
-# vim: ai ts=4 sts=4 et sw=4
-
-#import sys, os
-
-from django.core.management import execute_manager
-import settings
-
+import os
+import sys
 
 if __name__ == "__main__":
-#    project_root = os.path.abspath(
-#        os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rapidsmsrw1000.settings")
 
-#    path = os.path.join(project_root, "apps")
-#    sys.path.insert(0, path)
+    from django.core.management import execute_from_command_line
 
-#    sys.path.insert(0, project_root)
-    execute_manager(settings)
+    execute_from_command_line(sys.argv)

@@ -6,3 +6,4 @@ wsgi.py
 pip-requires.txt
 webapp_cyusa*
 *old_*
+*.db

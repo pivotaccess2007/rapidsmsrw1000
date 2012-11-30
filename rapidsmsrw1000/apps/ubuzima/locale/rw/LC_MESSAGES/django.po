@@ -1,0 +1,252 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-04-17 17:05+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: app.py:62
+msgid "Unknown Error, please check message format and try again."
+msgstr ""
+
+#: app.py:72
+msgid "Unknown keyword, please check message format and try again."
+msgstr ""
+
+#: app.py:105
+msgid "The correct message format is: SUP YOUR_ID CLINIC_ID LANG VILLAGE"
+msgstr ""
+
+#: app.py:107
+msgid "The correct message format is: REG YOUR_ID CLINIC_ID LANG VILLAGE"
+msgstr ""
+
+#: app.py:116
+#, python-format
+msgid ""
+"Error.  National ID must be exactly 16 digits, you sent the id: %(nat_id)s"
+msgstr ""
+
+#: app.py:134
+#, python-format
+msgid "Please contact your Health Centre to register your National ID:%s"
+msgstr ""
+
+#: app.py:149
+#, python-format
+msgid "Unknown Health Clinic ID: %(clinic)s"
+msgstr ""
+
+#: app.py:189
+#, python-format
+msgid "Thank you for registering at %(clinic)s"
+msgstr ""
+
+#: app.py:201
+#, python-format
+msgid "You are not in a group, located at %(location)s, you speak %(language)s"
+msgstr ""
+
+#: app.py:208
+#, python-format
+msgid "You are a %(group)s, located at %(location)s, you speak %(language)s"
+msgstr ""
+
+#: app.py:212
+msgid "We don't recognize you"
+msgstr ""
+
+#: app.py:252 app.py:256 app.py:260
+msgid "Invalid date format, must be in the form: DD.MM.YYYY"
+msgstr ""
+
+#: app.py:264 app.py:268
+msgid "Invalid date, cannot be in the future."
+msgstr ""
+
+#: app.py:354
+#, python-format
+msgid "Unknown action code: %(invalidcode)s.  "
+msgstr ""
+
+#: app.py:359
+msgid "You cannot give more than one location code"
+msgstr ""
+
+#: app.py:363
+#, python-format
+msgid "Error.  %(error)s"
+msgstr ""
+
+#: app.py:452
+#, python-format
+msgid "%(phone)s: %(text)s"
+msgstr ""
+
+#: app.py:492
+#, python-format
+msgid "%(phone)s: %(report)s"
+msgstr ""
+
+#: app.py:502 app.py:589 app.py:652 app.py:729 app.py:796 app.py:825
+#: app.py:924 app.py:948 app.py:1032
+msgid "You need to be registered first, use the REG keyword"
+msgstr ""
+
+#: app.py:510
+msgid ""
+"The correct format message is: PRE MOTHER_ID LAST_MENSES ACTION_CODE "
+"LOCATION_CODE MOTHER_WEIGHT"
+msgstr ""
+
+#: app.py:521
+msgid "This report cannot be recorded, the date is too old. Thank you!"
+msgstr ""
+
+#: app.py:561 app.py:700 app.py:890 app.py:1097
+msgid ""
+"This report has been recorded, and we cannot duplicate it again. Thank you!"
+msgstr ""
+
+#: app.py:576
+msgid "Thank you! Pregnancy report submitted successfully."
+msgstr ""
+
+#: app.py:597
+msgid ""
+"The correct format message is: RISK MOTHER_ID ACTION_CODE LOCATION_CODE "
+"MOTHER_WEIGHT"
+msgstr ""
+
+#: app.py:638
+msgid "Thank you! Risk report submitted successfully."
+msgstr ""
+
+#: app.py:662
+msgid ""
+"The correct format message is: BIR MOTHER_ID CHILD_NUM ACTION_CODE "
+"LOCATION_CODE CHILD_WEIGHT MUAC"
+msgstr ""
+
+#: app.py:716
+msgid "Thank you! Birth report submitted successfully."
+msgstr ""
+
+#: app.py:737
+msgid ""
+"The correct format message is: CHI MOTHER_ID CHILD_NUM CHILD_DOB "
+"MOVEMENT_CODE ACTION_CODE MUAC WEIGHT"
+msgstr ""
+
+#: app.py:784
+msgid "Thank you! Child health report submitted successfully."
+msgstr ""
+
+#: app.py:805
+msgid "You have not yet sent a report."
+msgstr ""
+
+#: app.py:814
+#, python-format
+msgid " Date: %(date)s"
+msgstr ""
+
+#: app.py:834
+msgid "The correct format message is: ANC MOTHER_ID ..."
+msgstr ""
+
+#: app.py:859
+msgid ""
+"The correct format message is: ANC MOTHER_ID LAST_VISIT ANC_ROUND "
+"ACTION_CODE MOTHER_WEIGHT"
+msgstr ""
+
+#: app.py:913
+msgid "Thank you! ANC report submitted successfully."
+msgstr ""
+
+#: app.py:933
+msgid ""
+"You never reported a refusal. Refusals are reported with the keyword REF"
+msgstr ""
+
+#: app.py:940
+msgid "It has been recorded."
+msgstr ""
+
+#: app.py:959
+msgid "The correct message format is: AMB MOTHER_ID YES|NO"
+msgstr ""
+
+#: app.py:967 app.py:976 app.py:1005 app.py:1020
+msgid "The MOTHER_ID is suspected incorrect."
+msgstr ""
+
+#: app.py:981
+msgid "Thank you! AMB report submitted successfully."
+msgstr ""
+
+#: app.py:989
+msgid "You need to be registered first, use the SUP keyword"
+msgstr ""
+
+#: app.py:1000
+msgid "The correct message format is: HC MOTHER_ID OUTCOME_CODE"
+msgstr ""
+
+#: app.py:1025
+msgid "Thank you! HC report submitted successfully."
+msgstr ""
+
+#: app.py:1041
+msgid "The correct format message is: PNC MOTHER_ID ..."
+msgstr ""
+
+#: app.py:1066
+msgid ""
+"The correct format message is: PNC MOTHER_ID LAST_VISIT PNC_ROUND "
+"ACTION_CODE MOTHER_WEIGHT CHILD_WEIGHT"
+msgstr ""
+
+#: app.py:1110
+#, python-format
+msgid ""
+"Thank you! PNC report submitted. Please send also the birth report of this "
+"patient %(patient)s"
+msgstr ""
+
+#: app.py:1120
+msgid "Thank you! PNC report submitted successfully."
+msgstr ""
+
+#: models.py:242
+#, python-format
+msgid "%s Report: "
+msgstr ""
+
+#: models.py:243
+#, python-format
+msgid "Patient=%s, "
+msgstr ""
+
+#: models.py:244
+#, python-format
+msgid "Location=%s"
+msgstr ""
+
+#: models.py:246
+#, python-format
+msgid " (%s)"
+msgstr ""
