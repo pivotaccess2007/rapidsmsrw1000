@@ -1,4 +1,4 @@
 *~
-*pyc
+*.pyc
 *.old
 settings.py
