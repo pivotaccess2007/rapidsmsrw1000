@@ -100,7 +100,7 @@ class AncHandler (KeywordHandler):
 	                
         #   TODO:
         #   Muck with the translations.
-        print message.text    	
+            	
         return True 
 
         #   TODO:

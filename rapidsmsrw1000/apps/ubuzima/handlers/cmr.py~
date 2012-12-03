@@ -100,6 +100,6 @@ class CmrHandler (KeywordHandler):
         # cc the supervisor if there is one
         try:	cc_supervisor(message, report)
         except:	pass      
-        print message.text    	
+            	
         return True 
 

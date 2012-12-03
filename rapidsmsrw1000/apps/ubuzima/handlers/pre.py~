@@ -113,11 +113,9 @@ class PreHandler (KeywordHandler):
         fields.append(read_key(location))
         
         for field in fields:
-            if field:
-                try:
-        	    	field.save()
-                	report.fields.add(field)
-                except Exception, e:    pass           
+            field.report = report
+            field.save()
+            report.fields.add(field)     
         #print message, message.connection, last_menses, fields, patient,report
         # either return an advice text, or our default text for this message type
         try:	response = run_triggers(message, report)

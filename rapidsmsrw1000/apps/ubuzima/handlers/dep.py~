@@ -50,16 +50,7 @@ class DepHandler (KeywordHandler):
     	dep = Departure(reporter = message.reporter, depid = rez.group(1))
     	dep.save()
 
-        try:	response = run_triggers(message, report)
-        except:	response = None
-        if response:
-            message.respond(response)
-        else:
-            message.respond(_("Thank you! Dep report submitted successfully."))
-            
-        # cc the supervisor if there is one
-        try:	cc_supervisor(message, report)
-        except:	pass      
+        message.respond(_("Thank you! Dep report submitted successfully."))   
             	
         return True 
 

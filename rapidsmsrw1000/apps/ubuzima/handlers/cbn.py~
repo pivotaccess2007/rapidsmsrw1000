@@ -82,7 +82,7 @@ class CbnHandler (KeywordHandler):
         # then associate all our fields with it
         fields.append(read_weight(weight, weight_is_mothers=False))
         fields.append(read_height(height, height_is_mothers=False))
-        print report, fields
+
         for field in fields:
             field.report = report
             field.save()

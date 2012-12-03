@@ -50,16 +50,7 @@ class RefHandler (KeywordHandler):
     	ref = Refusal(reporter = message.reporter, refid = rez.group(1))
     	ref.save()
 
-        try:	response = run_triggers(message, report)
-        except:	response = None
-        if response:
-            message.respond(response)
-        else:
-            message.respond(_("Thank you! REF report submitted successfully."))
-            
-        # cc the supervisor if there is one
-        try:	cc_supervisor(message, report)
-        except:	pass      
-        print message.text    	
+        message.respond(_("Thank you! REF report submitted successfully."))
+               	
         return True 
 

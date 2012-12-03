@@ -13,7 +13,7 @@ from django.contrib.auth.views import logout as django_logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt,csrf_protect
 #from rapidsms.webui import settings
-from rapidsmsrw1000.settings import
+from rapidsmsrw1000.settings import *
 from rapidsmsrw1000.apps.ubuzima.views import *
 from rapidsms.contrib.locations.models import Location, LocationType
 

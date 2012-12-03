@@ -1,0 +1,14 @@
+1. Kannel backends does not work as documented on rapidsms.0.10.0:
+
+	=====>> Need to replace the line in backends configuration :
+		
+			 "ENGINE":  "rapidsms.backends.kannel",
+
+		by:
+			"ENGINE":  "rapidsms.backends.kannel.outgoing",
+
+2. STATIC MEDIA FILES:
+
+	Need to create a folder in in the project root named "static" and run the following command:
+
+	./manage collectstatic

@@ -82,12 +82,8 @@ class ChiHandler (KeywordHandler):
         fields.append(Field(type=child_num_type, value=Decimal(str(number))))
         
         # save the report
-        if not report.has_dups():
-        	report.save()
-        else:
-    		message.respond(_("This report has been recorded, and we cannot duplicate it again. Thank you!"))
-    		return True
-        
+        report.save()
+                
         # then associate all our fields with it
         fields.append(read_weight(weight, weight_is_mothers=False))
         fields.append(read_key(vaccins))

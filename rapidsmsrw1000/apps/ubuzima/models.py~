@@ -741,6 +741,7 @@ class Departure(models.Model):
     province = models.ForeignKey(Location, related_name = 'depprovince', null=True)
     nation = models.ForeignKey(Location, related_name = 'depnation', null=True)
     created = models.DateTimeField(auto_now_add=True)
+
     def __unicode__(self):
         return self.reporter.connection().identity
 

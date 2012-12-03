@@ -173,7 +173,7 @@ def get_or_create_patient(reporter, national_id):
     except Patient.DoesNotExist, e:
         # not found?  create the patient instead
         
-        patient = Patient.objects.create(national_id=national_id, location=reporter.location)
+        patient = Patient.objects.create(national_id=national_id, location = reporter.location)
 
     return patient
 
@@ -351,7 +351,7 @@ def read_muac(code_string):
         return field
     except:	return None
 
-def read_number(self, code_string):
+def read_number(code_string):
     try:
         field_type = FieldType.objects.get(key="child_number")
         value = Decimal(code_string)
