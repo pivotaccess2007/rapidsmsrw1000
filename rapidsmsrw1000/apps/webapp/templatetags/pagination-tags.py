@@ -2,11 +2,23 @@
 # vim: ai ts=4 sts=4 et sw=4
 
 
-from rapidsms.webui.utils import self_link
+#from rapidsms.webui.utils import self_link
 
 from django import template
 register = template.Library()
 
+
+def _self_link(req, **kwargs):
+    new_kwargs = req.GET.copy()
+
+    # build a new querydict using the GET params from the current
+    # request, with those passed to this function overridden. we can't
+    # use QueryDict.update here, since it APPENDS, rather than REPLACES.
+    for k, v in kwargs.items():
+        new_kwargs[k] = v
+
+    kwargs_enc = new_kwargs.urlencode()
+    return "%s?%s" % (req.path, kwargs_enc)
 
 @register.inclusion_tag("webapp/partials/paginator.html", takes_context=True)
 def paginator(context, objects):
@@ -17,7 +29,7 @@ def paginator(context, objects):
     
     def __link_to(page):
         kwargs = { page_param: page }
-        return self_link(req, **kwargs)
+        return _self_link(req, **kwargs)
     
     return {
         "objects":         objects,

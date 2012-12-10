@@ -28,8 +28,8 @@ def login(req, template_name="webapp/login.html"):
     # this view, and the one below, is overridden because 
     # we need to set the base template to use somewhere  
     # somewhere that the login page can access it.
-    req.base_template = BASE_TEMPLATE 
-    print req.base_template
+    req.base_template = "webapp/layout.html" 
+    
     #area={}
     #locs=Report.objects.values_list('location', flat=True).distinct()
     #req.session['locs']=locs
@@ -42,13 +42,13 @@ def login(req, template_name="webapp/login.html"):
 
 def logout(req, template_name="webapp/loggedout.html"):
     '''Logout of rapidsms'''
-    req.base_template = settings.BASE_TEMPLATE 
+    req.base_template = "webapp/layout.html"
     return django_logout(req, **{"template_name" : template_name})
 
 def working_area(req):
     area={}
     locs=Report.objects.values_list('location', flat=True).distinct()
-    return render_to_response(req, "layout.html",{'locs':locs, 'z':"ZIGAMA"})
+    return render_to_response("webapp/layout.html",{'locs':locs, 'z':"ZIGAMA"}, context_instance=RequestContext(req))
 
 def matching_report(req, diced, alllocs = False):
     rez = {}
@@ -64,4 +64,5 @@ def matching_report(req, diced, alllocs = False):
 def home(req):
     evt="amazi"
     my_rc={}
+    req.base_template = "webapp/layout.html"
     return render_to_response('index.html', context_instance=RequestContext(req))

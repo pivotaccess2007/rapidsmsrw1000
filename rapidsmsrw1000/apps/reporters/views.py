@@ -13,20 +13,21 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction,IntegrityError
 
 #from rapidsms.webui.utils import *
-from reporters.models import *
-from ubuzima.models import *
-from ubuzima.views import *
-from locations.models import *
-from logger.models import *
-from reporters.utils import *
+from rapidsmsrw1000.apps.reporters.models import *
+from rapidsmsrw1000.apps.ubuzima.models import *
+from rapidsmsrw1000.apps.ubuzima.views import *
+from rapidsmsrw1000.apps.locations.models import *
+from rapidsmsrw1000.apps.logger.models import *
+from rapidsmsrw1000.apps.reporters.utils import *
 
 
 def message(req, msg, link=None):
-    return render_to_response(req,
-        "message.html", {
+    req.base_template = "webapp/layout.html"
+    return render_to_response(
+        "webapp/message.html", {
             "message": msg,
             "link": link
-    })
+    }, context_instance=RequestContext(req))
 
 
 @permission_required('reporters.can_view')
@@ -35,7 +36,7 @@ def index(req):
     try:
         p = UserLocation.objects.get(user=req.user)
     except UserLocation.DoesNotExist,e:
-        return render_to_response(req,"404.html",{'error':e})
+        return render_to_response("404.html",{'error':e}, context_instance=RequestContext(req))
     lf=location_fresher(req)
     pst=reporter_fresher(req)
     repos=Reporter.objects.filter(**pst)
@@ -52,11 +53,10 @@ def index(req):
         wrt.writerows([heads]+seq)
         return htp
     else:
-        return render_to_response(req,
-            "reporters/index.html", {"locations":Location.objects.filter(type__name__in=['Province','District','Hospital','Health Centre'],**lf),'usrloc':UserLocation.objects.get(user=req.user),
-            "reporters": paginated(req, repos, prefix="rep"),"chws":len(repos.filter(groups__title='CHW')),"sups":len(repos.filter(groups__title='Supervisor')),
-            "groups":    paginated(req, ReporterGroup.objects.flatten(), prefix="grp"),
-        })
+        return render_to_response("reporters/index.html", {"locations":Location.objects.filter(type__name__in=['Province','District','Hospital','Health Centre'],**lf),'usrloc':UserLocation.objects.get(user=req.user),
+            "reporters": paginated(req, repos),"chws":len(repos.filter(groups__title='CHW')),"sups":len(repos.filter(groups__title='Supervisor')),
+            "groups":    paginated(req, ReporterGroup.objects.all()),
+        }, context_instance=RequestContext(req))
 
 def reporters_by_location(req,pk):
     location = get_object_or_404(Location, pk=pk)
@@ -79,13 +79,13 @@ def reporters_by_location(req,pk):
         wrt.writerows([heads]+seq)
         return htp
     else:
-        return render_to_response(req,
+        return render_to_response(
             "reporters/index.html", {"chws":len(repos.filter(groups__title='CHW')),"sups":len(repos.filter(groups__title='Supervisor')),
             "locations":Location.objects.filter(type__name__in=['Province','District','Hospital','Health Centre']),
             "location":location,
-            "reporters": paginated(req,repos , prefix="rep"),
-            "groups":    paginated(req, ReporterGroup.objects.flatten(), prefix="grp")
-        })
+            "reporters": paginated(req,repos),
+            "groups":    paginated(req, ReporterGroup.objects.all())
+        }, context_instance=RequestContext(req))
 
 def location_fresher(req):
     pst={}
@@ -137,11 +137,11 @@ def find_reporter(req):
         return render_to_response(req,
         "reporters/index.html", {
         "locations":Location.objects.filter(type__name__in=['Province','District','Hospital','Health Centre']),
-        "reporters": paginated(req, ans , prefix="rep"),
-        "groups":    paginated(req, ReporterGroup.objects.flatten(), prefix="grp"),
+        "reporters": paginated(req, ans ),
+        "groups":    paginated(req, ReporterGroup.objects.all()),
     })
     except Exception,err:
-        return render_to_response(req,"404.html",{"error":err})
+        return render_to_response("404.html",{"error":err}, context_instance=RequestContext(req))
 
 #Inactive reporters
 def default_reporter_location(req):
@@ -214,11 +214,11 @@ def view_active_reporters(req,**flts):
         lxn = Location.objects.get(id = lox)
         lxn=lxn.name+' '+lxn.type.name+', '+lxn.parent.parent.name+' '+lxn.parent.parent.type.name+', '+lxn.parent.parent.parent.name+' '+lxn.parent.parent.parent.type.name
     rez=match_inactive(req,filters)
-    return render_to_response(req,
+    return render_to_response(
         "reporters/active.html", {
-        "reporters": paginated(req, active_reporters(req,rez), prefix="rep"),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+        "reporters": paginated(req, active_reporters(req,rez)),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
-          })
+          }, context_instance=RequestContext(req))
 
 def view_active_reporters_csv(req,**flts):
     filters = {'period':default_period(req),
@@ -255,11 +255,11 @@ def view_inactive_reporters(req,**flts):
         lxn = Location.objects.get(id = lox)
         lxn=lxn.name+' '+lxn.type.name+', '+lxn.parent.parent.name+' '+lxn.parent.parent.type.name+', '+lxn.parent.parent.parent.name+' '+lxn.parent.parent.parent.type.name
     rez=match_inactive(req,filters)
-    return render_to_response(req,
+    return render_to_response(
         "reporters/inactive.html", {
-        "reporters": paginated(req, inactive_reporters(req,rez), prefix="rep"),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+        "reporters": paginated(req, inactive_reporters(req,rez)),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
-          })
+          }, context_instance=RequestContext(req))
 
 def view_inactive_reporters_csv(req,**flts):
     filters = {'period':default_period(req),
@@ -310,10 +310,10 @@ def inactive_reporters_location(req,pk):
     for an in reps:
         if an.location==location:
             ans.append(an)
-    return render_to_response(req,
+    return render_to_response(
         "reporters/inactive.html", {
-        "reporters": paginated(req,ans, prefix="rep"),
-          })
+        "reporters": paginated(req,ans),
+          }, context_instance=RequestContext(req))
 
 def inactive_reporters_sup(req,pk):
     sup = get_object_or_404(Reporter, pk=pk)
@@ -322,10 +322,10 @@ def inactive_reporters_sup(req,pk):
     for an in reps:
         if sup in an.reporter_sups():
             ans.append(an)
-    return render_to_response(req,
+    return render_to_response(
         "reporters/inactive.html", {
-        "reporters": paginated(req,ans, prefix="rep"),
-          })
+        "reporters": paginated(req,ans),
+          }, context_instance=RequestContext(req))
 
 def check_reporter_form(req):
     
@@ -430,11 +430,11 @@ def error_list(req,**flts):
     except KeyError:
         pass
     errs=ErrorNote.objects.filter(**rez).order_by('-created')
-    return render_to_response(req,
+    return render_to_response(
         'reporters/errors.html', {
-        'errors': paginated(req, errs.filter(**ps), prefix='err'),'errs':errs.filter(**ps).values('type__name','type__pk').annotate(number = Count('id')).order_by('type__name'),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+        'errors': paginated(req, errs.filter(**ps)),'errs':errs.filter(**ps).values('type__name','type__pk').annotate(number = Count('id')).order_by('type__name'),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'l':l,'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
-    })
+    }, context_instance=RequestContext(req))
 
 @permission_required('reporters.can_view')
 def error_list_by_type(req,pk,**flts):
@@ -461,11 +461,11 @@ def error_list_by_type(req,pk,**flts):
     except KeyError:
         pass
     errs=ErrorNote.objects.filter(type__pk = pk ,**rez).order_by('-created')
-    return render_to_response(req,
+    return render_to_response(
         'reporters/errors.html', {
-        'errors': paginated(req, errs.filter(**ps), prefix='err'),'errs':errs.filter(**ps).values('type__name','type__pk').annotate(number = Count('id')).order_by('type__name'),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+        'errors': paginated(req, errs.filter(**ps)),'errs':errs.filter(**ps).values('type__name','type__pk').annotate(number = Count('id')).order_by('type__name'),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'l':l,'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
-    })
+    }, context_instance=RequestContext(req))
 
 @permission_required('reporters.can_view')
 def error_list_csv(req,**flts):
@@ -558,7 +558,7 @@ def add_reporter(req):
         if 'location__id' in pst.keys():  ps['errby__location__id']=pst['location__id']
         elif 'location__in' in pst.keys():  ps['errby__location__in']=pst['location__in']  
         repos=Reporter.objects.filter(**pst)      
-        return render_to_response(req,
+        return render_to_response(
             "reporters/reporter.html", {
                 
                 # display paginated reporters in the left panel
@@ -571,7 +571,7 @@ def add_reporter(req):
                 
                 # list all groups + backends in the edit form
                 "all_groups": ReporterGroup.objects.flatten(),
-                "all_backends": PersistantBackend.objects.all() })
+                "all_backends": PersistantBackend.objects.all() }, context_instance=RequestContext(req))
 
     @transaction.commit_manually
     def post(req):
@@ -584,10 +584,10 @@ def add_reporter(req):
         # now, since we're not using django forms here
         if errors["missing"]:
             transaction.rollback()
-            return message(req,
+            return message(
                 "Missing Field(s): %s" %
                     ", ".join(errors["missing"]),
-                link="/reporters/add")
+                link="/reporters/add", context_instance=RequestContext(req))
         
         try:
             # create the reporter object from the form
@@ -600,9 +600,9 @@ def add_reporter(req):
             transaction.commit()
             
             # full-page notification
-            return message(req,
+            return message(
                 "Reporter %d added" % (rep.pk),
-                link="/reporters")
+                link="/reporters", context_instance=RequestContext(req))
         
         except Exception, err:
             transaction.rollback()
@@ -621,25 +621,25 @@ def edit_reporter(req, pk):
     pst=reporter_fresher(req)
     repos=Reporter.objects.filter(**pst)
     def get(req):
-        return render_to_response(req,
+        return render_to_response(
             "reporters/reporter.html", {
                 
                 # display paginated reporters in the left panel
                 "reporters": paginated(req, repos),
 
                 #   Errors in the right. (Revence)
-                'errors': paginated(req, ErrorNote.objects.filter(errby = rep).order_by('-created'), prefix='err'),
+                'errors': paginated(req, ErrorNote.objects.filter(errby = rep).order_by('-created')),
                 "locations":Location.objects.filter(type__name__in=['Province','District','Hospital','Health Centre'],**lf),
                 "chws":len(repos.filter(groups__title='CHW')),"sups":len(repos.filter(groups__title='Supervisor')),
                 # list all groups + backends in the edit form
-                "all_groups": ReporterGroup.objects.flatten(),
+                "all_groups": ReporterGroup.objects.all(),
                 "all_backends": PersistantBackend.objects.all(),
                 
                 # split objects linked to the editing reporter into
                 # their own vars, to avoid coding in the template
                 "connections": rep.connections.all(),
                 "groups":      rep.groups.all(),
-                "reporter":    rep })
+                "reporter":    rep }, context_instance=RequestContext(req))
     
     @transaction.commit_manually
     @permission_required('reporters.delete_reporter')
@@ -699,10 +699,10 @@ def edit_reporter(req, pk):
 @require_http_methods(["GET", "POST"])
 def add_group(req):
     if req.method == "GET":
-        return render_to_response(req,
+        return render_to_response(
             "reporters/group.html", {
-                "all_groups": ReporterGroup.objects.flatten(),
-                "groups": paginated(req, ReporterGroup.objects.flatten()) })
+                "all_groups": ReporterGroup.objects.all(),
+                "groups": paginated(req, ReporterGroup.objects.all()) }, context_instance=RequestContext(req))
         
     elif req.method == "POST":
         
@@ -730,7 +730,7 @@ def edit_group(req, pk):
         
         # fetch all groups, to be displayed
         # flat in the "parent group" field
-        all_groups = ReporterGroup.objects.flatten()
+        all_groups = ReporterGroup.objects.all()
         
         # iterate the groups, to mark one of them
         # as selected (the editing group's parent)
@@ -738,11 +738,11 @@ def edit_group(req, pk):
             if grp.parent == this_group:
                 this_group.selected = True
         
-        return render_to_response(req,
+        return render_to_response(
             "reporters/group.html", {
-                "groups": paginated(req, ReporterGroup.objects.flatten()),
+                "groups": paginated(req, ReporterGroup.objects.all()),
                 "all_groups": all_groups,
-                "group": grp })
+                "group": grp }, context_instance=RequestContext(req))
     
     elif req.method == "POST":
         # if DELETE was clicked... delete

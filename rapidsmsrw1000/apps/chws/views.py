@@ -1,21 +1,25 @@
 #!/usr/bin/env python
 # vim: ai ts=4 sts=4 et sw=4
 
-from apps.chws.models import *
+from rapidsmsrw1000.apps.chws.models import *
 from xlrd import open_workbook ,cellname,XL_CELL_NUMBER,XLRDError
 from django.template import RequestContext
 
+#############
 #from rapidsms.webui.utils import *
+from django.template import RequestContext
+from django.shortcuts import render_to_response
+##############################
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.core.urlresolvers import reverse
 from django import forms ###deal with form in views
 from os.path import join, isfile
 
 import csv
-from datetime import date, timedelta
+
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseServerError, HttpResponseRedirect,Http404
-from django.template import RequestContext
+
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404
@@ -23,6 +27,8 @@ from django.db import transaction, connection, IntegrityError
 from django.db.models import Q
 from django.contrib.auth.models import *
 import time
+import datetime
+from django.utils import timezone
 from rapidsmsrw1000.apps.ubuzima.utils import *
 from rapidsmsrw1000.apps.reporters import models as old_registry
 
@@ -32,7 +38,7 @@ from rapidsmsrw1000.apps.reporters import models as old_registry
 @require_http_methods(["GET"])
 def index(request):
     """Main listing."""
-    
+    request.base_template = "webapp/layout.html"
     prv = Province.objects.all().order_by("-id")
     
     paginator = Paginator(prv, 2)
@@ -46,14 +52,14 @@ def index(request):
         prv = paginator.page(paginator.num_pages)
 
     
-    return render_to_response(request,"chws/province.html", dict(prvs=prv, user=request.user))
+    return render_to_response("chws/province.html", dict(prvs=prv, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
 @require_GET
 @require_http_methods(["GET"])
 def errors(request, ref):
     """Errors listing."""
-    
+    request.base_template = "webapp/layout.html"
     errors = Error.objects.filter(upload_ref = ref).order_by("-id")
     
     paginator = Paginator(errors, 20)
@@ -67,13 +73,13 @@ def errors(request, ref):
         errors = paginator.page(paginator.num_pages)
 
     
-    return render_to_response(request,"chws/errors.html", dict(errors=errors, user=request.user))
+    return render_to_response("chws/errors.html", dict(errors=errors, user=request.user), context_instance=RequestContext(request))
 
 @require_GET
 @require_http_methods(["GET"])
 def warnings(request, ref):
     """Errors listing."""
-    
+    request.base_template = "webapp/layout.html"
     warnings = Warn.objects.filter(upload_ref = ref).order_by("-id")
     
     paginator = Paginator(warnings, 20)
@@ -87,12 +93,14 @@ def warnings(request, ref):
         warnings = paginator.page(paginator.num_pages)
 
     
-    return render_to_response(request,"chws/warnings.html", dict(warnings=warnings, user=request.user))
+    return render_to_response("chws/warnings.html", dict(warnings=warnings, user=request.user), context_instance=RequestContext(request))
 
 def view_uploads(request):
-    
-    uploads = Error.objects.values('upload_ref').distinct('upload_ref')    
-    errors = [Error.objects.filter(upload_ref = s['upload_ref'])[0] for s in uploads]
+    request.base_template = "webapp/layout.html"
+    #uploads = Error.objects.values('upload_ref').distinct('upload_ref')
+    uploads = set()
+    for obj in Error.objects.all():   uploads.add(obj.upload_ref)   
+    errors = [Error.objects.filter(upload_ref = s)[0] for s in uploads]
     confirms = RegistrationConfirmation.objects.filter(responded = True, answer = True)
     pendings = RegistrationConfirmation.objects.filter(responded = False, answer = False)
     regs = RegistrationConfirmation.objects.all()
@@ -107,13 +115,14 @@ def view_uploads(request):
         errors = paginator.page(paginator.num_pages)
 
     
-    return render_to_response(request,"chws/uploads.html", dict( errors=errors, regs = regs, confirms = confirms, pendings = pendings, user=request.user))
+    return render_to_response("chws/uploads.html", dict( errors=errors, regs = regs, confirms = confirms, pendings = pendings, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
 @require_GET
 @require_http_methods(["GET"])
 def view_pendings(request):
     """Pending listing."""
+    request.base_template = "webapp/layout.html"
     hc = dst = None
     pendings = RegistrationConfirmation.objects.filter(responded = False, answer = False).order_by("-id")
     prvs = Province.objects.all()
@@ -167,14 +176,14 @@ def view_pendings(request):
             pendings = paginator.page(paginator.num_pages)
 
     
-        return render_to_response(request,"chws/pendings.html", dict(pendings = pendings, dsts = dst, hcs = hc, prvs = prvs, user=request.user))
+        return render_to_response("chws/pendings.html", dict(pendings = pendings, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
 @require_GET
 @require_http_methods(["GET"])
 def view_confirms(request):
     """confirms listing."""
-    
+    request.base_template = "webapp/layout.html"    
     hc = dst = None
     confirms = RegistrationConfirmation.objects.filter(responded = True, answer = True).order_by("-id")
     prvs = Province.objects.all()
@@ -224,9 +233,10 @@ def view_confirms(request):
             confirms = paginator.page(page)
         except (InvalidPage, EmptyPage):
             confirms = paginator.page(paginator.num_pages)
-        return render_to_response(request,"chws/confirms.html", dict(confirms = confirms, dsts = dst, hcs = hc, prvs = prvs, user=request.user))
+        return render_to_response("chws/confirms.html", dict(confirms = confirms, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
 def import_reporters_from_excell(req):
+    req.base_template = "webapp/layout.html"
     try:    
        
         err,errornum, error_list, warnings,upload_ref = "", 0, None, None,None
@@ -242,7 +252,9 @@ def import_reporters_from_excell(req):
                 
                 sheet = book.sheet_by_name('reporters')
                 district = form.cleaned_data['import_district']
+                
                 upload_ref = "%s_%s" % (district.name, get_time_string(time.localtime()))
+                
                 r =w = 0
                 
                 for row_index in range(sheet.nrows):
@@ -253,7 +265,10 @@ def import_reporters_from_excell(req):
                         try:
                             
                             reporter = initialize_reporter(row_num, sheet)
-                            
+                            chw, created = Reporter.objects.get_or_create(national_id = reporter.national_id, telephone_moh = reporter.telephone_moh)
+                            chw = update_reporter(row_num, sheet, chw)
+                            #chw.save()
+                            #print r, chw.surname, chw.given_name, chw.role, chw.sex, chw.education_level, chw.date_of_birth, chw.join_date, chw.national_id, chw.telephone_moh, chw.village, chw.cell, chw.sector, chw.health_centre, chw.referral_hospital, chw.district, chw.province, chw.nation, chw.created, chw.updated, chw.language
                             if not reporter.national_id:
                                 ikosa = set_error("Row: %d ===>>> Error: %s" % (int(row_num+1),"Wrong National ID"), \
                                                                     req, reporter.district, row_num, sheet, upload_ref,e)
@@ -273,7 +288,7 @@ def import_reporters_from_excell(req):
     
                                 #else:
                                 try:
-                                    chw = reporter
+                                    #chw = reporter
                                     try:
                                         chw.save()
                                         confirm = RegistrationConfirmation(reporter = chw)
@@ -339,10 +354,10 @@ def import_reporters_from_excell(req):
                 form = UploadImportFileForm()
         if errornum >= 1: err="Error: %s"%e
         
-        return render_to_response(req,'chws/import.html', {'form': form,'error':error_list, 'warn':warnings, 'ref':upload_ref})
+        return render_to_response('chws/import.html', {'form': form,'error':error_list, 'warn':warnings, 'ref':upload_ref}, context_instance=RequestContext(req))
 
     except Exception,e:
-        return render_to_response(req,"404.html",{'error':e})
+        return render_to_response("ubuzima/404.html",{'error':e}, context_instance=RequestContext(req))
     
 
 def process_import_file(import_file, session):
@@ -504,7 +519,7 @@ def get_connection(telephone_moh, reporter = None):
 
                 backend = old_registry.PersistantBackend.objects.get(title="kannel")
                 connection = old_registry.PersistantConnection(backend = backend, identity = telephone_moh, \
-                                                                                        reporter = reporter, last_seen = datetime.datetime.now())
+                                                                                        reporter = reporter, last_seen = timezone.localtime(timezone.now()))
                 connection.save()
                 return connection
             else:
@@ -643,18 +658,19 @@ def initialize_reporter(row, sheet):
     reporter.nation			=   reporter.district.nation
     reporter.province		=   reporter.district.province
     reporter.sector			=   get_sector(sheet.cell(row,11).value, district = reporter.district)
+    #print reporter.sector
     reporter.referral_hospital=	get_referral_hospital(name = sheet.cell(row,13).value, district = reporter.district)
     reporter.health_centre	=   get_health_centre(name = sheet.cell(row,12).value, district = reporter.district)
     reporter.cell			=	get_cell(name = sheet.cell(row,10).value, sector = reporter.sector)	
     reporter.village		=   get_village(name = sheet.cell(row,9).value, cell = reporter.cell)      
-    reporter.updated		    = datetime.datetime.now()
+    reporter.updated		    = timezone.localtime(timezone.now())
     reporter.language        = reporter.language_kinyarwanda
     return reporter
 
 def update_reporter(row, sheet, reporter):
 
-    reporter.national_id     = parse_alias(sheet.cell(row,7).value)
-    reporter.telephone_moh   = parse_phone_number(sheet.cell(row,8).value)
+    #reporter.national_id     = parse_alias(sheet.cell(row,7).value)
+    #reporter.telephone_moh   = parse_phone_number(sheet.cell(row,8).value)
     reporter.surname         = get_name(parse_name(sheet.cell(row,0).value))        	
     reporter.given_name      = get_name(parse_name(sheet.cell(row,1).value))	
     reporter.role            = get_role(sheet.cell(row,2).value)	
@@ -670,7 +686,7 @@ def update_reporter(row, sheet, reporter):
     reporter.health_centre	=   get_health_centre(name = sheet.cell(row,12).value, district = reporter.district)
     reporter.cell			=	get_cell(name = sheet.cell(row,10).value, sector = reporter.sector)	
     reporter.village		=   get_village(name = sheet.cell(row,9).value, cell = reporter.cell)      
-    reporter.updated		= datetime.datetime.now()
+    reporter.updated		= timezone.localtime(timezone.now())
     reporter.language       = reporter.language
 
     return reporter
@@ -678,14 +694,14 @@ def update_reporter(row, sheet, reporter):
 
 def set_error(msg, req, district, row_num, sheet, upload_ref, e):
     try:
-        er_msg = Error(row = int(row_num)+1, sheet = sheet.name, upload_ref = upload_ref, district = district, when = datetime.datetime.now(), by = req.user, error_message = msg)
+        er_msg = Error(row = int(row_num)+1, sheet = sheet.name, upload_ref = upload_ref, district = district, when = timezone.localtime(timezone.now()), by = req.user, error_message = msg)
         if e.message != 'Reporter matching query does not exist.': er_msg.save()
         return er_msg
     except: pass
 
 def set_warn(msg, req, district, row_num, sheet, upload_ref):
     try:
-        warn_msg = Warn(row = int(row_num)+1, sheet = sheet.name, upload_ref = upload_ref, district = district, when = datetime.datetime.now(), by = req.user, warning_message = msg)
+        warn_msg = Warn(row = int(row_num)+1, sheet = sheet.name, upload_ref = upload_ref, district = district, when = timezone.localtime(timezone.now()), by = req.user, warning_message = msg)
         warn_msg.save()
         return warn_msg
     except: pass

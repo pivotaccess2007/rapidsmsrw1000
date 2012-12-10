@@ -75,7 +75,7 @@ class BirHandler (KeywordHandler):
             # there were invalid fields, respond and exit
             message.respond("%s" % e)
             return True
-        
+
         # set the dob for the child if we got one
         if dob:
             report.set_date_string(dob)
@@ -83,7 +83,7 @@ class BirHandler (KeywordHandler):
         # set the child number
         child_num_type = FieldType.objects.get(key='child_number')
         fields.append(Field(type=child_num_type, value=Decimal(number)))
-        
+
         # save the report
         if not report.has_dups():
         	report.save()

@@ -228,7 +228,11 @@ def import_cardcodes(filepath = "rapidsmsrw1000/apps/ubuzima/xls/cardcodes.xls",
         desc    = sheet.cell(row_index,descrow-1).value.strip()
         cat     = sheet.cell(row_index,catrow-1).value.strip()
         category,created = FieldCategory.objects.get_or_create( name = cat)
-        ft,created = FieldType.objects.get_or_create( key = key, category = category)
+        try:
+            ft = FieldType.objects.get( key = key)
+            ft.category = category
+        except: ft = FieldType( key = key, category = category)
+        
         ft.description = desc
         ft.has_value = True if sheet.cell(row_index,valrow-1).value.strip() == 'YES' else False             
         ft.save()          
@@ -237,7 +241,7 @@ def import_cardcodes(filepath = "rapidsmsrw1000/apps/ubuzima/xls/cardcodes.xls",
 
 def initialize_reporttypes():
     t = ['ANC', 'Birth', 'Community Based Nutrition', 'Community Case Management', 'Child Health', 'Case Management Response', 'Death', 'Newborn Care', \
-            'Postnatal Care', 'Pregnancy', 'Red Alert Result', 'Red Alert', 'Risk Result', 'Risk', ]
+            'PNC', 'Pregnancy', 'Red Alert Result', 'Red Alert', 'Risk Result', 'Risk', ]
     try:
         for r in t:
             ReportType.objects.get_or_create(name = r)

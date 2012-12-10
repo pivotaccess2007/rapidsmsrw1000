@@ -5,7 +5,7 @@
 <div class="module">
 	<h2>{% if group %}Edit {{ group }}{% else %}Add a Group{% endif %}</h2>
 	
-	<form method="post" id="fm-grp-add" action="/groups/{% if group %}{{ group.pk }}{% else %}add{% endif %}">
+	<form method="post" id="fm-grp-add" action="/reporters/groups/{% if group %}{{ group.pk }}{% else %}add{% endif %}">{% csrf_token %}
 		<div>
 			<label for="fm-grp-add-title">Title</label>
 			<input type="text" class="required" id="fm-grp-add-title" name="title"{% if group %} value="{{ group.title }}"{% endif %} />

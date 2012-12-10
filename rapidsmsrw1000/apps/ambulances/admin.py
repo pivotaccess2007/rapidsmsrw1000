@@ -3,7 +3,7 @@
 
 
 from django.contrib import admin
-from ambulances.models import *
+from rapidsmsrw1000.apps.ambulances.models import *
 
 
 admin.site.register(AmbulanceDriver)

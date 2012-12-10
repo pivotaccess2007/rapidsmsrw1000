@@ -31,14 +31,32 @@ from django.views.generic import ListView
 #from pygrowup.pygrowup import *
 from decimal import *
 
+
+def paginated(req, data):
+    req.base_template = "webapp/layout.html"
+    paginator = Paginator(data, 20)
+        
+    try: page = int(req.GET.get("page", '1'))
+    except ValueError: page = 1
+
+    try:
+        data = paginator.page(page)
+    except (InvalidPage, EmptyPage):
+        data = paginator.page(paginator.num_pages)
+
+    return data
+    
+
+
 @permission_required('ubuzima.can_view')
 #@require_GET
 @require_http_methods(["GET"])
 def index(req,**flts):
+    
     try:
         p = UserLocation.objects.get(user=req.user)
     except UserLocation.DoesNotExist,e:
-        return render_to_response("404.html",{'error':e}, context_instance=RequestContext(req))
+        return render_to_response("ubuzima/404.html",{'error':e}, context_instance=RequestContext(req))
     filters = {'period':default_period(req),
              'location':default_location(req),
              'province':default_province(req),
@@ -75,8 +93,9 @@ def index(req,**flts):
         wrt.writerows([heads]+seq)
         return htp
     else:
-        return render_to_response("index.html", {'pats':get_registered_women(req).count(),'reps' : get_registered_report(req).count(), 'ho':get_home_dev(req).count(),'or':get_route_dev(req).count(),'hp':get_facility_dev(req).count(),'bi':get_deliveries(req).count(),
-            "reports": paginated(req, reports, prefix="rep"),'usrloc':UserLocation.objects.get(user=req.user),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+
+        return render_to_response("ubuzima/index.html", {'pats':get_registered_women(req).count(),'reps' : get_registered_report(req).count(), 'ho':get_home_dev(req).count(),'or':get_route_dev(req).count(),'hp':get_facility_dev(req).count(),'bi':get_deliveries(req).count(),
+            "reports": paginated(req, reports),'usrloc':UserLocation.objects.get(user=req.user),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
              'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
         }, context_instance=RequestContext(req))
 
@@ -92,10 +111,9 @@ def by_patient(req, pk):
         for reminder in report.reminders.all():
             reminders.append(reminder)
 
-    return render_to_response(req,
-                              "ubuzima/patient.html", { "patient":    patient,
-                                                        "reports":    paginated(req, reports, prefix="rep"),
-                                                        "reminders":  reminders })
+    return render_to_response("ubuzima/patient.html", { "patient":    patient,
+                                                        "reports":    paginated(req, reports),
+                                                        "reminders":  reminders }, context_instance=RequestContext(req))
     
 @require_http_methods(["GET"])
 def by_type(req, pk, **flts):
@@ -110,18 +128,16 @@ def by_type(req, pk, **flts):
         lox = int(req.REQUEST['location'])
         lxn = Location.objects.get(id = lox)
         lxn=lxn.name+' '+lxn.type.name+', '+lxn.parent.parent.name+' '+lxn.parent.parent.type.name+', '+lxn.parent.parent.parent.name+' '+lxn.parent.parent.parent.type.name
-    return render_to_response(req,
-                              "ubuzima/type.html", { "type":    report_type,
-                                                     "reports":    paginated(req, reports, prefix="rep"),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
-         'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1] })
+    return render_to_response("ubuzima/type.html", { "type":    report_type,
+                                                     "reports":    paginated(req, reports),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+         'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1] }, context_instance=RequestContext(req))
     
 
 @require_http_methods(["GET"])
 def view_report(req, pk):
     report = get_object_or_404(Report, pk=pk)
-    
-    return render_to_response(req,
-                              "ubuzima/report.html", { "report":    report })
+    req.base_template = "webapp/layout.html"
+    return render_to_response("ubuzima/report.html", { "report":    report }, context_instance=RequestContext(req))
     
     
 @require_http_methods(["GET"])
@@ -137,10 +153,9 @@ def by_reporter(req, pk, **flts):
         lox = int(req.REQUEST['location'])
         lxn = Location.objects.get(id = lox)
         lxn=lxn.name+' '+lxn.type.name+', '+lxn.parent.parent.name+' '+lxn.parent.parent.type.name+', '+lxn.parent.parent.parent.name+' '+lxn.parent.parent.parent.type.name
-    return render_to_response(req,
-                              "ubuzima/reporter.html", { "reports":    paginated(req, reports, prefix="rep"),
+    return render_to_response("ubuzima/reporter.html", { "reports":    paginated(req, reports),
                                                          "reporter":   reporter,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
-         'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1] })
+         'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1] }, context_instance=RequestContext(req))
 @require_http_methods(["GET"])
 def by_location(req, pk, **flts):
     location = get_object_or_404(Location, pk=pk)
@@ -155,10 +170,11 @@ def by_location(req, pk, **flts):
         lxn = Location.objects.get(id = lox)
         lxn=lxn.name+' '+lxn.type.name+', '+lxn.parent.parent.name+' '+lxn.parent.parent.type.name+', '+lxn.parent.parent.parent.name+' '+lxn.parent.parent.parent.type.name
     
-    return render_to_response(req,
-                              "ubuzima/location.html", { "location":   location,
-                                                         "reports":   paginated(req, reports, prefix="rep"),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
-         'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1] })
+    return render_to_response("ubuzima/location.html", { "location":   location,
+                                                         "reports":   paginated(req, reports),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+         'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1] }, context_instance=RequestContext(req))
+
+
 @require_http_methods(["GET"])
 def triggers(req):
     triggers = TriggeredText.objects.all()
@@ -169,15 +185,16 @@ def triggers(req):
 
     paginator = Paginator(triggers, 25)
     page = paginator.page(current_page)
-    
+    req.base_template = "webapp/layout.html"
     return render_to_response('ubuzima/triggers.html', dict(triggers=page, paginator=paginator, page=page), context_instance=RequestContext(req) )
     
  
 @require_http_methods(["GET"])
 def trigger(req, pk):
     trigger = TriggeredText.objects.get(pk=pk)
-    return render_to_response(req, 'ubuzima/trigger.html',
-            { 'trigger': trigger })
+    req.base_template = "webapp/layout.html"
+    return render_to_response('ubuzima/trigger.html',
+            { 'trigger': trigger }, context_instance=RequestContext(req))
 
 def my_filters(req,diced,alllocs=False):
     rez = {}
@@ -534,6 +551,7 @@ def view_reminders(req, **flts):
         lxn = Location.objects.get(id = lox)
         lxn=lxn.name+' '+lxn.type.name+', '+lxn.parent.parent.name+' '+lxn.parent.parent.type.name+', '+lxn.parent.parent.parent.name+' '+lxn.parent.parent.parent.type.name
     template_name="ubuzima/remlog.html"
+    req.base_template = "webapp/layout.html"
     rez=match_filters(req,filters)
     pst=match_filters_fresher(req)
     remlogs=Reminder.objects.filter(**rez).order_by('-date')
@@ -550,8 +568,10 @@ def view_reminders(req, **flts):
         wrt.writerows([['Date','Type','Patient','Location','Reporter','Supervisor']]+seq)            
         return htp
     else:
-        return render_to_response(req, template_name, { "reminders": paginated(req, remlogs.filter(**pst)),'remts': rems_by_type,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
-             'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]})
+        reminders = remlogs.filter(**pst)
+       
+        return render_to_response(template_name, { "reminders": paginated(req, reminders), 'remts': rems_by_type,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
+             'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 
 def remlog_by_type(req,pk,**flts):
     filters = {'period':default_period(req),
@@ -580,8 +600,8 @@ def remlog_by_type(req,pk,**flts):
         wrt.writerows([['Date','Type','Patient','Location','Reporter','Supervisor']]+seq)            
         return htp
     else:
-        return render_to_response(req, template_name, { "reminders": paginated(req, remlogs),'remts': rems_by_type,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
-         'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]})
+        return render_to_response(template_name, { "reminders": paginated(req, remlogs),'remts': rems_by_type,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
+         'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 #End of Reminders Logs!
 
 #Alerts Logs! Ceci interroger la base de donnees et presenter a la page nommee alertlog.html, toutes les rappels envoyes par le systeme!
@@ -614,8 +634,8 @@ def view_alerts(req, **flts):
         wrt.writerows([['DATE','TRIGGER','PATIENT','LOCATION','REPORTER','SUPERVISOR']]+seq)                   
         return htp
     else:
-        return render_to_response(req, template_name, { "alerts": paginated(req, alertlogs.filter(**pst)),'triggers': triggers,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
-             'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]})
+        return render_to_response(template_name, { "alerts": paginated(req, alertlogs.filter(**pst)),'triggers': triggers,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
+             'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 
 def alerts_by_type(req,pk,**flts):
     filters = {'period':default_period(req),
@@ -645,8 +665,8 @@ def alerts_by_type(req,pk,**flts):
         wrt.writerows([['DATE','TRIGGER','PATIENT','LOCATION','REPORTER','SUPERVISOR']]+seq)                   
         return htp
     else:
-        return render_to_response(req, template_name, { "alerts": paginated(req, alertlogs.filter(**pst)),'triggers': triggers,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
-             'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]})
+        return render_to_response(template_name, { "alerts": paginated(req, alertlogs.filter(**pst)),'triggers': triggers,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
+             'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 
 #End of Alerts logs
 
@@ -894,12 +914,12 @@ def risk_details(req,**flts):
         details.append(tf[f.key])
                              
             
-    return render_to_response(req, 'ubuzima/risk.html',
+    return render_to_response('ubuzima/risk.html',
            {'track':details, 'filters':filters,
          'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),
            'locationname':lxn,'coords':crd,'stattitle':'Risk Statistics',
-           'postqn':(req.get_full_path().split('?', 2) + [''])[1]})
+           'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 
 def risk_stats(req,format,dat):
     filters   = {'period':default_period(req),
@@ -930,12 +950,12 @@ def risk_stats(req,format,dat):
         wrt.writerows([heads]+seq)
         return htp
     else:
-        return render_to_response(req, ('ubuzima/riskdetails.html'),
-    {'reports':paginated(req, rez, prefix = 'imp'),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
+        return render_to_response('ubuzima/riskdetails.html',
+    {'reports':paginated(req, rez),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,
            'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1],
    'stattitle': {f.key:f.description,
-     }[dat]})    
+     }[dat]}, context_instance=RequestContext(req))    
 
 
 #End of Risks Stats
@@ -965,12 +985,12 @@ def view_pregnancy(req, **flts):
     
    ]
 
-    return render_to_response(req, 'ubuzima/pregnancy.html',
+    return render_to_response('ubuzima/pregnancy.html',
            {'track':ans, 'filters':filters,
          'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),
            'locationname':lxn,'coords':crd,
-           'postqn':(req.get_full_path().split('?', 2) + [''])[1]})
+           'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 
 @permission_required('ubuzima.can_view')
 def pregnancy_stats(req, format, dat):
@@ -1006,14 +1026,14 @@ def pregnancy_stats(req, format, dat):
         wrt.writerows([heads]+seq)
         return htp
     else:
-        return render_to_response(req, ('ubuzima/pregnancydetails.html'),
-    {'reports':paginated(req, rez, prefix = 'imp'),'start_date':date.strftime(flts['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
+        return render_to_response('ubuzima/pregnancydetails.html',
+    {'reports':paginated(req, rez),'start_date':date.strftime(flts['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
          'end_date':date.strftime(flts['period']['end'], '%d.%m.%Y'),'filters':flts,
            'locationname':lxn,
    'stattitle': {'allpreg':'All Pregnancies','hrpreg':'High Risk Pregnancies',
           'notoi':'Pregnant  without Toilet',
                  'nohw':'Pregnant without Hand Washing station',
-     }[dat]})
+     }[dat]}, context_instance=RequestContext(req))
 
 
 #end of pregnancy stats
@@ -1039,12 +1059,12 @@ def view_death(req, **flts):
        'number':len(chi_deaths)},{'label':'New Born Death',           'id':'newb',
        'number':len(nb_deaths)}]  
     
-    return render_to_response(req, 'ubuzima/death.html',
+    return render_to_response('ubuzima/death.html',
            {'track':ans,'stat':{'matde':len(mo_deaths),'chide':len(chi_deaths),'newb':len(nb_deaths)}, 'filters':filters,'usrloc':UserLocation.objects.get(user=req.user),
          'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),
            'locationname':lxn,'coords':crd,
-           'postqn':(req.get_full_path().split('?', 2) + [''])[1]}) 
+           'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req)) 
 
 
 def death_stats(req, format, dat):
@@ -1074,11 +1094,11 @@ def death_stats(req, format, dat):
         wrt.writerows([heads]+seq)
         return htp
     else:
-        return render_to_response(req, ('ubuzima/deathdetails.html'),
+        return render_to_response('ubuzima/deathdetails.html',
     {'reports':paginated(req, rez, prefix = 'imp'),'start_date':date.strftime(flts['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
          'end_date':date.strftime(flts['period']['end'], '%d.%m.%Y'),
            'locationname':lxn,
-   'stattitle': {'matde':'Maternal Death','chide':'Child Death','newb':'New Born Death', }[dat]})
+   'stattitle': {'matde':'Maternal Death','chide':'Child Death','newb':'New Born Death', }[dat]}, context_instance=RequestContext(req))
 
 #end of DEATH stats
 
@@ -1098,12 +1118,12 @@ def view_chihe(req, **flts):
     for v in vac_chihe_reps.keys():
         ans.append({'label':"Children vaccinated with %s"%v,'id':'%s'%v,'number':len(vac_chihe_reps[v])})   
     ans.append({'label':"ALL Children vaccinated ",'id':'all','number':len(fetch_vaccinated_info(chihe_reps))})
-    return render_to_response(req, 'ubuzima/chihe.html',
+    return render_to_response('ubuzima/chihe.html',
            {'track':ans, 'filters':filters,
          'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),
            'locationname':lxn,'coords':crd,
-           'postqn':(req.get_full_path().split('?', 2) + [''])[1]})
+           'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 
 def chihe_stats(req, format, dat):
     flts   = {'period':default_period(req),
@@ -1134,11 +1154,11 @@ def chihe_stats(req, format, dat):
         wrt.writerows([heads]+seq)
         return htp
     else:
-        return render_to_response(req, ('ubuzima/chihedetails.html'),
-    {'reports':paginated(req, rez, prefix = 'imp'),'start_date':date.strftime(flts['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
+        return render_to_response('ubuzima/chihedetails.html',
+    {'reports':paginated(req, rez),'start_date':date.strftime(flts['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
          'end_date':date.strftime(flts['period']['end'], '%d.%m.%Y'),
            'locationname':lxn,
-   'stattitle': {'%s'%dat:'Children Vaccinated with %s'%dat}[dat]})
+   'stattitle': {'%s'%dat:'Children Vaccinated with %s'%dat}[dat]}, context_instance=RequestContext(req))
 
 #end of CHILD HEALTH
 
@@ -1175,12 +1195,12 @@ def view_anc(req, **flts):
    'number':len(matching_refusal(req,filters))},
    ]
 
-    return render_to_response(req, 'ubuzima/anc.html',
+    return render_to_response( 'ubuzima/anc.html',
            {'track':ans,'usrloc':UserLocation.objects.get(user=req.user),'stat':{'ancs':len(anc_reps),'anc1':len(preg_reps),'ref':len(matching_refusal(req,filters)),'stdanc':len(fetch_standards_ancs(preg_reps)),'anc2':len(fetch_anc2_info(anc_reps)),'anc3':len(fetch_anc3_info(anc_reps)),'anc4':len(fetch_anc4_info(anc_reps)),'ancdp':len(fetch_ancdp_info(anc_reps))}, 'filters':filters,
          'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),
            'locationname':lxn,'coords':crd,
-           'postqn':(req.get_full_path().split('?', 2) + [''])[1]})
+           'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
  
 @permission_required('ubuzima.can_view')
 def anc_stats(req, format, dat):
@@ -1233,15 +1253,15 @@ def anc_stats(req, format, dat):
         wrt.writerows([heads]+seq)
         return htp
     else:
-        return render_to_response(req, ('ubuzima/ancdetails.html'),
-    {'reports':paginated(req, rez, prefix = 'imp'),'start_date':date.strftime(flts['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
+        return render_to_response('ubuzima/ancdetails.html',
+    {'reports':paginated(req, rez),'start_date':date.strftime(flts['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
          'end_date':date.strftime(flts['period']['end'], '%d.%m.%Y'),'filters':flts,
            'locationname':lxn,
    'stattitle': {'allanc':'All ANC Attendance','anc1':'Attended First ANC (Pregnancy Registrations)','stdanc':'Standard First ANC Visits',
           'anc2':'Attended Second ANC',
                  'anc3':'Attended Third ANC',
              'anc4':'Attended Fourth ANC',
-              'ancdp':'Departed Patients','all4ancs':'Attended all 4 ANCs Visits'}[dat]})
+              'ancdp':'Departed Patients','all4ancs':'Attended all 4 ANCs Visits'}[dat]}, context_instance=RequestContext(req))
     
 
 #end Of ANC!
@@ -1285,7 +1305,7 @@ def important_data(req, format, dat):
             r.patient, r.created] for r in rez])
         return htp
     else:
-        return render_to_response(req, ('ubuzima/important.html'),
+        return render_to_response('ubuzima/important.html',
     {'reports':paginated(req, rez, prefix = 'imp'),'start_date':date.strftime(flts['period']['start'], '%d.%m.%Y'),
          'end_date':date.strftime(flts['period']['end'], '%d.%m.%Y'),
    'stattitle': {'expected':'Expected deliveries in the next 30 days',
@@ -1293,7 +1313,7 @@ def important_data(req, format, dat):
                  'home':'Delievered at Home',
              'facility':'Delivered at Health Facility',
               'enroute':'Delivered en route',
-                'unknown':'Delivered Unknown',}[dat]})
+                'unknown':'Delivered Unknown',}[dat]}, context_instance=RequestContext(req))
 
 @permission_required('ubuzima.can_view')
 def view_stats(req, **flts):
@@ -1309,14 +1329,14 @@ def view_stats(req, **flts):
     if req.REQUEST.has_key('location') and req.REQUEST['location'] != '0':
         lox = int(req.REQUEST['location'])
         lxn = Location.objects.get(id = lox)
-    return render_to_response(req, 'ubuzima/stats.html',
+    return render_to_response( 'ubuzima/stats.html',
            {'track':track, 'filters':filters,'usrloc':UserLocation.objects.get(user=req.user),
        'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),
            'coords':crd, 'location': lox, 'locationname':lxn,
            'chosen':the_chosen(req.REQUEST),
         'important':get_important_stats(req, filters),
-           'postqn':(req.get_full_path().split('?', 2) + [''])[1]})
+           'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 
 @permission_required('ubuzima.can_view')
 def view_indicator(req, indic, format = 'html'):
@@ -1354,7 +1374,7 @@ def view_indicator(req, indic, format = 'html'):
         ans_m = {'pts' : pts_m, 'tot': pts.extra(select={'year': 'EXTRACT(year FROM creation)','month': 'EXTRACT(month FROM creation)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
 
     resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'indicator': indicator}
-    return render_to_response(req, ('ubuzima/indicator.html'), resp)
+    return render_to_response('ubuzima/indicator.html', resp, context_instance=RequestContext(req))
 
 @permission_required('ubuzima.can_view')
 def view_stats_reports_csv(req):
@@ -1408,8 +1428,8 @@ def shorthand_locations(__req):
 @permission_required('ubuzima.can_view')
 def error_display(req):
     them = ErrorNote.objects.all().order_by('-created')
-    return render_to_response(req, 'ubuzima/errors.html',
-            {'errors':paginated(req, them, prefix = 'err')})
+    return render_to_response('ubuzima/errors.html',
+            {'errors':paginated(req, them)}, context_instance=RequestContext(req))
 @permission_required('ubuzima.can_view')
 def agstats(req, **flts):
     filters = {'period':default_period(req),
@@ -1431,12 +1451,12 @@ def agstats(req, **flts):
 	            outsts.append(sts)
     #print outsts
     lxn= location_name(req)
-    return render_to_response(req, 'ubuzima/aggstats.html',
+    return render_to_response('ubuzima/aggstats.html',
                {'track':paginated(req, outsts, prefix = 'imp'), 'filters':filters,
              'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
              'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),
                'locationname':lxn,
-               'postqn':(req.get_full_path().split('?', 2) + [''])[1]})
+               'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 @permission_required('ubuzima.can_view')
 def agstats_csv(req):
     filters = {'period':default_period(req),
@@ -1467,9 +1487,8 @@ def agstats_csv(req):
 @permission_required('ubuzima.can_view')
 def dash(req):
     resp=pull_req_with_filters(req)
-    resp['reports'] = paginated(req, matching_reports(req,resp['filters']), prefix="rep")
-    return render_to_response(req,
-            "ubuzima/dash.html", resp)
+    resp['reports'] = paginated(req, matching_reports(req,resp['filters']))
+    return render_to_response("ubuzima/dash.html", resp, context_instance=RequestContext(req))
     
 
 def child_locs(loc,filters):
@@ -1501,7 +1520,7 @@ def pull_req_with_filters(req):
         return {'usrloc':UserLocation.objects.get(user=req.user),'locs':locs,'annot':annot_val(sel),'annot_l':annot_locs_val(sel),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
              'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'sel':sel,'prv':prv,'dst':dst,'lxn':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]}
     except UserLocation.DoesNotExist,e:
-        return render_to_response(req,"404.html",{'error':e})
+        return render_to_response("404.html",{'error':e}, context_instance=RequestContext(req))
 
 def annot_val(loc):
     if loc.type.name == "Nation": return "location__parent__parent__parent__parent__name,location__parent__parent__parent__parent__pk"
@@ -1532,8 +1551,8 @@ def charts(req):
         ans_c = {'fac' : fac_c, 'route' : route_c, 'home': home_c, 'unk': unk_c}
 
     resp['track'] = {'label':['Boys','Girls','Underweight Births','Delivered at Home','Delivered at Health Facility','Delivered en route','Delivered Unknown'],'items':ans, 'items_c':ans_c, 'months' : months_between(start,end), 'qryset': qryset}
-    return render_to_response(req, 'ubuzima/charts.html',
-           resp)   
+    return render_to_response('ubuzima/charts.html',
+           resp, context_instance=RequestContext(req))   
 
 
 def months_between(start,end):
@@ -1587,7 +1606,7 @@ def death_report(req):
     annot = resp['annot_l']
     locs = resp['locs']
     ans_l, ans_m = {},{}
-    resp['reports'] = paginated(req, qryset, prefix="rep")
+    resp['reports'] = paginated(req, qryset)
     if qryset.exists():
 
         matde, chide, nebde = fetch_maternal_death(qryset),fetch_child_death(qryset),fetch_newborn_death(qryset) 
@@ -1601,8 +1620,8 @@ def death_report(req):
         ans_m = {'matde' : matde_m, 'chide' : chide_m, 'nebde': nebde_m, 'tot': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
 
     resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'bir_l': births.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), 'bir_m': births.extra(select={'year': 'EXTRACT(year FROM date)','month': 'EXTRACT(month FROM date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
-    return render_to_response(req, 'ubuzima/death_report.html',
-           resp) 
+    return render_to_response('ubuzima/death_report.html',
+           resp, context_instance=RequestContext(req)) 
 
 ###END OF DEATH TABLES, CHARTS, MAP
 
@@ -1618,7 +1637,7 @@ def risk_report(req):
     end = resp['filters']['period']['end']
     start = resp['filters']['period']['start']
     annot = resp['annot_l']
-    resp['reports'] = paginated(req, qryset, prefix="rep")
+    resp['reports'] = paginated(req, qryset)
     ans_l, ans_m = {},{}
     if qryset.exists():
         
@@ -1637,8 +1656,8 @@ def risk_report(req):
         ans_m = {'pats' : patients_m, 'alts' : alerts_m, 'rpats': red_patients_m, 'yalts': yes_alerts_m, 'palts': po_alerts_m, 'tot': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
 
     resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'pats_l': allpatients.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), 'pats_m': reports.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('patient',distinct = True)).order_by('year','month')}
-    return render_to_response(req, 'ubuzima/risk_report.html',
-           resp) 
+    return render_to_response('ubuzima/risk_report.html',
+           resp, context_instance=RequestContext(req)) 
 
 ###END OF RISK TABLES, CHARTS, MAP
 
@@ -1657,7 +1676,7 @@ def birth_report(req):
     locs=resp['locs']
     #print qryset.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
     ans_l, ans_m = {}, {}
-    resp['reports'] = paginated(req, qryset, prefix="rep")
+    resp['reports'] = paginated(req, qryset)
     if qryset.exists(): 
         home,fac,route = fetch_home_deliveries(qryset),fetch_hosp_deliveries(qryset),fetch_en_route_deliveries(qryset)
   
@@ -1688,7 +1707,7 @@ def preg_report(req):
     ans_l, ans_m, rez = {}, {}, {}
     rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
     edd = fetch_edd( start, end).filter(** rez)
-    resp['reports'] = paginated(req, preg, prefix="rep")
+    resp['reports'] = paginated(req, preg)
     if preg.exists() or edd.exists(): 
         preg_l, preg_risk_l, edd_l, edd_risk_l = preg.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(preg).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), edd.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(edd).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) 
 
@@ -1699,8 +1718,8 @@ def preg_report(req):
         ans_m = {'pre' : preg_m, 'prehr' : preg_risk_m, 'edd': edd_m, 'eddhr': edd_risk_m}
         
     resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'months_edd' : months_between(Report.calculate_last_menses(start),Report.calculate_last_menses(end))}
-    return render_to_response(req, 'ubuzima/preg_report.html',
-           resp)
+    return render_to_response('ubuzima/preg_report.html',
+           resp, context_instance=RequestContext(req))
 ##END OF PREGNANCY TABLES, CHARTS, MAP
 
 ##START OF ADMIN TABLES, CHARTS, MAP
@@ -1713,15 +1732,15 @@ def admin_report(req):
     rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
     reporters = Reporter.objects.filter(groups__title = 'CHW', ** rez)
     active = reporters.filter(connections__in = PersistantConnection.objects.filter(last_seen__gte = datetime.datetime.today().date() - timedelta(30)))
-    resp['reports'] = paginated(req, reporters, prefix="rep")
+    resp['reports'] = paginated(req, reporters)
     if reporters.exists() or active.exists(): 
         reporters_l, active_l = reporters.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), active.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
 
         ans_l = {'rep' : reporters_l, 'act' : active_l}
         
     resp['track'] = {'items_l':ans_l}
-    return render_to_response(req, 'ubuzima/admin_report.html',
-           resp)
+    return render_to_response('ubuzima/admin_report.html',
+           resp, context_instance=RequestContext(req))
 ##END OF ADMIN TABLES, CHARTS, MAP
 
 ##START OF CHILD TABLES, CHARTS, MAP
@@ -1734,9 +1753,9 @@ def child_report(req):
     qryset = resp['reports'].filter(type__name='Birth', date__gte = start, date__lte = end )
     annot=resp['annot_l']
     locs=resp['locs']
-    resp['reports'] = paginated(req, qryset, prefix="rep")
-    return render_to_response(req, 'ubuzima/child_report.html',
-           resp)
+    resp['reports'] = paginated(req, qryset)
+    return render_to_response('ubuzima/child_report.html',
+           resp, context_instance=RequestContext(req))
 ##END OF CHILD TABLES, CHARTS, MAP
 ##START OF CHILD DETAILS TABLES, CHARTS, MAP
 @permission_required('ubuzima.can_view')
@@ -1744,10 +1763,10 @@ def child_details_report(req, pk):
     resp=pull_req_with_filters(req)
     birth = Report.objects.get(pk = pk)
     child = birth.get_child()
-    resp['reports'] = paginated(req, child['log'], prefix="rep")    
+    resp['reports'] = paginated(req, child['log'])    
     resp['track'] = child
-    return render_to_response(req, 'ubuzima/child_details.html',
-           resp)
+    return render_to_response('ubuzima/child_details.html',
+           resp, context_instance=RequestContext(req))
 ##END OF CHILD DETAILS TABLES, CHARTS, MAP
 
 ###Function to test any template
@@ -1779,8 +1798,8 @@ def tests(req,dat):
         else: pass
     resp['track'] = ans
     resp['lev']=annot.split(',')[0]
-    return render_to_response(req, 'ubuzima/test.html',
-           resp)
+    return render_to_response('ubuzima/test.html',
+           resp, context_instance=RequestContext(req))
 
 
 ##DASHBOARD 
@@ -1788,9 +1807,9 @@ def tests(req,dat):
 def dashboard(req):
     resp=pull_req_with_filters(req)
     hindics = health_indicators(req,resp['filters'])
-    resp['hindics'] = paginated(req, hindics, prefix = 'hind')
-    return render_to_response(req,
-            "ubuzima/dashboard.html", resp)
+    resp['hindics'] = paginated(req, hindics)
+    return render_to_response(
+            "ubuzima/dashboard.html", resp, context_instance=RequestContext(req))
 ##END OF DASHBOARD
 
 def fetch_pnc1_info(qryset):
@@ -1842,7 +1861,7 @@ def anc_report(req):
 
     new_qryset=resp['reports'].filter(type__name= 'Pregnancy',date__gte = start , date__lte = end )
     
-    resp['reports'] = paginated(req, qryset, prefix="rep")
+    resp['reports'] = paginated(req, qryset)
     
 
 
@@ -1875,8 +1894,8 @@ def anc_report(req):
         
 
     resp['track'] = {'items':ans_l, 'items_m':ans_m,'items_t':ans_t, 'months' : months_between(start,end)}
-    return render_to_response(req, 'ubuzima/anc_report.html',
-           resp)  
+    return render_to_response('ubuzima/anc_report.html',
+           resp, context_instance=RequestContext(req))  
 
 ###END OF ANC TABLES, CHARTS, MAP
 
@@ -1892,7 +1911,7 @@ def pnc_report(req):
     annot=resp['annot_l']
     locs=resp['locs']
     ans_l, ans_m = {},{}
-    resp['reports'] = paginated(req, qryset, prefix="rep")
+    resp['reports'] = paginated(req, qryset)
     if qryset.exists():
         pnc1_m,pnc2_m,pnc3_m = fetch_pnc1_info(qryset),fetch_pnc2_info(qryset),fetch_pnc3_info(qryset)
 
@@ -1911,7 +1930,7 @@ def pnc_report(req):
         
 
     resp['track'] = {'items':ans_l, 'items_m':ans_m, 'months' : months_between(start,end)}
-    return render_to_response(req, 'ubuzima/pnc_report.html',resp)  
+    return render_to_response('ubuzima/pnc_report.html',resp, context_instance=RequestContext(req))  
 
 ###END OF PNC TABLES, CHARTS, MAP
 
@@ -2066,10 +2085,10 @@ def view_nutrition(req, indic, format = 'html'):
     #pts = Field.objects.filter( type = indicator, **rez)
     hindics = nutrition_indicators(req,resp['filters'])
     pts = hindics['desc'][indic]
-    resp['hindics'] = paginated(req, hindics['desc'][indic], prefix = 'hind')
+    resp['hindics'] = paginated(req, hindics['desc'][indic])
     heads   = ['Reporter', 'Location', 'Patient', 'Type', 'Date']
     resp['headers'] = heads
-    resp['reports'] = paginated(req, pts, prefix = 'ind')
+    resp['reports'] = paginated(req, pts)
     end = resp['filters']['period']['end']
     start = resp['filters']['period']['start']
     annot = resp['annot_l']
@@ -2112,15 +2131,14 @@ def view_nutrition(req, indic, format = 'html'):
         ans_m = {'pts' : pts_m, 'tot': pts.extra(select={'year': 'EXTRACT(year FROM creation)','month': 'EXTRACT(month FROM creation)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
 
         resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'indicator': hindics['home'][int(indic)-1], 'type':type(hindics['desc'][indic][0])}
-    return render_to_response(req, ('ubuzima/nutrition.html'), resp)
+    return render_to_response('ubuzima/nutrition.html', resp, context_instance=RequestContext(req))
 
 @permission_required('ubuzima.can_view')
 def nutrition(req):
     resp=pull_req_with_filters(req)
     hindics = nutrition_indicators(req,resp['filters'])
-    resp['hindics'] = paginated(req, hindics['home'], prefix = 'hind')
-    return render_to_response(req,
-            "ubuzima/nutrition_dash.html", resp)
+    resp['hindics'] = paginated(req, hindics['home'])
+    return render_to_response("ubuzima/nutrition_dash.html", resp, context_instance=RequestContext(req))
 ###END OF NUTRITION TABLES, CHARTS, MAP
 #   TODO: Error-prone list should be done in raw SQL. Later.
 
@@ -2508,9 +2526,8 @@ def newborn_indicators(req, flts):
 def newborn(req):
     resp=pull_req_with_filters(req)
     hindics =newborn_indicators(req,resp['filters'])
-    resp['hindics'] = paginated(req, hindics['home'], prefix = 'hind')
-    return render_to_response(req,
-            "ubuzima/newborn_dash.html", resp)
+    resp['hindics'] = paginated(req, hindics['home'])
+    return render_to_response("ubuzima/newborn_dash.html", resp, context_instance=RequestContext(req))
 
 
 
@@ -2522,10 +2539,10 @@ def view_newborn(req, indic, format = 'html'):
     rez = my_filters(req, filters)
     hindics = newborn_indicators(req,resp['filters'])
     pts = hindics['desc'][indic]
-    resp['hindics'] = paginated(req, hindics['desc'][indic], prefix = 'hind')
+    resp['hindics'] = paginated(req, hindics['desc'][indic])
     heads   = ['Reporter', 'Location', 'Patient', 'Type', 'Date']
     resp['headers'] = heads
-    resp['reports'] = paginated(req, pts, prefix = 'ind')
+    resp['reports'] = paginated(req, pts)
     end = resp['filters']['period']['end']
     start = resp['filters']['period']['start']
     annot = resp['annot_l']
@@ -2553,7 +2570,7 @@ def view_newborn(req, indic, format = 'html'):
         ans_m = {'pts' : pts_m, 'tot': pts.extra(select={'year': 'EXTRACT(year FROM creation)','month': 'EXTRACT(month FROM creation)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
 
         resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'indicator': hindics['home'][int(indic)-1], 'type':type(hindics['desc'][indic][0])}
-    return render_to_response(req, ('ubuzima/newborn.html'), resp)
+    return render_to_response('ubuzima/newborn.html', resp, context_instance=RequestContext(req))
 ###END OF NEW BORN TABLES, CHARTS, MAP
 
 ##End of New views for new RapidSMS to track 1000 days

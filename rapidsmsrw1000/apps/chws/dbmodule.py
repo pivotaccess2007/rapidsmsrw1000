@@ -3,7 +3,7 @@
 
 from django.core import management
 from django.db import connection
-from chws.models import *
+from rapidsmsrw1000.apps.chws.models import *
 from xlrd import open_workbook ,cellname,XL_CELL_NUMBER,XLRDError
 
 def build_locations():
@@ -53,7 +53,7 @@ def import_location(filepath, sheetname, startrow, maxrow, coderow, namerow):
 
     return ans
 
-def import_provinces(filepath = "apps/chws/xls/locations.xls", sheetname = "PROVINCES", startrow = 1, maxrow = 416, coderow = 1, namerow = 2):
+def import_provinces(filepath = "rapidsmsrw1000/apps/chws/xls/locations.xls", sheetname = "PROVINCES", startrow = 1, maxrow = 416, coderow = 1, namerow = 2):
     locs = []
     cnt = import_location(filepath, sheetname, startrow, maxrow, coderow, namerow)
     for c in cnt:
@@ -68,7 +68,7 @@ def import_provinces(filepath = "apps/chws/xls/locations.xls", sheetname = "PROV
     return locs
 
 
-def import_districts(filepath = "apps/chws/xls/locations.xls", sheetname = "DISTRICTS", startrow = 1, maxrow = 416, coderow = 1, namerow = 2):
+def import_districts(filepath = "rapidsmsrw1000/apps/chws/xls/locations.xls", sheetname = "DISTRICTS", startrow = 1, maxrow = 416, coderow = 1, namerow = 2):
     locs = []
     cnt = import_location(filepath, sheetname, startrow, maxrow, coderow, namerow)
     for c in cnt:
@@ -83,7 +83,7 @@ def import_districts(filepath = "apps/chws/xls/locations.xls", sheetname = "DIST
     return locs
 
 
-def import_sectors(filepath = "apps/chws/xls/locations.xls", sheetname = "SECTORS", startrow = 1, maxrow = 416, coderow = 1, namerow = 2):
+def import_sectors(filepath = "rapidsmsrw1000/apps/chws/xls/locations.xls", sheetname = "SECTORS", startrow = 1, maxrow = 416, coderow = 1, namerow = 2):
     locs = []
     cnt = import_location(filepath, sheetname, startrow, maxrow, coderow, namerow)
     for c in cnt:
@@ -98,7 +98,7 @@ def import_sectors(filepath = "apps/chws/xls/locations.xls", sheetname = "SECTOR
     return locs
 
 
-def import_cells(filepath = "apps/chws/xls/locations.xls", sheetname = "CELLS", startrow = 1, maxrow = 2222, coderow = 1, namerow = 2):
+def import_cells(filepath = "rapidsmsrw1000/apps/chws/xls/locations.xls", sheetname = "CELLS", startrow = 1, maxrow = 2222, coderow = 1, namerow = 2):
     locs = []
     cnt = import_location(filepath, sheetname, startrow, maxrow, coderow, namerow)
     for c in cnt:
@@ -112,7 +112,7 @@ def import_cells(filepath = "apps/chws/xls/locations.xls", sheetname = "CELLS", 
             continue
     return locs
 
-def import_villages(filepath = "apps/chws/xls/locations.xls", sheetname = "VILLAGES", startrow = 1, maxrow = 14584, coderow = 1, namerow = 2):
+def import_villages(filepath = "rapidsmsrw1000/apps/chws/xls/locations.xls", sheetname = "VILLAGES", startrow = 1, maxrow = 14584, coderow = 1, namerow = 2):
     locs = []
     cnt = import_location(filepath, sheetname, startrow, maxrow, coderow, namerow)
     for c in cnt:
@@ -127,7 +127,7 @@ def import_villages(filepath = "apps/chws/xls/locations.xls", sheetname = "VILLA
     return locs
 
 
-def import_facilities(filepath = "apps/chws/xls/facilities.xls", sheetname = "FACILITIES", startrow = 1, maxrow = 616, codecol = 1, typecol = 2, namecol = 3, prvccol = 4, prvncol = 5, dstccol = 6, dstncol = 7, sctncol = 8, latcol = 9, longcol = 10, popcol = 11, popycol = 12):
+def import_facilities(filepath = "rapidsmsrw1000/apps/chws/xls/facilities.xls", sheetname = "FACILITIES", startrow = 1, maxrow = 616, codecol = 1, typecol = 2, namecol = 3, prvccol = 4, prvncol = 5, dstccol = 6, dstncol = 7, sctncol = 8, latcol = 9, longcol = 10, popcol = 11, popycol = 12):
     locs = []
     book = open_workbook(filepath)
     sheet = book.sheet_by_name(sheetname)
@@ -164,6 +164,36 @@ def import_facilities(filepath = "apps/chws/xls/facilities.xls", sheetname = "FA
             continue
     return locs
 
+def update_cells_villages(filepath = "rapidsmsrw1000/apps/chws/xls/minaloc.xls", sheetname = "GeographicAreas"):
+    book = open_workbook(filepath)
+    sheet = book.sheet_by_name(sheetname)
+    c_n = v_n = 0
+    c_codes = v_codes = []
+    for row_index in range(sheet.nrows):
+        if row_index < 1: continue   
+        try:
+            cell_code = sheet.cell(row_index,8).value
+            cell_name = sheet.cell(row_index,9).value
+            village_code = sheet.cell(row_index,10).value
+            village_name = sheet.cell(row_index,11).value
+            try:    cell = Cell.objects.get(code = cell_code)
+            except Cell.DoesNotExist, e:
+                try:
+                    sector = Sector.objects.get(code = cell_code[0:len(cell_code)-2])
+                    cell = Cell(code = cell_code , name = cell_name , sector = sector , district = sector.district, \
+                                province = sector.province, nation = sector.nation).save()
+                except: c_n = c_n + 1; c_codes.append(cell_code)
+            try:    village = Village.objects.get(code = village_code)
+            except Village.DoesNotExist, e:
+                try:
+                    cell = Cell.objects.get(code = village_code[0:len(village_code)-2])
+                    cell = Village(code = village_code , name = village_name , cell = cell, sector = cell.sector, \
+                                    district = cell.district, province = cell.province, nation = cell.nation).save()
+                except: v_n = v_n + 1; v_codes.appende(village_code)
+        except Exception, e:
+            print e
+            pass
+    print "Cell: %d, Village: %d, \ncell_codes: %s\nvillage_codes: %s" % (c_n, v_n, c_codes, v_codes)
 
 
     

@@ -113,7 +113,7 @@ def read_fields(code_string, accept_date=False, weight_is_mothers=False):
 		7
 		# if the action code is a movement code, increment our counter of movement codes
 		# messages may only have one movement code
-		if field_type.category.id == 7:
+		if field_type.category.id == 4:
 		    num_mov_codes += 1
 
 	    # didn't recognize this code?  then it is a scalar value, run some regexes to derive what it is

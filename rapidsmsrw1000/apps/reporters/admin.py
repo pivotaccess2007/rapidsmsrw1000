@@ -3,7 +3,7 @@
 
 
 from django.contrib import admin
-from reporters.models import *
+from rapidsmsrw1000.apps.reporters.models import *
 
 class ReporterAdmin(admin.ModelAdmin):
     list_display = ('alias', 'location')

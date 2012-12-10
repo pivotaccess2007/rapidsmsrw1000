@@ -60,7 +60,7 @@ class PncHandler (KeywordHandler):
         # get or create the patient
         patient = get_or_create_patient(message.reporter, nid)
         
-        report = create_report('Postnatal Care', patient, message.reporter)
+        report = create_report('PNC', patient, message.reporter)
         
         # read our fields
         try:

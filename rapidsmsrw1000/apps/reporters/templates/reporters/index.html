@@ -1,4 +1,4 @@
-{% extends "layout-split-2.html" %}
+{% extends "webapp/layout-split-2.html" %}
 {% load reporters-tags %}
 {% load pagination-tags %}
 {% block title %}Reporters and Groups{% endblock %}
@@ -129,13 +129,13 @@ window.location="/reporters/reporter"+"?repid="+form.repid.value;
 		</thead>
 		<tbody>{% if groups.object_list %}{% for group in groups.object_list %}
 			<tr class="depth-{{ group.depth }}">
-				<td class="indent"><span><a href="/groups/{{ group.pk }}"{% if group.title %}>{{ group.title }}{% else %} class="unknown">Unknown{% endif %}</a></span></td>
+				<td class="indent"><span><a href="/reporters/groups/{{ group.pk }}"{% if group.title %}>{{ group.title }}{% else %} class="unknown">Unknown{% endif %}</a></span></td>
 				<td>{{ group.members }}</td>
 			</tr>{% endfor %}{% else %}
 			<tr class="no-data">
 				<td colspan="3">
 					No Groups Yet.
-					<a href="/groups/add" class="add">
+					<a href="/reporters/groups/add" class="add">
 						Add a Group
 					</a>
 				</td>
@@ -150,9 +150,9 @@ window.location="/reporters/reporter"+"?repid="+form.repid.value;
 		</tfoot>
 	</table>
 	<div class="toolbar">
-		<a href="/groups/add" class="add">Add a Group</a>
+		<a href="/reporters/groups/add" class="add">Add a Group</a>
 	</div>
-	<div class="help"><a href="/reporters/import"  >Import Reporters</a> </div>
+	<div class="help"><a href="/chws/import"  >Import Reporters</a> </div>
 	
 	
 </div>

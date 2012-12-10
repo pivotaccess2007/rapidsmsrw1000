@@ -3,7 +3,7 @@
 
 
 from django.contrib import admin
-from chws.models import *
+from rapidsmsrw1000.apps.chws.models import *
 
 
 class SectorAdmin(admin.ModelAdmin):
