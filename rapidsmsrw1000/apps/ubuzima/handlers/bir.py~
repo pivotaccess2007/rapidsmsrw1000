@@ -41,7 +41,8 @@ class BirHandler (KeywordHandler):
         try:
             message.reporter = PersistantConnection.objects.get(identity = message.connection.identity).reporter
         except Exception, e:
-            print e
+            message.respond(_("You need to be registered first, use the REG keyword"))
+            return True
 
         m = re.search("bir\s+(\d+)\s?(.*|tw|tr)\s([0-9]+)\s([0-9.]+)\s(bo|gi)\s?(.*)\s(ho|hp|cl|or)\s?(.*|bf1)\s(wt\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)
         if not m:
@@ -74,7 +75,7 @@ class BirHandler (KeywordHandler):
             # there were invalid fields, respond and exit
             message.respond("%s" % e)
             return True
-
+        
         # set the dob for the child if we got one
         if dob:
             report.set_date_string(dob)
@@ -82,7 +83,7 @@ class BirHandler (KeywordHandler):
         # set the child number
         child_num_type = FieldType.objects.get(key='child_number')
         fields.append(Field(type=child_num_type, value=Decimal(number)))
-
+        print fields
         # save the report
         if not report.has_dups():
         	report.save()
