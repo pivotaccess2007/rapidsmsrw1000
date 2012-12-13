@@ -14,7 +14,7 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.core.urlresolvers import reverse
 from django import forms ###deal with form in views
 from os.path import join, isfile
-
+from django.db.models import Count,Sum
 import csv
 
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
@@ -97,13 +97,69 @@ def warnings(request, ref):
 
 def view_uploads(request):
     request.base_template = "webapp/layout.html"
+    hc = dst = reporters = sup = None
+    prvs = Province.objects.all()
     #uploads = Error.objects.values('upload_ref').distinct('upload_ref')
     uploads = set()
     for obj in Error.objects.all():   uploads.add(obj.upload_ref)   
-    errors = [Error.objects.filter(upload_ref = s)[0] for s in uploads]
+    
     confirms = RegistrationConfirmation.objects.filter(responded = True, answer = True)
     pendings = RegistrationConfirmation.objects.filter(responded = False, answer = False)
     regs = RegistrationConfirmation.objects.all()
+    reporters = Reporter.objects.all().values('role__id','role__name').annotate(total=Count('id')).order_by('role__name')
+    sup = Supervisor.objects.all()
+    try:
+        province = int(request.GET['province'])
+        
+        if not province:
+            pass
+        else:
+            uploads = set()
+            for obj in Error.objects.filter(district__province__id = province):   uploads.add(obj.upload_ref) 
+            reporters = Reporter.objects.filter(province__id = province).values('role__id','role__name').annotate(total=Count('id')).order_by('role__name')
+            sup = Supervisor.objects.filter(province__id = province)
+            regs = RegistrationConfirmation.objects.filter( reporter__province__id = province).order_by("-id")
+            confirms = RegistrationConfirmation.objects.filter( reporter__province__id = province, responded = True, answer = True).order_by("-id")
+            pendings = RegistrationConfirmation.objects.filter( reporter__province__id = province, responded = False, answer = False).order_by("-id")
+            prvs = Province.objects.all().extra(select = {'selected':'id = %d' % (province,)}).order_by('name')
+            dst      =  District.objects.filter(province__id = province).order_by('name')
+                
+            try:
+                district = int(request.GET['district'])
+                if district:
+                    uploads = set()
+                    for obj in Error.objects.filter(district__id = district):   uploads.add(obj.upload_ref)
+                    reporters = Reporter.objects.filter(district__id = district).values('role__id','role__name').annotate(total=Count('id')).order_by('role__name')
+                    sup = Supervisor.objects.filter(district__id = district)
+                    regs = RegistrationConfirmation.objects.filter( reporter__district__id = district ).order_by("-id")
+                    confirms =  RegistrationConfirmation.objects.filter(reporter__district__id = district, responded = True, answer = True).order_by("-id")
+                    pendings =  RegistrationConfirmation.objects.filter(reporter__district__id = district, responded = False, answer = False).order_by("-id") 
+                    dst      =  District.objects.filter(province__id = province).extra(select = {'selected':'id = %d' % (district,)}).order_by('-id')
+                    hc      =  HealthCentre.objects.filter(district__id = district).order_by('name')
+                    try:                        
+                        health_centre = int(request.GET['facility'])
+                        if hc:
+                            reporters = Reporter.objects.filter(health_centre__id = health_centre).values('role__id','role__name').annotate(total=\
+                                        Count('id')).order_by('role__name')
+                            sup = Supervisor.objects.filter(health_centre__id = health_centre)
+                            regs = RegistrationConfirmation.objects.filter( reporter__health_centre__id = health_centre ).order_by("-id")
+                            confirms = RegistrationConfirmation.objects.filter(reporter__health_centre__id = health_centre, \
+                                                                                responded = True, answer = True).order_by("-id")
+                            pendings = RegistrationConfirmation.objects.filter(reporter__health_centre__id = health_centre, \
+                                                                                responded = False, answer = False).order_by("-id")
+                            hc      =  HealthCentre.objects.filter(district__id = \
+                                                             district).extra(select = {'selected':'id = %d' % (health_centre,)}).order_by('-id')
+                        else:
+                            pass 
+                    except:
+                        pass
+                else:
+                    pass
+            except: 
+                pass
+        
+    except: pass
+    errors = [Error.objects.filter(upload_ref = s)[0] for s in uploads]
     paginator = Paginator(errors, 10)
     
     try: page = int(request.GET.get("page", '1'))
@@ -115,7 +171,7 @@ def view_uploads(request):
         errors = paginator.page(paginator.num_pages)
 
     
-    return render_to_response("chws/uploads.html", dict( errors=errors, regs = regs, confirms = confirms, pendings = pendings, user=request.user), context_instance=RequestContext(request))
+    return render_to_response("chws/uploads.html", dict( errors=errors,reporters = reporters , sup = sup, regs = regs, confirms = confirms, pendings = pendings, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
 @require_GET
@@ -575,7 +631,7 @@ def get_date(date_of_birth):
         try:
             x = int(float(date_of_birth))
             if x: date_of_birth = datetime.date(x,01,01)  
-        except:   date_of_birth = datetime.date.today()
+        except:   date_of_birth = datetime.date.today() - datetime.timedelta(days = 7665)
     return date_of_birth
 
 def get_nation(name = "Rwanda"):

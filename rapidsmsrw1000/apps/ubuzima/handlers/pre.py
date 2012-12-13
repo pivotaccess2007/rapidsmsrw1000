@@ -53,7 +53,11 @@ class PreHandler (KeywordHandler):
             message.respond(_("The correct format message is: PRE MOTHER_ID LAST_MENSES NEXT_VISIT PREVIOUS_RISK CURRENT_RISK LOCATION_CODE MOTHER_WEIGHT MOTHER_HEIGHT SANITATION TELEPHONE"))
             return True
         
-        nid = m.group(1)
+        try:    nid = read_nid(message, m.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
         lmp = m.group(2)
         next_visit = m.group(3)
         gravity = m.group(4)
@@ -114,9 +118,10 @@ class PreHandler (KeywordHandler):
         fields.append(read_key(location))
         
         for field in fields:
-            field.report = report
-            field.save()
-            report.fields.add(field)     
+            if field:
+                field.report = report
+                field.save()
+                report.fields.add(field)     
         #print message, message.connection, last_menses, fields, patient,report
         # either return an advice text, or our default text for this message type
         try:	response = run_triggers(message, report)

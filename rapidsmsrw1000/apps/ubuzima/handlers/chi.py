@@ -50,7 +50,11 @@ class ChiHandler (KeywordHandler):
             message.respond(_("The correct format message is: CHI MOTHER_ID CHILD_NUM DOB VACCINS VACCIN_SERIE ACTION_CODE LOCATION_CODE CHILD_WEIGHT MUAC"))
             return True
 
-        nid = m.group(1)
+        try:    nid = read_nid(message, m.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
         number = m.group(2)
         chidob = m.group(3)
         vaccins = m.group(4)
@@ -93,9 +97,10 @@ class ChiHandler (KeywordHandler):
         fields.append(read_muac(muac))
         
         for field in fields:
-            field.report = report
-            field.save()
-            report.fields.add(field)	   
+            if field:
+                field.report = report
+                field.save()
+                report.fields.add(field)	   
 
         # either send back the advice text or our default msg
         try:	response = run_triggers(message, report)

@@ -29,7 +29,7 @@ class DepHandler (KeywordHandler):
             self.respond(_("You need to be registered first, use the REG keyword"))
             return True 
     def help(self):
-        self.respond("The correct format message is: DEP MOTHER_ID_OR_YOUR_PHONE_NUMBER_DATE_AS_DD_MM_YY ")
+        self.respond("The correct format message is: DEP MOTHER_ID_OR_YOUR_PHONE_NUMBER_DATE_AS_DD_MM_YY  CHILD_NUMBER DOB")
 
     def handle(self, text):
         #print self.msg.text
@@ -44,12 +44,26 @@ class DepHandler (KeywordHandler):
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
 
-    	rez = re.match(r'dep\s+(\d+)', message.text, re.IGNORECASE)
+    	rez = re.match(r'dep\s+(\d+)\s?(.*)', message.text, re.IGNORECASE)
     	if not rez:
     	    message.respond(_('You never reported a departure. Departure are reported with the keyword DEP'))
     	    return True
-    	dep = Departure(reporter = message.reporter, depid = rez.group(1))
-    	dep.save()
+        try:
+            depid = read_nid(message, rez.group(1))
+            dep = Departure(reporter = message.reporter, depid = depid)
+            optional_part = rez.group(2)
+            if optional_part:                
+                optional_part = re.search(r'([0-9]+)\s+([0-9.]+)', optional_part, re.IGNORECASE)
+                child_number = optional_part.group(1)
+                dob = parse_dob(optional_part.group(2))
+                dep.dob = set_date_string(dob)
+                dep.child_number = child_number
+    	    dep.save()
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
+    	
 
         message.respond(_("Thank you! Dep report submitted successfully."))   
             	

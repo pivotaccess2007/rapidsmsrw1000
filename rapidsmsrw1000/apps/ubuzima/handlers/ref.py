@@ -48,7 +48,12 @@ class RefHandler (KeywordHandler):
     	if not rez:
     	    message.respond(_('You never reported a refusal. Refusals are reported with the keyword REF'))
     	    return True
-    	ref = Refusal(reporter = message.reporter, refid = rez.group(1))
+        try:    refid = read_nid(message, rez.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
+    	ref = Refusal(reporter = message.reporter, refid = refid)
     	ref.save()
 
         message.respond(_("Thank you! REF report submitted successfully."))

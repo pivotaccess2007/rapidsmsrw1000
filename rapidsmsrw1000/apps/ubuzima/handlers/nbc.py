@@ -44,12 +44,16 @@ class NbcHandler (KeywordHandler):
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
 
-        m = re.search("nbc\s+(\d+)\s+([0-9]+)\s(nbc1|nbc2|nbc3)\s([0-9.]+)\s?(.*)\s(nb|bf1)\s(pt|pr|tr|aa|al|at|na)\s(mw|ms|cw|cs)\s?(.*)", message.text, re.IGNORECASE)
+        m = re.search("nbc\s+(\d+)\s+([0-9]+)\s(nbc1|nbc2|nbc3|nbc4|nbc5)\s([0-9.]+)\s?(.*)\s(nb|ebf|cbf|br)\s(pt|pr|tr|aa|al|at|na|ph)\s(mw|ms|cw|cs)\s?(.*)", message.text, re.IGNORECASE)
         if not m:
             message.respond(_("The correct format message is: NBC MOTHER_ID CHILD_NUM NBC_ROUND DOB SYMPTOMS INTERVENTION CHILD_STATUS"))
             return True
 
-        nid = m.group(1)
+        try:    nid = read_nid(message, m.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
         number = m.group(2)
         tour = m.group(3)
         chidob = m.group(4)
@@ -94,9 +98,10 @@ class NbcHandler (KeywordHandler):
         fields.append(read_key(bf1))
 
         for field in fields:
-            field.report = report
-            field.save()
-            report.fields.add(field)
+            if field:
+                field.report = report
+                field.save()
+                report.fields.add(field)
 
 	    # either send back the advice text or our default msg
         try:	response = run_triggers(message, report)

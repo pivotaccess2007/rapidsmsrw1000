@@ -44,12 +44,16 @@ class RiskHandler (KeywordHandler):
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
         
-        m = re.search("risk\s+(\d+)\s?(.*)\s(hp|cl|ho|or)\s(wt\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)
+        m = re.search("risk\s+(\d+)\s?(.*)\s(ho|or)\s(wt\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)
         if not m:
             message.respond(_("The correct format message is: RISK MOTHER_ID ACTION_CODE LOCATION_CODE MOTHER_WEIGHT"))
             return True
 
-        nid = m.group(1)
+        try:    nid = read_nid(message, m.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
         ibibazo = m.group(2)
         location = m.group(3)
         weight = m.group(4)
@@ -65,6 +69,8 @@ class RiskHandler (KeywordHandler):
         # read our fields
         try:
             (fields, dob) = read_fields(ibibazo, False, True)
+            
+            if len(fields) == 0:  raise Exception("Action codes cannot be null, please assess the risk and try again. Thank you!")
         except Exception, e:
             # there were invalid fields, respond and exit
             message.respond("%s" % e)
@@ -78,9 +84,10 @@ class RiskHandler (KeywordHandler):
         fields.append(read_key(location))
         
         for field in fields:
-            field.report = report
-            field.save()
-            report.fields.add(field)
+            if field:
+                field.report = report
+                field.save()
+                report.fields.add(field)
 	    # either send back the advice text or our default msg
         
         try:	response = run_triggers(message, report)

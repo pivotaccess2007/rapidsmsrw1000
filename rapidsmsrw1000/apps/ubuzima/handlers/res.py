@@ -49,7 +49,11 @@ class ResHandler (KeywordHandler):
             message.respond(_("The correct format message is: RES MOTHER_ID REPORTED_SYMPTOMS LOCATION_CODE INTERVENTION_CODE MOTHER_STATUS CHILD_STATUS"))
             return True
 
-        nid = m.group(1)
+        try:    nid = read_nid(message, m.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
         ibibazo = m.group(2)
         location = m.group(3)
         intervention = m.group(4)
@@ -83,9 +87,10 @@ class ResHandler (KeywordHandler):
         for st in read_fields(cstatus, False, False)[0]:	fields.append(st)
 
         for field in fields:
-            field.report = report
-            field.save()
-            report.fields.add(field)
+            if field:
+                field.report = report
+                field.save()
+                report.fields.add(field)
 	    # either send back the advice text or our default msg
 
         try:	response = run_triggers(message, report)

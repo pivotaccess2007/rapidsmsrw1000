@@ -1,14 +1,15 @@
 
 from django.core.management.base import BaseCommand
-from ubuzima.models import Report, Reminder, ReminderType
+from rapidsmsrw1000.apps.ubuzima.models import Report, Reminder, ReminderType
 from django.conf import settings
-from reporters.models import Reporter
+from rapidsmsrw1000.apps.reporters.models import Reporter
 import urllib2
 import time
 import datetime
 from optparse import make_option
-from ubuzima.smser import *
+from rapidsmsrw1000.apps.ubuzima.smser import *
 import calendar
+from django.utils import timezone
 
 class Command(BaseCommand):
     help = "Checks and triggers all reminders.  This command should be run daily via cron"
@@ -149,7 +150,7 @@ class Command(BaseCommand):
     def check_expired_reporters(self):
         # get our reminder
         reminder_type = ReminderType.objects.get(pk=6)
-        today = datetime.date.today()
+        today = timezone.localtime(timezone.now())#datetime.date.today()
 
         # get all our pending expired reporters
         for reporter in Reminder.get_expired_reporters(today):
@@ -185,7 +186,7 @@ class Command(BaseCommand):
             print "DRY RUN -- No messages will be sent, no database commits made."
 
         # today
-        today = datetime.date.today()
+        today = timezone.localtime(timezone.now())#datetime.date.today()
 
         # ANC2
         reminder_type = ReminderType.objects.get(pk=1)

@@ -1,0 +1,7 @@
+TO BE ABLE TO BUILD SQL TABLES AFTER MOVING FROM THE OLD RAPIDSMS TO THE CURRENT RAPIDSMS
+YOU NEED TO RUN ALL THIS SQL FILES AS THE EXAMPLE BELOW:
+
+
+1. mysql -uroot -p rapidsmsrw1000_db
+
+2. source ~/projects/python/virtualenvs/django_1.4_projects/rapidsmsrw1000/rapidsmsrw1000/apps/ubuzima/sql/departure.sql 

@@ -40,6 +40,10 @@ class RegistrationConfirmationAdmin(admin.ModelAdmin):
     list_display = ('reporter', 'responded', 'answer')
     search_fields = ('responded',)
 
+class SupervisorAdmin(admin.ModelAdmin):
+    list_display = ('names', 'telephone', 'email', 'health_centre', 'hospital', 'district', 'province')
+    search_fields = ('telephone', 'email', 'names')
+
 
 admin.site.register(Role)
 admin.site.register(Reporter, CHWAdmin)
@@ -52,3 +56,4 @@ admin.site.register(Village, VillageAdmin)
 admin.site.register(Hospital, HospitalAdmin)
 admin.site.register(HealthCentre, HealthCentreAdmin)
 admin.site.register(RegistrationConfirmation, RegistrationConfirmationAdmin)
+admin.site.register(Supervisor, SupervisorAdmin)

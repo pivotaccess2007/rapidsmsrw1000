@@ -17,7 +17,7 @@
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
             
-        m = re.search("dth\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s(nd|cd|md)\s?(.*)", message.text, re.IGNORECASE)
+        m = re.search("dth\s+(\d+)\s+(?.*|[0-9]+)\s(?.*|[0-9.]+)\s(nd|cd|md)\s?(.*)", message.text, re.IGNORECASE)
         if not m:
             message.respond(_("The correct format message is: DTH MOTHER_ID CHILD_NUMBER DATE_OF_BIRTH DEATH_CODE"))
             return True

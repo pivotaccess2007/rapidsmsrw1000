@@ -39,7 +39,9 @@ class AncHandler (KeywordHandler):
     def anc(self, message):
     	"""New Anc report. This is for regestering a new anc visit ."""
     	try:
-            message.reporter = PersistantConnection.objects.get(identity = message.connection.identity).reporter
+            pconn = PersistantConnection.objects.get(identity = message.connection.identity)
+            message.reporter = pconn.reporter
+            pconn.seen(); print pconn.last_seen
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
@@ -49,7 +51,11 @@ class AncHandler (KeywordHandler):
             message.respond(_("The correct format message is: ANC MOTHER_ID VISIT_DATE ANC_ROUND ACTION_CODE MOTHER_WEIGHT"))
             return True
         
-        nid = m.group(1)
+        try:    nid = read_nid(message, m.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
         visit = m.group(2)
         tour = m.group(3)
         ibibazo = m.group(4)
@@ -89,9 +95,10 @@ class AncHandler (KeywordHandler):
         fields.append(read_key(tour))
         fields.append(read_key(location))
         for field in fields:
-            field.report = report
-            field.save()
-            report.fields.add(field)
+            if field:
+                field.report = report
+                field.save()
+                report.fields.add(field)
 	    # either send back the advice text or our default msg
 	    if not Report.objects.filter(patient=patient,type__name='Pregnancy',created__gte=(date.today()-timedelta(270))):
 		    message.respond("Thank you! ANC report submitted. Please send also the pregnancy report of this patient (%s)."%str(patient.national_id))
@@ -101,7 +108,9 @@ class AncHandler (KeywordHandler):
 	                
         #   TODO:
         #   Muck with the translations.
-            	
+        # cc the supervisor if there is one
+        try:	cc_supervisor(message, report)
+        except:	pass    	
         return True 
 
         #   TODO:

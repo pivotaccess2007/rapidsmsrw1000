@@ -2511,14 +2511,21 @@ def newborn_indicators(req, flts):
     var_newborn_death=get_newborn_death(req).filter(**locz1[1])
     var_child_death=get_child_death(req).filter(**locz1[1])
     
-    indics = {'home':[{'desc':birth_sick_referred, 'fs':  var_bsr.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description'), 'deno': " over %d registered birth " % total_bir, 'patients': var_bsr},
-{'desc':newborn_death, 'fs':  var_newborn_death.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description'), 'deno': " over %d registered birth " % total_bir, 'patients': var_newborn_death},
-{'desc':child_death , 'fs':  var_child_death .values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description'), 'deno': " over %d registered birth " % total_bir, 'patients': var_child_death },
+    #indics = {'home':[{'desc':birth_sick_referred, 'fs':  var_bsr.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description'), 'deno': " over %d registered birth " % total_bir, 'patients': var_bsr},
+#{'desc':newborn_death, 'fs':  var_newborn_death.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description'), 'deno': " over %d registered birth " % total_bir, 'patients': var_newborn_death},
+#{'desc':child_death , 'fs':  var_child_death .values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description'), 'deno': " over %d registered birth " % total_bir, 'patients': var_child_death },
+#{'desc':avg_weight_2years, 'fs': var_avg_weight_2years.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description') , 'deno': " children, average weight: %d kg" % average_weight_2years, 'patients': var_avg_weight_2years},\
+#{'desc':avg_height_2years, 'fs':  var_avg_height_2years.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description'), 'deno': " children, average height: %d m " % average_height_2years, 'patients': var_avg_height_2years},\
+#{'desc':avg_weight_pnc3, 'fs':  var_avg_weight_pnc3.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description'), 'deno': " children, average weight: %d kg " % average_weight_pnc3, 'patients': total_pnc3},\
+#],\
+#'desc': { '%s'%birth_sick_referred['id']: var_bsr,'%s'%newborn_death['id']: var_newborn_death, '%s'%child_death['id']: var_child_death,'%s'%avg_weight_2years['id']: var_avg_weight_2years,'%s'%avg_height_2years['id']: var_avg_height_2years,'%s'% avg_weight_pnc3['id']: var_avg_weight_pnc3}}
+
+    indics = {'home':[
 {'desc':avg_weight_2years, 'fs': var_avg_weight_2years.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description') , 'deno': " children, average weight: %d kg" % average_weight_2years, 'patients': var_avg_weight_2years},\
 {'desc':avg_height_2years, 'fs':  var_avg_height_2years.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description'), 'deno': " children, average height: %d m " % average_height_2years, 'patients': var_avg_height_2years},\
 {'desc':avg_weight_pnc3, 'fs':  var_avg_weight_pnc3.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description'), 'deno': " children, average weight: %d kg " % average_weight_pnc3, 'patients': total_pnc3},\
 ],\
-'desc': { '%s'%birth_sick_referred['id']: var_bsr,'%s'%newborn_death['id']: var_newborn_death, '%s'%child_death['id']: var_child_death,'%s'%avg_weight_2years['id']: var_avg_weight_2years,'%s'%avg_height_2years['id']: var_avg_height_2years,'%s'% avg_weight_pnc3['id']: var_avg_weight_pnc3}}
+'desc': { '%s'%avg_weight_2years['id']: var_avg_weight_2years,'%s'%avg_height_2years['id']: var_avg_height_2years,'%s'% avg_weight_pnc3['id']: var_avg_weight_pnc3}}
 
     return indics
 

@@ -359,3 +359,30 @@ def read_number(code_string):
         return field
     except:	return None
 
+
+def read_nid(message, nid):
+    if len(nid) != 16:
+        err = ErrorNote(errmsg = message.text, type = ErrorType.objects.get(name = "Invalid ID"), errby = message.reporter, identity =\
+				            message.connection.identity, village=message.reporter.village, district = message.reporter.location.district,\
+                         province = message.reporter.location.province, nation =   message.reporter.location.nation)
+        
+        raise Exception(_("Error.  National ID must be exactly 16 digits, you sent the nid: %(nat_id)s with only %(uburefu)d digits") % 
+                            { "nat_id": nid , "uburefu": len(nid) } )
+        
+        
+        
+        
+    else:   return nid
+
+
+def set_date_string(date_string):
+    """
+    Trap anybody setting the date_string and try to set the date from it.
+    """
+    try:
+        date = datetime.strptime(date_string, "%d.%m.%Y").date()
+    	return date    
+    except ValueError,e:
+        # no-op, just keep the date_string value
+        pass
+

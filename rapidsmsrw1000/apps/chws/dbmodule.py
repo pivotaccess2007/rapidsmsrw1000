@@ -5,6 +5,10 @@ from django.core import management
 from django.db import connection
 from rapidsmsrw1000.apps.chws.models import *
 from xlrd import open_workbook ,cellname,XL_CELL_NUMBER,XLRDError
+import datetime
+from django.utils import timezone
+from rapidsmsrw1000.apps.reporters import models as old_registry
+from random import randint
 
 def build_locations():
     try:
@@ -195,5 +199,161 @@ def update_cells_villages(filepath = "rapidsmsrw1000/apps/chws/xls/minaloc.xls",
             pass
     print "Cell: %d, Village: %d, \ncell_codes: %s\nvillage_codes: %s" % (c_n, v_n, c_codes, v_codes)
 
-
+def import_supervisors(filepath = "rapidsmsrw1000/apps/chws/xls/supervisors.xls", sheetname = "supervisors"):
+    book = open_workbook(filepath)
+    sheet = book.sheet_by_name(sheetname)
     
+    for row_index in range(sheet.nrows):
+        if row_index < 1: continue   
+        try:
+            names = sheet.cell(row_index,0).value
+            dob = sheet.cell(row_index,1).value
+            area = sheet.cell(row_index,2).value
+            area_level = sheet.cell(row_index,3).value
+            telephone = sheet.cell(row_index,4).value
+            email = sheet.cell(row_index,5).value
+            district = sheet.cell(row_index,6).value
+            try:
+                district = District.objects.filter(name__icontains = district)[0]
+                if area_level.upper().strip() == 'HC':
+                    loc = HealthCentre.objects.filter(name__icontains = area, district = district)[0]
+                    sup, created = Supervisor.objects.get_or_create(telephone = parse_phone_number(telephone), health_centre = loc)
+                elif area_level.upper().strip() == 'HOSPITAL':
+                    loc = Hospital.objects.filter(name__icontains = area, district = district)[0]
+                    sup, created = Supervisor.objects.get_or_create(telephone = parse_phone_number(telephone), hospital = loc)
+                if sup.random_nid is None:  sup.random_nid = "%s%s" % ( sup.telephone[3:] , str(random_with_N_digits(6)))
+                sup.names = names
+                sup.dob = get_date(dob)
+                sup.area_level = area_level.upper().strip()
+                sup.sector = loc.sector
+                sup.district = loc.district
+                sup.province = loc.province
+                sup.nation = loc.nation
+                #sup.telephone  = parse_phone_number(telephone)
+                sup.email = email
+                #print sup, loc
+                #print loc, district, parse_phone_number(telephone), email
+                if sup.health_centre is None:
+                    if sup.hospital is None:
+                        sup.delete()
+                else:
+                    sup.save()
+                    sup_old_reg(sup)
+            except Exception, e:
+                #print e, area
+                pass
+            #print "\nNames : %s\n DOB : %s\n Health Centre : %s\n Hospital : %s\n Telephone : %s\n Email: %s\n District : %s\n"\
+                 #% (sup.names,sup.dob,sup.health_centre,sup.hospital,sup.telephone,sup.email,sup.district)
+        except Exception, e:
+            #print e
+            pass
+
+def parse_phone_number(number):
+
+    number = number
+    try:
+        number = str(int(float(number)))
+    except:
+        try:
+            number = str(int(number))
+        except:
+            try:
+                number = str(number)
+            except:
+                    return False
+    number = number.replace(" ", "")
+    try:
+        if type(number)!=str:
+            number=str(int(number))
+        if number[:3]=="+25" and len(number[3:])==10:
+            number=number
+        elif number[:3]=="250" and len(number[3:])==9:
+            number="+"+number
+        elif number[:3]=="078" and len(number[3:])==7:
+            number="+25"+number
+        elif number[:2]=="78" and len(number[2:])==7:
+            number="+250"+number
+        return number
+    except: 
+            return False
+
+def get_date(date_of_birth):
+    
+    try:
+        x       = date_of_birth.split("/")
+        
+        if len(x) == 3 :    date_of_birth       = datetime.date(int(x[2]),int(x[1]),int(x[0]))
+        elif len(x) == 1:   date_of_birth       = datetime.date(int(x[0]),01,01)                                        
+    except:
+        try:
+            x = int(float(date_of_birth))
+            if x: date_of_birth = datetime.date(x,01,01)  
+        except:   date_of_birth = datetime.date.today() - datetime.timedelta(days = 7665)
+    return date_of_birth
+
+def sup_old_reg(sup):
+    if sup.random_nid is None:  sup.random_nid = "%s%s" % ( sup.telephone[3:] , str(random_with_N_digits(6)))
+    sup.save()
+    try:
+        old_reporter = get_reporter(sup.random_nid)
+        
+        if sup.health_centre:   old_reporter.location = old_registry.Location.objects.get(code = fosa_to_code(sup.health_centre.code))
+        elif sup.hospital:  old_reporter.location = old_registry.Location.objects.get(code = fosa_to_code(sup.hospital.code))
+          
+        old_reporter.groups.add(old_registry.ReporterGroup.objects.get(title='Supervisor'))
+        old_reporter.groups.remove(old_registry.ReporterGroup.objects.get(title='CHW'))
+        
+        if sup.village: old_reporter.village = sup.village.name
+        else:   old_reporter.village = "Village Ntizwi" 
+        old_reporter.language = "rw"
+        old_reporter.save()
+        
+        old_connection = get_connection(sup.telephone, reporter = old_reporter)
+        
+        #print old_connection
+    except Exception, e:
+        #print e
+        pass
+
+def random_with_N_digits(n):
+    range_start = 10**(n-1)
+    range_end = (10**n)-1
+    return randint(range_start, range_end)
+
+def get_reporter(national_id):
+    try:
+        reporter = old_registry.Reporter.objects.filter(alias = national_id)[0]
+        return reporter
+    except Exception, e:
+        try:
+            reporter = old_registry.Reporter(alias = national_id)
+            reporter.save()
+            return reporter
+            
+        except Exception, e:
+            return None
+
+def get_connection(telephone_moh, reporter = None):
+    
+    try:
+        connection = old_registry.PersistantConnection.objects.filter(identity = telephone_moh)[0]
+        
+        if connection.reporter: return connection
+        else:  
+            connection.reporter = reporter
+            connection.save()
+            return connection
+    except Exception, e:
+        try:
+            if reporter.exists():
+                
+                backend = old_registry.PersistantBackend.objects.get(title="kannel")
+                
+                connection = old_registry.PersistantConnection(backend = backend, identity = telephone_moh, \
+                                                                                        reporter = reporter, last_seen = timezone.localtime(timezone.now()))
+                connection.save()
+                return connection
+            else:
+                return None
+        except Exception, e:
+            return None

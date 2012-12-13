@@ -44,12 +44,16 @@ class CcmHandler (KeywordHandler):
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
 
-        m = re.search("ccm\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s?(.*)\s(pt|pr|tr|aa|al|at|na)\s?(.*)", message.text, re.IGNORECASE)
+        m = re.search("ccm\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s(ma|di|pc)\s(pt|pr|tr|aa|al|at|na|ph)\s(muac\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)
         if not m:
-            message.respond(_("The correct format message is: CCM MOTHER_ID CHILD_NUM DOB SYMPTOMS INTERVENTION"))
+            message.respond(_("The correct format message is: CCM MOTHER_ID CHILD_NUM DOB SYMPTOMS INTERVENTION MUAC"))
             return True
 
-        nid = m.group(1)
+        try:    nid = read_nid(message, m.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
         number = m.group(2)
         chidob = m.group(3)
         ibibazo = m.group(4)
@@ -84,9 +88,10 @@ class CcmHandler (KeywordHandler):
         fields.append(read_key(intervention))
 
         for field in fields:
-            field.report = report
-            field.save()
-            report.fields.add(field)       
+            if field:
+                field.report = report
+                field.save()
+                report.fields.add(field)       
 
         try:	response = run_triggers(message, report)
         except:	response = None

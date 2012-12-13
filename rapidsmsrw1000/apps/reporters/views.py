@@ -128,20 +128,21 @@ def reporter_fresher(req):
     return pst
 
 def find_reporter(req):
+    req.base_template = "webapp/layout.html"
     try:
         conn=get_object_or_404(PersistantConnection, identity='+25'+req.REQUEST['repid'])    
         reporter = get_object_or_404(Reporter, pk=conn.reporter.pk)
         ans=[]
         if reporter:
             ans.append(reporter)
-        return render_to_response(req,
+        return render_to_response(
         "reporters/index.html", {
         "locations":Location.objects.filter(type__name__in=['Province','District','Hospital','Health Centre']),
         "reporters": paginated(req, ans ),
         "groups":    paginated(req, ReporterGroup.objects.all()),
-    })
+    }, context_instance=RequestContext(req))
     except Exception,err:
-        return render_to_response("404.html",{"error":err}, context_instance=RequestContext(req))
+        return render_to_response("ubuzima/404.html",{"error":err}, context_instance=RequestContext(req))
 
 #Inactive reporters
 def default_reporter_location(req):
@@ -185,7 +186,7 @@ def matching_reporters(req, alllocs = False):
 
 def inactive_reporters(req,rez):
     inactive_reps=[]
-    reps=Reporter.objects.filter(groups__title='CHW',**rez)
+    reps=Reporter.objects.filter(**rez)#reps=Reporter.objects.filter(groups__title='CHW',**rez)
     pst=reporter_fresher(req)
     for rep in reps.filter(**pst):
         if rep.is_expired():
@@ -195,7 +196,7 @@ def inactive_reporters(req,rez):
 #Active reporters
 def active_reporters(req,rez):
     active_reps=[]
-    reps=Reporter.objects.filter(groups__title='CHW',**rez)
+    reps=Reporter.objects.filter(**rez)#reps=Reporter.objects.filter(groups__title='CHW',**rez)
     pst=reporter_fresher(req)
     for rep in reps.filter(**pst):
         if not rep.is_expired():

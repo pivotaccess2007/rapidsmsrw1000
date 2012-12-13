@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# vim: ai ts=4 sts=4 et sw=4
+
 from django.db import models
 from rapidsmsrw1000.apps.ubuzima.models import *
 # Create your Django models here, if you need them.
@@ -16,5 +19,8 @@ class Pregnancy(models.Model):
 
     def __unicode__(self):
         return "Report: %s" % (self.report)
+
+
+
 
     

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# vim: ai ts=4 sts=4 et sw=4
+
 from django.db import models
 from django.contrib.auth.models import *
 from rapidsmsrw1000.apps.reporters.models import Reporter as OldRef
@@ -230,5 +233,24 @@ class Warn(models.Model):
 	def __unicode__(self):
 		return self.row
 
+
+class Supervisor(models.Model):
+    names = models.EmailField(max_length=150, null=True)
+    dob = models.DateField(blank=True, null = True, help_text="Date Of Birth")
+    area_level = models.CharField(max_length=13, null=True)
+    village = models.ForeignKey(Village, null = True)
+    cell = models.ForeignKey(Cell, null = True)
+    sector = models.ForeignKey(Sector, null = True)
+    health_centre = models.ForeignKey(HealthCentre, null = True)
+    hospital = models.ForeignKey(Hospital, null = True)
+    district = models.ForeignKey(District, null = True)
+    province = models.ForeignKey(Province, null = True)
+    nation = models.ForeignKey(Nation, null = True)
+    telephone  = models.CharField(max_length=13, null=True, unique = True)
+    email = models.EmailField(max_length=50, null=True)
+    random_nid =  models.CharField(max_length=16, null=True, unique = True)
+
+    def __unicode__(self):
+        return "Supervisor: %s" % (self.names)
 
     

@@ -49,7 +49,11 @@ class BirHandler (KeywordHandler):
             message.respond(_("The correct format message is: BIR MOTHER_ID TWINS CHILD_NUM DOB SEX ACTION_CODE LOCATION_CODE BREASTFEEDING CHILD_WEIGHT"))
             return True
 
-        nid = m.group(1)
+        try:    nid = read_nid(message, m.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
         twins = m.group(2)
         number = m.group(3)
         chidob = m.group(4)
@@ -98,9 +102,10 @@ class BirHandler (KeywordHandler):
         fields.append(read_key(bf1))
 
         for field in fields:
-            field.report = report
-            field.save()
-            report.fields.add(field)  
+            if field:
+                field.report = report
+                field.save()
+                report.fields.add(field)  
     
         # either send back the advice text or our default msg
         try:	response = run_triggers(message, report)

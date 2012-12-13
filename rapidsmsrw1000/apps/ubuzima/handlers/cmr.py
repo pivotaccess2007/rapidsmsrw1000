@@ -44,12 +44,16 @@ class CmrHandler (KeywordHandler):
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
 
-        m = re.search("cmr\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s?(.*)\s(pt|pr|tr|aa|al|at|na)\s(mw|ms|cw|cs)\s?(.*)", message.text, re.IGNORECASE)
+        m = re.search("cmr\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s?(.*)\s(pt|pr|tr|aa|al|at|na|ph)\s(mw|ms|cw|cs)\s?(.*)", message.text, re.IGNORECASE)
         if not m:
             message.respond(_("The correct format message is: CMR MOTHER_ID CHILD_NUM DOB SYMPTOMS INTERVENTION MOTHER_STATUS CHILD_STATUS"))
             return True
 
-        nid = m.group(1)
+        try:    nid = read_nid(message, m.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
         number = m.group(2)
         chidob = m.group(3)
         ibibazo = m.group(4)
@@ -87,9 +91,10 @@ class CmrHandler (KeywordHandler):
         fields.append(read_key(mstatus))
         for st in read_fields(cstatus, False, False)[0]:	fields.append(st)
         for field in fields:
-            field.report = report
-            field.save()
-            report.fields.add(field)
+            if field:
+                field.report = report
+                field.save()
+                report.fields.add(field)
 
         try:	response = run_triggers(message, report)
         except:	response = None

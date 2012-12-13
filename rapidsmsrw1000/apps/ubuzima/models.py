@@ -158,7 +158,7 @@ class Report(models.Model):
 
         return summary
     def has_dups(self):
-    	return Report.objects.filter(type=self.type,patient=self.patient,date=self.date).exists()
+    	return Report.objects.filter(type=self.type,patient=self.patient,date=self.date, reporter = self.reporter).exists()
     def rep_fields(self):
     	flds = []
     	rep_flds = self.fields.all()
@@ -734,6 +734,8 @@ class Departure(models.Model):
 
     reporter = models.ForeignKey(Reporter, related_name = 'dep_mother')
     depid    = models.TextField()
+    dob = models.DateField(null=True)
+    child_number = models.IntegerField(null = True)
     village = models.CharField(max_length=255, null=True)
     cell = models.ForeignKey(Location, related_name = 'depcell', null=True)
     sector = models.ForeignKey(Location, related_name = 'depsector', null=True)

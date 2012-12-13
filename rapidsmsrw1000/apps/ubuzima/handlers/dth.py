@@ -44,16 +44,30 @@ class DthHandler (KeywordHandler):
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
 
-        m = re.search("dth\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s(nd|cd|md)\s?(.*)", message.text, re.IGNORECASE)
+        m = re.search("dth\s+(\d+)\s?(.*)\s(nd|cd|md)\s?(.*)", message.text, re.IGNORECASE)
+        
         if not m:
             message.respond(_("The correct format message is: DTH MOTHER_ID CHILD_NUMBER DATE_OF_BIRTH DEATH_CODE"))
             return True
 
-        nid = m.group(1)
-        number = m.group(2)
-        chidob = m.group(3)
-        ibibazo = m.group(4)
+        try:    nid = read_nid(message, m.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
 
+        ibibazo = m.group(3)
+        chidob = number = None
+        if m.group(2):
+            optional_part = re.search(r'([0-9]+)\s+([0-9.]+)', m.group(2),re.IGNORECASE)
+            number = optional_part.group(1)
+            chidob = optional_part.group(1)
+
+        if ibibazo.lower() in ['nd','cd']:            
+            if not number or not chidob:
+                message.respond(_("The correct format message is: DTH MOTHER_ID CHILD_NUMBER DATE_OF_BIRTH DEATH_CODE"))
+                return True
+    
         # get or create the patient
         patient = get_or_create_patient(message.reporter, nid)
 
@@ -65,12 +79,12 @@ class DthHandler (KeywordHandler):
         # read our fields
         try:
             (fields, dob) = read_fields(ibibazo, False, False)
-    	    dob = parse_dob(chidob)
+    	    if chidob:  dob = parse_dob(chidob)
         except Exception, e:
             # there were invalid fields, respond and exit
             message.respond("%s" % e)
             return True
-
+        
         # set the dob for the child if we got one
         if dob:
             report.set_date_string(dob)
@@ -85,11 +99,13 @@ class DthHandler (KeywordHandler):
 
 	    # then associate all our fields with it
         
-        fields.append(read_number(number))
+        if number:  fields.append(read_number(number))
+        
         for field in fields:
-            field.report = report
-            field.save()
-            report.fields.add(field)
+            if field:
+                field.report = report
+                field.save()
+                report.fields.add(field)
 
 	    # either send back the advice text or our default msg
         try:	response = run_triggers(message, report)

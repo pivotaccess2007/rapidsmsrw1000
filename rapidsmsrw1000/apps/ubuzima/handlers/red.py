@@ -44,12 +44,16 @@ class RedHandler (KeywordHandler):
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
         
-        m = re.search("red\s+(\d+)\s?(.*)\s(hp|cl|ho|or)\s(wt\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)
+        m = re.search("red\s+(\d+)\s?(.*)\s(ho|or)\s(wt\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)
         if not m:
             message.respond(_("The correct format message is: RED MOTHER_ID ACTION_CODE LOCATION_CODE MOTHER_WEIGHT"))
             return True
 
-        nid = m.group(1)
+        try:    nid = read_nid(message, m.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
         ibibazo = m.group(2)
         location = m.group(3)
         weight = m.group(4)
@@ -78,9 +82,10 @@ class RedHandler (KeywordHandler):
         fields.append(read_key(location))
 
         for field in fields:
-            field.report = report
-            field.save()
-            report.fields.add(field)
+            if field:
+                field.report = report
+                field.save()
+                report.fields.add(field)
 
 	    # either send back the advice text or our default msg
         try:	response = run_triggers(message, report)

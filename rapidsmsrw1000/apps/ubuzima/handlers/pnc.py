@@ -44,12 +44,16 @@ class PncHandler (KeywordHandler):
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
 
-        m = re.search("pnc\s+(\d+)\s+(pnc1|pnc2|pnc3)\s([0-9.]+)\s?(.*)\s(pt|pr|tr|aa|al|at|na)\s(mw|ms|cw|cs)\s?(.*)", message.text, re.IGNORECASE)
+        m = re.search("pnc\s+(\d+)\s+(pnc1|pnc2|pnc3)\s([0-9.]+)\s?(.*)\s(pt|pr|tr|aa|al|at|na|ph)\s(mw|ms|cw|cs)\s?(.*)", message.text, re.IGNORECASE)
         if not m:
             message.respond(_("The correct format message is: PNC MOTHER_ID PNC_ROUND DOB SYMPTOMS INTERVENTION CHILD_STATUS"))
             return True
 
-        nid = m.group(1)
+        try:    nid = read_nid(message, m.group(1))
+        except Exception, e:
+            # there were invalid fields, respond and exit
+            message.respond("%s" % e)
+            return True
         tour = m.group(2)
         chidob = m.group(3)
         ibibazo = m.group(4)
@@ -87,9 +91,10 @@ class PncHandler (KeywordHandler):
         fields.append(read_key(intervention))
 
         for field in fields:
-            field.report = report
-            field.save()
-            report.fields.add(field)
+            if field:
+                field.report = report
+                field.save()
+                report.fields.add(field)
 
 	    # either send back the advice text or our default msg
         try:	response = run_triggers(message, report)
