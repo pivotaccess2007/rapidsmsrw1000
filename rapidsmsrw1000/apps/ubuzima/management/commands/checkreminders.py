@@ -24,7 +24,7 @@ class Command(BaseCommand):
     def send_message(self, connection, message):
         conf = {'kannel_host':'127.0.0.1', 'kannel_port':13013, 'kannel_password':'kannel', 'kannel_username':'kannel'}
         try:
-            conf = settings.RAPIDSMS_APPS["kannel"]
+            conf = settings.KANNEL_CONF
         except KeyError:
             pass
         url = "http://%s:%s/cgi-bin/sendsms?to=%s&text=%s&password=%s&user=%s" % (
@@ -34,7 +34,7 @@ class Command(BaseCommand):
             urllib2.quote(message),
             conf['kannel_password'],
             conf['kannel_username'])
-
+	print url
         f = urllib2.urlopen(url, timeout=10)
         if f.getcode() / 100 != 2:
             print "Error delivering message to URL: %s" % url
@@ -121,6 +121,71 @@ class Command(BaseCommand):
 	    			if not self.dry:
 	    				if report.patient.telephone:	Smser().send_message(report.patient.telephone, message % (report.patient.national_id,report.date_string))
     	except:	pass
+
+
+    def check_unresponded_risks(self):
+        try:
+            today = timezone.localtime(timezone.now())#today = datetime.date.today()#test datetime.date(2012, 4, 12)
+            sent = Report.objects.filter( type__name = "Risk", created__year = today.year, created__month = today.month ,\
+                                        created__lte = timezone.localtime(timezone.now()) - datetime.timedelta(days = 7))
+            responded = Report.objects.filter( type__name = "Risk Result", created__year = today.year, created__month = today.month ,\
+                         created__gte = timezone.localtime(timezone.now()) - datetime.timedelta(days = 7))
+            
+            pending = sent.exclude(reporter__in = responded.values('reporter'), patient__in = responded.values('patient'), \
+                            fields__type__key__in = responded.filter(fields__type__category__name__icontains = 'risk').values('fields__type__key'))
+
+            reminder_type = ReminderType.objects.get(name = "Risk Result")
+            message = reminder_type.message_kw
+            #print responded.count()
+            for alert in pending:                
+                try:
+                    if alert.reporter.language == 'en':	message = reminder_type.message_en
+                    elif alert.reporter.language == 'fr':	message = reminder_type.message_fr
+                    
+                    message = message % (alert.patient.national_id)
+                    
+                    print "sending reminder to %s of '%s'" % (alert.reporter.connection().identity, message)
+                    if not self.dry:	self.send_message(alert.reporter.connection(), message)
+                    
+                except Exception, e:
+                    print e
+                    continue
+            if not self.dry:	Reminder.objects.create(type=reminder_type, date=timezone.localtime(timezone.now()), reporter=alert.reporter)
+        except Exception, e:
+            print e
+            pass
+
+    def check_unresponded_ccm(self):
+        try:
+            today = timezone.localtime(timezone.now())#today = datetime.date.today()#test datetime.date(2012, 4, 12)
+            sent = Report.objects.filter( type__name = "Community Case Management", created__year = today.year, created__month = today.month ,\
+                                        created__lte = timezone.localtime(timezone.now()) - datetime.timedelta(days = 4))
+            responded = Report.objects.filter( type__name = "Case Management Response", created__year = today.year, created__month = today.month ,\
+                         created__gte = timezone.localtime(timezone.now()) - datetime.timedelta(days = 4))
+            
+            pending = sent.exclude(reporter__in = responded.values('reporter'), patient__in = responded.values('patient'), \
+                            fields__type__key__in = responded.filter(fields__type__category__name__icontains = 'risk').values('fields__type__key'))
+
+            reminder_type = ReminderType.objects.get(name = "Case Management Response")
+            message = reminder_type.message_kw
+            #print sent.count()
+            for alert in pending:                
+                try:
+                    if alert.reporter.language == 'en':	message = reminder_type.message_en
+                    elif alert.reporter.language == 'fr':	message = reminder_type.message_fr
+                    
+                    message = message % (alert.patient.national_id)
+                    
+                    print "sending reminder to %s of '%s'" % (alert.reporter.connection().identity, message)
+                    if not self.dry:	self.send_message(alert.reporter.connection(), message)
+                    
+                except Exception, e:
+                    print e
+                    continue
+            if not self.dry:	Reminder.objects.create(type=reminder_type, date=timezone.localtime(timezone.now()), reporter=alert.reporter)
+        except Exception, e:
+            print e
+            pass
     
 
     def check_feedback(self):
@@ -243,6 +308,12 @@ class Command(BaseCommand):
         # EDD for SUPs
         reminder_type = ReminderType.objects.get(pk=5)
         self.check_reminders(today, Report.DAYS_SUP_EDD, reminder_type, to_sup=True)
+
+        # RISKS RESULTS REMINDERS
+        self.check_unresponded_risks()
+
+        # CCM RESULTS REMINDERS
+        self.check_unresponded_ccm()
    	
     	#Send monthly performance feedback messages
    	if calendar.monthrange(today.year,today.month)[1] == today.day:	self.check_feedback()
@@ -254,3 +325,11 @@ class Command(BaseCommand):
 
         if self.dry:
             print "DRY RUN Complete."
+
+
+
+
+
+
+
+####VACCINATION REMINDERS ### TO DO WHEN THE SCHEDULE IS DEFINED ####

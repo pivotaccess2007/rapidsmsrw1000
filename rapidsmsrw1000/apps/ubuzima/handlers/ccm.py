@@ -58,6 +58,7 @@ class CcmHandler (KeywordHandler):
         chidob = m.group(3)
         ibibazo = m.group(4)
         intervention = m.group(5)
+        muac = m.group(6)
 
         # get or create the patient
         patient = get_or_create_patient(message.reporter, nid)
@@ -86,6 +87,7 @@ class CcmHandler (KeywordHandler):
                 
         # then associate all our fields with it
         fields.append(read_key(intervention))
+        fields.append(read_muac(muac))
 
         for field in fields:
             if field:

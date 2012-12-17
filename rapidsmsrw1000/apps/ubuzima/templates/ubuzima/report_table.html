@@ -30,7 +30,11 @@
     </tbody>
     
     <tfoot>
-			
+			<tr>
+				<td colspan="10">
+					{% paginator reports %}
+				</td>
+			</tr>
 			<tr>
 				<td colspan="10">
 				Matching Reports: {{ reports.paginator.count }}

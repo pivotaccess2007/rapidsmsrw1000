@@ -58,6 +58,7 @@ class CbnHandler (KeywordHandler):
         chidob = m.group(3)
         height = m.group(4)
         weight = m.group(5)
+        muac = m.group(6)
 
         # get or create the patient
         patient = get_or_create_patient(message.reporter, nid)
@@ -87,7 +88,7 @@ class CbnHandler (KeywordHandler):
         # then associate all our fields with it
         fields.append(read_weight(weight, weight_is_mothers=False))
         fields.append(read_height(height, height_is_mothers=False))
-
+        fields.append(read_muac(muac))
         for field in fields:
             if field:
                 field.report = report
