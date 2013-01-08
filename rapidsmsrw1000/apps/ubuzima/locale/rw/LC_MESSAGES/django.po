@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-17 17:05+0200\n"
+"POT-Creation-Date: 2013-01-04 12:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,236 +17,274 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: app.py:62
-msgid "Unknown Error, please check message format and try again."
-msgstr ""
-
-#: app.py:72
-msgid "Unknown keyword, please check message format and try again."
-msgstr ""
-
-#: app.py:105
-msgid "The correct message format is: SUP YOUR_ID CLINIC_ID LANG VILLAGE"
-msgstr ""
-
-#: app.py:107
-msgid "The correct message format is: REG YOUR_ID CLINIC_ID LANG VILLAGE"
-msgstr ""
-
-#: app.py:116
-#, python-format
-msgid ""
-"Error.  National ID must be exactly 16 digits, you sent the id: %(nat_id)s"
-msgstr ""
-
-#: app.py:134
-#, python-format
-msgid "Please contact your Health Centre to register your National ID:%s"
-msgstr ""
-
-#: app.py:149
-#, python-format
-msgid "Unknown Health Clinic ID: %(clinic)s"
-msgstr ""
-
-#: app.py:189
-#, python-format
-msgid "Thank you for registering at %(clinic)s"
-msgstr ""
-
-#: app.py:201
-#, python-format
-msgid "You are not in a group, located at %(location)s, you speak %(language)s"
-msgstr ""
-
-#: app.py:208
-#, python-format
-msgid "You are a %(group)s, located at %(location)s, you speak %(language)s"
-msgstr ""
-
-#: app.py:212
-msgid "We don't recognize you"
-msgstr ""
-
-#: app.py:252 app.py:256 app.py:260
-msgid "Invalid date format, must be in the form: DD.MM.YYYY"
-msgstr ""
-
-#: app.py:264 app.py:268
-msgid "Invalid date, cannot be in the future."
-msgstr ""
-
-#: app.py:354
-#, python-format
-msgid "Unknown action code: %(invalidcode)s.  "
-msgstr ""
-
-#: app.py:359
-msgid "You cannot give more than one location code"
-msgstr ""
-
-#: app.py:363
-#, python-format
-msgid "Error.  %(error)s"
-msgstr ""
-
-#: app.py:452
-#, python-format
-msgid "%(phone)s: %(text)s"
-msgstr ""
-
-#: app.py:492
-#, python-format
-msgid "%(phone)s: %(report)s"
-msgstr ""
-
-#: app.py:502 app.py:589 app.py:652 app.py:729 app.py:796 app.py:825
-#: app.py:924 app.py:948 app.py:1032
-msgid "You need to be registered first, use the REG keyword"
-msgstr ""
-
-#: app.py:510
-msgid ""
-"The correct format message is: PRE MOTHER_ID LAST_MENSES ACTION_CODE "
-"LOCATION_CODE MOTHER_WEIGHT"
-msgstr ""
-
-#: app.py:521
-msgid "This report cannot be recorded, the date is too old. Thank you!"
-msgstr ""
-
-#: app.py:561 app.py:700 app.py:890 app.py:1097
-msgid ""
-"This report has been recorded, and we cannot duplicate it again. Thank you!"
-msgstr ""
-
-#: app.py:576
-msgid "Thank you! Pregnancy report submitted successfully."
-msgstr ""
-
-#: app.py:597
-msgid ""
-"The correct format message is: RISK MOTHER_ID ACTION_CODE LOCATION_CODE "
-"MOTHER_WEIGHT"
-msgstr ""
-
-#: app.py:638
-msgid "Thank you! Risk report submitted successfully."
-msgstr ""
-
-#: app.py:662
-msgid ""
-"The correct format message is: BIR MOTHER_ID CHILD_NUM ACTION_CODE "
-"LOCATION_CODE CHILD_WEIGHT MUAC"
-msgstr ""
-
-#: app.py:716
-msgid "Thank you! Birth report submitted successfully."
-msgstr ""
-
-#: app.py:737
-msgid ""
-"The correct format message is: CHI MOTHER_ID CHILD_NUM CHILD_DOB "
-"MOVEMENT_CODE ACTION_CODE MUAC WEIGHT"
-msgstr ""
-
-#: app.py:784
-msgid "Thank you! Child health report submitted successfully."
-msgstr ""
-
-#: app.py:805
-msgid "You have not yet sent a report."
-msgstr ""
-
-#: app.py:814
-#, python-format
-msgid " Date: %(date)s"
-msgstr ""
-
-#: app.py:834
-msgid "The correct format message is: ANC MOTHER_ID ..."
-msgstr ""
-
-#: app.py:859
-msgid ""
-"The correct format message is: ANC MOTHER_ID LAST_VISIT ANC_ROUND "
-"ACTION_CODE MOTHER_WEIGHT"
-msgstr ""
-
-#: app.py:913
-msgid "Thank you! ANC report submitted successfully."
-msgstr ""
-
-#: app.py:933
-msgid ""
-"You never reported a refusal. Refusals are reported with the keyword REF"
-msgstr ""
-
-#: app.py:940
-msgid "It has been recorded."
-msgstr ""
-
-#: app.py:959
-msgid "The correct message format is: AMB MOTHER_ID YES|NO"
-msgstr ""
-
-#: app.py:967 app.py:976 app.py:1005 app.py:1020
-msgid "The MOTHER_ID is suspected incorrect."
-msgstr ""
-
-#: app.py:981
-msgid "Thank you! AMB report submitted successfully."
-msgstr ""
-
-#: app.py:989
-msgid "You need to be registered first, use the SUP keyword"
-msgstr ""
-
-#: app.py:1000
-msgid "The correct message format is: HC MOTHER_ID OUTCOME_CODE"
-msgstr ""
-
-#: app.py:1025
-msgid "Thank you! HC report submitted successfully."
-msgstr ""
-
-#: app.py:1041
-msgid "The correct format message is: PNC MOTHER_ID ..."
-msgstr ""
-
-#: app.py:1066
-msgid ""
-"The correct format message is: PNC MOTHER_ID LAST_VISIT PNC_ROUND "
-"ACTION_CODE MOTHER_WEIGHT CHILD_WEIGHT"
-msgstr ""
-
-#: app.py:1110
-#, python-format
-msgid ""
-"Thank you! PNC report submitted. Please send also the birth report of this "
-"patient %(patient)s"
-msgstr ""
-
-#: app.py:1120
-msgid "Thank you! PNC report submitted successfully."
-msgstr ""
-
-#: models.py:242
+#: models.py:254
 #, python-format
 msgid "%s Report: "
 msgstr ""
 
-#: models.py:243
+#: models.py:255
 #, python-format
 msgid "Patient=%s, "
 msgstr ""
 
-#: models.py:244
+#: models.py:256
 #, python-format
 msgid "Location=%s"
 msgstr ""
 
-#: models.py:246
+#: models.py:258
 #, python-format
 msgid " (%s)"
 msgstr ""
+
+#: handlers/anc.py:29 handlers/anc.py:46 handlers/bir.py:29 handlers/bir.py:44
+#: handlers/cbn.py:29 handlers/cbn.py:44 handlers/ccm.py:29 handlers/ccm.py:44
+#: handlers/chi.py:29 handlers/chi.py:44 handlers/cmr.py:29 handlers/cmr.py:44
+#: handlers/dep.py:29 handlers/dep.py:44 handlers/dth.py:29 handlers/dth.py:44
+#: handlers/nbc.py:29 handlers/nbc.py:44 handlers/pnc.py:29 handlers/pnc.py:44
+#: handlers/pre.py:29 handlers/pre.py:47 handlers/rar.py:29 handlers/rar.py:44
+#: handlers/red.py:29 handlers/red.py:44 handlers/ref.py:29 handlers/ref.py:44
+#: handlers/res.py:29 handlers/res.py:44 handlers/risk.py:29
+#: handlers/risk.py:44 handlers/test.py:29 reports/anc.py:28 reports/bir.py:23
+#: reports/cbn.py:19 reports/ccm.py:19 reports/chi.py:24 reports/cmr.py:21
+#: reports/dep.py:21 reports/dth.py:17 reports/nbc.py:23 reports/pnc.py:21
+#: reports/pre.py:27 reports/rar.py:19 reports/red.py:16 reports/ref.py:21
+#: reports/res.py:19 reports/risk.py:16 reports/test.py:29
+msgid "You need to be registered first, use the REG keyword"
+msgstr "Ugomba kubanza kwiyandikisha, koresha ijambo REG"
+
+#: handlers/anc.py:51
+msgid ""
+"The correct format message is: ANC MOTHER_ID VISIT_DATE ANC_ROUND "
+"ACTION_CODE MOTHER_WEIGHT"
+msgstr "Wagombye kwandika: ANC INDANGAMUNTU_UMUBYEBYI ITALIKI_YO_KWIPIMISHA INCURO IBIMENYETSO IBIRO_BY_UMUBYEYI"
+
+#: handlers/anc.py:90 handlers/bir.py:95 handlers/dth.py:96
+#: handlers/pre.py:110 reports/anc.py:76 reports/bir.py:67 reports/chi.py:68
+#: reports/dth.py:55 reports/pre.py:86
+msgid ""
+"This report has been recorded, and we cannot duplicate it again. Thank you!"
+msgstr "Iyi raporo warayiduhaye, twarayibonye. Murakoze!"
+
+#: handlers/bir.py:49 reports/bir.py:28
+msgid ""
+"The correct format message is: BIR MOTHER_ID TWINS CHILD_NUM DOB SEX "
+"ACTION_CODE LOCATION_CODE BREASTFEEDING CHILD_WEIGHT"
+msgstr "Andika: BIR INDANGAMUNTU NIBA_ARI_IMPANGA NUMERO ITARIKI_AVUTSE IGITSINA IBIBAZO AHO_AVUKIYE IBIJYANYE_NO_KONKA IBIRO"
+
+#: handlers/bir.py:116 reports/bir.py:87 reports/chi.py:89
+msgid "Thank you! Birth report submitted successfully."
+msgstr "MURAKOZE, ubutumwa bw'uwo mwana wavutse bwatugezeho, Ahiiiii!"
+
+#: handlers/cbn.py:49
+msgid ""
+"The correct format message is: CBN MOTHER_ID CHILD_NUM DOB BREASTFEEDING "
+"CHILD_HEIGHT CHILD_WEIGHT MUAC"
+msgstr "Andika: CBN INDANGAMUNTU NUMERO_Y_UMWANA ITARIKI_YAVUTSE KONKA IBUBUREBURE UBUREMERE MUAC"
+
+#: handlers/cbn.py:103 reports/cbn.py:72
+msgid "Thank you! CBN report submitted successfully."
+msgstr "Murakoze ubutumwa ku mirire y'umwana turabubonye!"
+
+#: handlers/ccm.py:49
+msgid ""
+"The correct format message is: CCM MOTHER_ID CHILD_NUM DOB SYMPTOMS "
+"INTERVENTION MUAC"
+msgstr "Andika: CCM INDANGAMUNTU NUMERO_Y_UMWANA ITARIKI_YAVUTSE IBIBAZO UBUTABAZI MUAC"
+
+#: handlers/ccm.py:103 reports/ccm.py:71
+msgid "Thank you! CCM report submitted successfully."
+msgstr "Murakoze ubutumwa ku butabazi bw ibanze uwo mubyeyi yari akeneye turabubonye."
+
+#: handlers/chi.py:50 reports/chi.py:29
+msgid ""
+"The correct format message is: CHI MOTHER_ID CHILD_NUM DOB VACCINS "
+"VACCIN_SERIE ACTION_CODE LOCATION_CODE CHILD_WEIGHT MUAC"
+msgstr "Andika: CHI INDANGAMUNTU NUMERO_Y_UMWANA ITARIKI_YAVUTSE IBIJYANYE_N_IKINGIRA IBIBAZO_AFITE AHO_AHEREREYE IBIRO MUAC"
+
+#: handlers/chi.py:111
+msgid "Thank you! Child Health report submitted successfully."
+msgstr "Murakoze ubutumwa ku buzima bw'umwana turabubonye."
+
+#: handlers/cmr.py:49 reports/cmr.py:26
+msgid ""
+"The correct format message is: CMR MOTHER_ID CHILD_NUM DOB SYMPTOMS "
+"INTERVENTION MOTHER_STATUS CHILD_STATUS"
+msgstr "Andika: CMR INDANGAMUNTU NUMERO_Y_UMWANA ITARIKI_YAVUTSE IBIBAZO UBUTABAZI MUAC"
+
+#: handlers/cmr.py:104 reports/cmr.py:77
+msgid "Thank you! CMR report submitted successfully."
+msgstr "Murakoze ubutumwa bw uko uwo mubyeyi amerewe turabubonye."
+
+#: handlers/dep.py:49 reports/dep.py:25
+msgid ""
+"You never reported a departure. Departure are reported with the keyword DEP"
+msgstr "Ntabwo ari gutyo bohereza raporo y'abimutsea, andika DEP usige akanya wandike kunko babibabwiye."
+
+#: handlers/dep.py:68
+msgid "Thank you! Dep report submitted successfully."
+msgstr "Murakoze, raporo ku mubyeyi wimutse turayibonye."
+
+#: handlers/dth.py:50 handlers/dth.py:68 reports/dth.py:22
+msgid ""
+"The correct format message is: DTH MOTHER_ID CHILD_NUMBER DATE_OF_BIRTH "
+"DEATH_CODE"
+msgstr "Andika: DTH INDANGAMUNTU NUMERO_Y_UMWANA ITARIKI_Y_AMAVUKO CODI_Y_URUPFU"
+
+#: handlers/dth.py:116 reports/dth.py:73
+msgid "Thank you! Death report submitted successfully."
+msgstr "Mukomeze kwihanga! ubutumwa ku byago by urupfu mwagize turabubonye!"
+
+#: handlers/nbc.py:49 reports/nbc.py:28
+msgid ""
+"The correct format message is: NBC MOTHER_ID CHILD_NUM NBC_ROUND DOB "
+"SYMPTOMS INTERVENTION CHILD_STATUS"
+msgstr "Andika: NBC INDANGAMUNTU NUMERO INSHURO ITARIKI_YAVUTSE IBIBAZO KONKA UBUTABAZI UKO_UMWANA_AMEZE"
+
+#: handlers/nbc.py:112 reports/nbc.py:85
+msgid "Thank you! NBC report submitted successfully."
+msgstr "Murakoze! ubutumwa ku buzima bw uruhinje twabubonye."
+
+#: handlers/pnc.py:49 reports/pnc.py:26
+msgid ""
+"The correct format message is: PNC MOTHER_ID PNC_ROUND DOB SYMPTOMS "
+"INTERVENTION CHILD_STATUS"
+msgstr "Andika: PNC INDANGAMUNTU INSHURO ITARIKI_YAVUTSE IBIBAZO UBUTABAZI UKO_UMWANA_AMEZE"
+
+#: handlers/pnc.py:105 reports/pnc.py:77
+msgid "Thank you! PNC report submitted successfully."
+msgstr "Murakoze! ubutumwa ku buzima bw'umubyeyi twabubonye."
+
+#: handlers/pre.py:53 reports/pre.py:33
+msgid ""
+"The correct format message is: PRE MOTHER_ID LAST_MENSES NEXT_VISIT "
+"PREVIOUS_RISK CURRENT_RISK LOCATION_CODE MOTHER_WEIGHT MOTHER_HEIGHT "
+"SANITATION TELEPHONE"
+msgstr "Andika: PRE INDANGAMUNTU ITARIKI_YIMIHANGO IYOGUSUBIRAYO INSHURO_YASAMYE IZAVUTSE IBIBAZO_KERA IBISHYA AHO_YAPIMIWE IBIRO UBUREBURE UMUSARANI KANDAGIRA TELEFONI"
+
+#: handlers/pre.py:108 reports/pre.py:84
+msgid "Unknown Error, please check message format and try again."
+msgstr "Ubutumwa ntibwunvikanye, ongera ugerageze."
+
+#: handlers/pre.py:132 reports/pre.py:105
+msgid "Thank you! Pregnancy report submitted successfully."
+msgstr "Murakoze, ubutumwa bw'uwo mubyeyi utwite bwatugezeho."
+
+#: handlers/rar.py:49
+msgid ""
+"The correct format message is: RAR MOTHER_ID REPORTED_SYMPTOMS LOCATION_CODE "
+"INTERVENTION_CODE MOTHER_STATUS CHILD_STATUS"
+msgstr "Andika: RAR INDANGAMUNTU IBIBAZO_BYATANZWE AHO_AHEREREYE UBUTABAZI_BWAKOZWE UKO_UMUBYEYI AMEZE UKO_UMWANA_AMEZE"
+
+#: handlers/rar.py:101 reports/rar.py:71
+msgid "Thank you! Red Alert Result report submitted successfully."
+msgstr "Murakoze ubutumwa ku bisubizo by ibibazo uwo mubyeyi yari yagize turabubonye."
+
+#: handlers/red.py:49 reports/red.py:21
+msgid ""
+"The correct format message is: RED MOTHER_ID ACTION_CODE LOCATION_CODE "
+"MOTHER_WEIGHT"
+msgstr "Andika: RED INDANGAMUNTU IBIMENYETSO_BY_IBIBAZO AHO_AHEREREYE"
+
+#: handlers/red.py:96 reports/red.py:61
+msgid "Thank you! RED Alert report submitted successfully."
+msgstr "MURAKOZE, ubutumwa ku kibazo k'umubyeyi ukeneye ubutabazi bwihuse bwatugezeho!"
+
+#: handlers/ref.py:49 reports/ref.py:25
+msgid ""
+"You never reported a refusal. Refusals are reported with the keyword REF"
+msgstr "Ntabwo ari gutyo bohereza raporo y'abanze kwipimisha, andika REF usige akanya wandike ubusobanura kunko babibabwiye."
+
+#: handlers/ref.py:59
+msgid "Thank you! REF report submitted successfully."
+msgstr "Murakoze ubutumwa turabubonye!"
+
+#: handlers/res.py:49 reports/rar.py:24 reports/res.py:24
+msgid ""
+"The correct format message is: RES MOTHER_ID REPORTED_SYMPTOMS LOCATION_CODE "
+"INTERVENTION_CODE MOTHER_STATUS CHILD_STATUS"
+msgstr "Andika: RES INDANGAMUNTU IBIBAZO_BYATANZWE AHO_AHEREREYE UBUTABAZI_BWAKOZWE UKO_UMUBYEYI AMEZE UKO_UMWANA_AMEZE"
+
+#: handlers/res.py:101 reports/res.py:71
+msgid "Thank you! Risk Result report submitted successfully."
+msgstr "Murakoze ubutumwa ku bisubizo by ibibazo uwo mubyeyi yari yagize turabubonye."
+
+#: handlers/risk.py:49 reports/risk.py:21
+msgid ""
+"The correct format message is: RISK MOTHER_ID ACTION_CODE LOCATION_CODE "
+"MOTHER_WEIGHT"
+msgstr "Wagombye kwandika: RISK INDANGAMUNTU_UMUBYEBYI IBIMENYETSO AHO_AHEREREYE IBIRO"
+
+#: handlers/risk.py:98 reports/risk.py:61
+msgid "Thank you! Risk report submitted successfully."
+msgstr "MURAKOZE, ubutumwa ku kibazo k'umubyeyi bwatugezeho!"
+
+#: reports/anc.py:33
+msgid "The correct format message is: ANC MOTHER_ID ..."
+msgstr "Wagombye kwandika: ANC INDANGAMUNTU_UMUBYEBYI ..."
+
+#: reports/anc.py:52
+msgid ""
+"The correct format message is: ANC MOTHER_ID LAST_VISIT ANC_ROUND "
+"ACTION_CODE MOTHER_WEIGHT"
+msgstr "Wagombye kwandika: ANC INDANGAMUNTU_UMUBYEBYI ITALIKI_YO_KWIPIMISHA INCURO IBIMENYETSO IBIRO_BY_UMUBYEYI"
+
+#: reports/anc.py:92
+msgid "Thank you! ANC report submitted successfully."
+msgstr "Murakoze, ubutumwa bwo kwipimisha bwatugezeho."
+
+#: reports/cbn.py:24
+msgid ""
+"The correct format message is: CBN MOTHER_ID CHILD_NUM DOB CHILD_HEIGHT "
+"CHILD_WEIGHT"
+msgstr "Andika: CBN INDANGAMUNTU NUMERO_Y_UMWANA ITARIKI_YAVUTSE IBUBUREBURE UBUREMERE"
+
+#: reports/ccm.py:24
+msgid ""
+"The correct format message is: CCM MOTHER_ID CHILD_NUM DOB SYMPTOMS "
+"INTERVENTION"
+msgstr "Andika: CCM INDANGAMUNTU NUMERO_Y_UMWANA ITARIKI_YAVUTSE IBIBAZO UBUTABAZI"
+
+#: reports/dep.py:30 reports/ref.py:30
+msgid "It has been recorded."
+msgstr "Murakoze ubutumwa turabubonye."
+
+#: reports/utils.py:78 reports/utils.py:82 reports/utils.py:86
+#: reports/utils.py:323 reports/utils.py:327 reports/utils.py:331
+msgid "Invalid date format, must be in the form: DD.MM.YYYY"
+msgstr "Itariki ntabwo yanditswe neza, andika: Umunsi.Ukwezi.Umwaka"
+
+#: reports/utils.py:151
+#, python-format
+msgid "Unknown action code: %(invalidcode)s.  "
+msgstr "Ibyo kureba no kwitabwaho bikurikira ntibyanditswe neza: %(invalidcode)s."
+
+#: reports/utils.py:155
+msgid "You cannot give more than one location code"
+msgstr "Ntushobora gutanga ahantu habiri aho byabereye."
+
+#: reports/utils.py:158
+#, python-format
+msgid "Error.  %(error)s"
+msgstr "Ikosa!  %(error)s"
+
+#: reports/utils.py:247
+#, python-format
+msgid "%(phone)s: %(text)s"
+msgstr ""
+
+#: reports/utils.py:286
+#, python-format
+msgid "%(phone)s: %(report)s"
+msgstr ""
+
+#: reports/utils.py:335 reports/utils.py:339
+msgid "Invalid date, cannot be in the future."
+msgstr "Andika neza itariki, iyo ntiragera."
+
+#: reports/utils.py:369
+#, python-format
+msgid ""
+"Error.  National ID must be exactly 16 digits, you sent the nid: %(nat_id)s "
+"with only %(uburefu)d digits"
+msgstr "Ikosa. Nomero y'irangamuntu igomba kugira imibare 16, wohereje %(nat_id)s n'imibare %(uburefu)d gusa"

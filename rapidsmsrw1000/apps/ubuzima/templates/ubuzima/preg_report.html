@@ -231,7 +231,7 @@ function fetch_stats_indics(indic){
                 </tr>
 		 <tr>
 			<td><!--Table--></td><td ><!--Graph--></td><td><!--Map--></td><td></td>
-			<td></td><td></td><td></td><td><a href="/ubuzima/dash{%if postqn%}?{{postqn}}{%endif%}">Back To Dashboard</a></td>
+			<td></td><td></td><td></td><td><!-- <a href="/ubuzima/dash{%if postqn%}?{{postqn}}{%endif%}">Back To Dashboard</a> --></td>
 		</tr>
 		</tbody>
         </table>
@@ -448,7 +448,7 @@ var pre_m_c =[] , prehr_m_c = [], ticks_m  = [], edd_m_c = [], eddhr_m_c = [], p
 			ticks_l.push([l, loc_n]);
 			pre_l_tot += pre_l_n, prehr_l_tot += prehr_l_n, edd_l_tot += edd_l_n , eddhr_l_tot += eddhr_l_n ;
 			if (l%2 == 0){trc="even";} else {trc="odd";}	
-	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td>"+"<td>"+pre_l_n+"</td>"+"<td>"+prehr_l_n+"</td>"+"<td>"+edd_l_n+"</td>"+"<td>"+eddhr_l_n+"</td></tr>";
+	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td>"+pre_l_n+"</td>"+"<td>"+prehr_l_n+"</td>"+"<td>"+edd_l_n+"</td>"+"<td>"+eddhr_l_n+"</td></tr>";
 	
 	
 			

@@ -70,7 +70,8 @@ class Command(BaseCommand):
 
                             # and send it off
                             if not self.dry:
-                                self.send_message(sup.connection(), message)
+                                try:	self.send_message(sup.connection(), message)
+				except:	pass
                     except Reporter.DoesNotExist:
                         pass
 
@@ -214,7 +215,7 @@ class Command(BaseCommand):
 
     def check_expired_reporters(self):
         # get our reminder
-        reminder_type = ReminderType.objects.get(pk=6)
+        reminder_type = ReminderType.objects.get(name = "Inactive Reporter")
         today = timezone.localtime(timezone.now())#datetime.date.today()
 
         # get all our pending expired reporters
@@ -236,7 +237,8 @@ class Command(BaseCommand):
                 
                 # and send it off
                 if not self.dry:
-                    self.send_message(sup.connection(), message)
+                    try:	self.send_message(sup.connection(), message)
+   	   	    except:	pass
 
             if not self.dry:
                 Reminder.objects.create(type=reminder_type, date=datetime.datetime.now(), reporter=reporter)

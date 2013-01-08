@@ -109,24 +109,19 @@ else {
         {% for reminder in remts %}
             <tr>
                 <td></td>
-                <td><a href="/ubuzima/reminders/type/{{reminder.type__pk}}">{{reminder.type__name}}</a></td>
+                <td><a href="/ubuzima/reminders/type/{{reminder.type.pk}}">{{reminder.type.name}}</a></td>
                 <td></td>
                 <td>{{reminder.number}}</td>
                 <td></td>
-		<td>[<a href="/ubuzima/reminders/type/{{reminder.type__pk}}?csv{%if postqn%}&{{postqn}}{%endif%}">Export</a>]</td>
+		<td>[<a href="/ubuzima/reminders/type/{{reminder.type.pk}}?csv{%if postqn%}&{{postqn}}{%endif%}">Export</a>]</td>
             </tr>
         {% endfor %}
     </tbody>
 <tfoot>
-        <tr>
-            <td colspan="6"></td>
-        </tr>
-        <tr>
-            <td colspan="6"></td>
-        </tr>
+        
     </tfoot>
 </table>
-<h2>All Reminders {%if not request.GET.province and not request.GET.district and not request.GET.location %}<p style=" text-align:center; ">{{usrloc.location}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%else%}<p style=" text-align:center; ">{{locationname}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%endif%}</h2>
+<h2>LOGS {%if not request.GET.province and not request.GET.district and not request.GET.location %}<p style=" text-align:center; ">{{usrloc.location}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%else%}<p style=" text-align:center; ">{{locationname}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%endif%}</h2>
 <table width="100%"> 
     <thead>
         <tr>
@@ -137,6 +132,7 @@ else {
 	    <th>Location</th>
             <th>Reporter</th>
 	    <th>Supervisors</th>
+	    
         </tr>
     </thead>
     <tbody>
@@ -151,6 +147,7 @@ else {
 		<td>{% for sup in reminder.reporter.reporter_sups %}
 		(<a href="/reporters/{{reminder.reporter.id}}">{{sup.connection.identity}}</a>)
 		{%endfor%}</td>
+		<td></th>
             </tr>
         {% endfor %}
     </tbody>

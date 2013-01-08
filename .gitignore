@@ -3,3 +3,4 @@
 *.old
 settings.py
 *.log
+rem.json

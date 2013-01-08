@@ -38,10 +38,13 @@ class AncHandler (KeywordHandler):
 
     def anc(self, message):
     	"""New Anc report. This is for regestering a new anc visit ."""
+        try: activate(message.contact.language)
+        except:    activate('rw')
+        
     	try:
-            pconn = PersistantConnection.objects.get(identity = message.connection.identity)
+            pconn = PersistantConnection.objects.filter(identity = message.connection.identity).order_by('-id')[0]
             message.reporter = pconn.reporter
-            pconn.seen(); print pconn.last_seen
+            
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True

@@ -39,10 +39,13 @@ class PreHandler (KeywordHandler):
     def pregnancy(self, message):
         """Incoming pregnancy reports.  This registers a new mother as having an upcoming child"""
 
+        try: activate(message.contact.language)
+        except:    activate('rw')
+
         #self.debug("PRE message: %s" % message.text)
         #print message, message.connection.identity
         try:
-            message.reporter = PersistantConnection.objects.get(identity = message.connection.identity).reporter
+            message.reporter = PersistantConnection.objects.filter(identity = message.connection.identity).order_by('-id')[0].reporter
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True

@@ -28,7 +28,7 @@ from rapidsmsrw1000.apps.ubuzima.enum import *
 from django.contrib.auth.models import *
 ##working with generic view
 from django.views.generic import ListView
-#from pygrowup.pygrowup import *
+from pygrowup.pygrowup import *
 from decimal import *
 
 
@@ -555,7 +555,13 @@ def view_reminders(req, **flts):
     rez=match_filters(req,filters)
     pst=match_filters_fresher(req)
     remlogs=Reminder.objects.filter(**rez).order_by('-date')
-    rems_by_type = remlogs.values('type__name','type__pk').annotate(number = Count('id')).order_by('type__name')
+
+    rems_by_type = []#remlogs.values('type__name','type__pk').annotate(number = Count('id')).order_by('type__name')
+    rem_types = ReminderType.objects.all().order_by('id')
+    for rem in rem_types:   print rem.id, rem.name, remlogs.filter(type = rem).count()
+    for rem in rem_types:
+        rems_by_type.append({ 'type': rem , 'number': remlogs.filter(type = rem).count() })
+    
     if req.REQUEST.has_key('csv'):
         seq=[]
         htp = HttpResponse()
@@ -587,7 +593,7 @@ def remlog_by_type(req,pk,**flts):
     rem_type=ReminderType.objects.get(pk=pk)
     rez=match_filters(req,filters)
     remlogs=Reminder.objects.filter(type=rem_type,**rez).order_by('-date')
-    rems_by_type = remlogs.values('type__name','type__pk').annotate(number = Count('id')).order_by('type__name')
+    rems_by_type = [{ 'type' : rem_type, 'number' : remlogs.filter(type = rem_type).count() }]#remlogs.values('type__name','type__pk').annotate(number = Count('id')).order_by('type__name')
     if req.REQUEST.has_key('csv'):
         seq=[]
         htp = HttpResponse()
@@ -620,7 +626,11 @@ def view_alerts(req, **flts):
     rez=match_filters(req,filters)
     pst=match_filters_fresher(req)
     alertlogs=TriggeredAlert.objects.filter(**rez).order_by('-date')
-    triggers = alertlogs.values('trigger__name','trigger__pk').annotate(number = Count('id')).order_by('trigger__name')
+    triggers = [] #alertlogs.values('trigger__name','trigger__pk').annotate(number = Count('id')).order_by('trigger__name')
+    trigger_type = TriggeredText.objects.all().order_by('name')
+    for trigger in trigger_type:
+        triggers.append({ 'type': trigger, 'number' : alertlogs.filter(trigger = trigger).count() })
+
     if req.REQUEST.has_key('csv'):
         seq=[]
         htp = HttpResponse()
@@ -675,6 +685,12 @@ def alerts_by_type(req,pk,**flts):
 def health_indicators(req, flts):
     rez = my_filters(req, flts)
     fields = Field.objects.filter( type__category__name = "Risk", **rez)
+    return fields.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description')
+
+@permission_required('ubuzima.can_view')
+def ccm_indicators(req, flts):
+    rez = my_filters(req, flts)
+    fields = Field.objects.filter( type__key__in = ['pc', 'ma', 'di'], **rez)
     return fields.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description')
 
 def the_chosen(hsh):
@@ -1347,7 +1363,7 @@ def view_indicator(req, indic, format = 'html'):
     pts = Field.objects.filter( type = indicator, **rez)
     heads   = ['Reporter', 'Location', 'Patient', 'Type', 'Date']
     resp['headers'] = heads
-    resp['reports'] = paginated(req, pts, prefix = 'ind')
+    resp['reports'] = paginated(req, pts)
     end = resp['filters']['period']['end']
     start = resp['filters']['period']['start']
     annot = resp['annot_l']
@@ -1811,6 +1827,17 @@ def dashboard(req):
     return render_to_response(
             "ubuzima/dashboard.html", resp, context_instance=RequestContext(req))
 ##END OF DASHBOARD
+
+### CCM DASHBOARD
+@permission_required('ubuzima.can_view')
+def ccm(req):
+    resp=pull_req_with_filters(req)
+    hindics = ccm_indicators(req,resp['filters'])
+    resp['hindics'] = paginated(req, hindics)
+    return render_to_response(
+            "ubuzima/ccm.html", resp, context_instance=RequestContext(req))
+
+#### END OF CCM DASHBOARD
 
 def fetch_pnc1_info(qryset):
     return qryset.filter(fields__in=Field.objects.filter(type=FieldType.objects.get(key = 'pnc1'))).distinct()
@@ -2282,17 +2309,17 @@ def get_registered_women(req):
 
 ## abavukiye mu rugo
 def get_home_dev(req):
-    rez = get_filters(req, start_key = "creation__gte", end_key = "creation__lte", loc_key = "location__id", dst_key = "district__id", prv_key = "province__id")
+    rez = get_filters(req, start_key = "creation__gte", end_key = "creation__lte", loc_key = "report__location__id", dst_key = "district__id", prv_key = "province__id")
     return Field.objects.filter(report__type__name = "Birth", type__key = "ho", **rez) 
 
 ## abavukiye mu nzira
 def get_route_dev(req):
-    rez = get_filters(req, start_key = "creation__gte", end_key = "creation__lte", loc_key = "location__id", dst_key = "district__id", prv_key = "province__id")
+    rez = get_filters(req, start_key = "creation__gte", end_key = "creation__lte", loc_key = "report__location__id", dst_key = "district__id", prv_key = "province__id")
     return Field.objects.filter(report__type__name = "Birth", type__key = "or", **rez) 
  
 ## Abavukiye kwa muganga
 def get_facility_dev(req):
-    rez = get_filters(req, start_key = "creation__gte", end_key = "creation__lte", loc_key = "location__id", dst_key = "district__id", prv_key = "province__id")
+    rez = get_filters(req, start_key = "creation__gte", end_key = "creation__lte", loc_key = "report__location__id", dst_key = "district__id", prv_key = "province__id")
     return Field.objects.filter(report__type__name = "Birth", type__key__in = ["cl","hp"], **rez)  
 
 ##  uko bitabire kwipisha

@@ -38,8 +38,11 @@ class CcmHandler (KeywordHandler):
 
     def ccm(self, message):
 
+        try: activate(message.contact.language)
+        except:    activate('rw')
+
         try:
-            message.reporter = PersistantConnection.objects.get(identity = message.connection.identity).reporter
+            message.reporter = PersistantConnection.objects.filter(identity = message.connection.identity).order_by('-id')[0].reporter
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True

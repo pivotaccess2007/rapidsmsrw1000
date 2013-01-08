@@ -9,6 +9,7 @@ import glob
 from xlrd import open_workbook ,cellname,XL_CELL_NUMBER,XLRDError
 import csv
 from rapidsmsrw1000.apps.ubuzima.smser import Smser
+from django.conf import settings
 
 def loc_short_deletion():
 	table='ubuzima_locationshorthand'
@@ -41,20 +42,21 @@ def hc_loc_short_creation():
 	return True
 
 def build_old_fields():
-	table='ubuzima_report_fields'
-	cursor = connection.cursor()
-	try:
-		cursor.execute("SELECT * FROM `%s` , ubuzima_field WHERE %s.field_id = ubuzima_field.id AND ubuzima_field.report_id IS NULL" % (table, table))
-		for r in cursor.fetchall():
-			rpt=Report.objects.get(pk=r[1])
-			f=Field.objects.get(pk=r[2])
-			f.report = rpt
-			f.save()
-		cursor.close()
-	except Exception,e:
-		raise e
+    table='ubuzima_report_fields'
+    cursor = connection.cursor()
+    try:
+        cursor.execute("SELECT * FROM `%s` , ubuzima_field WHERE %s.field_id = ubuzima_field.id AND ubuzima_field.report_id IS NULL" % (table, table))
+        for r in cursor.fetchall():
+            rpt=Report.objects.get(pk=r[1])
+            f=Field.objects.get(pk=r[2])
+            f.report, f.creation = rpt, rpt.created
+            f.save()
+        cursor.close()
+    except Exception,e:
+        raise e
 		#pass
-	return True
+    return True
+
 def build_edd():
 	reps = Report.objects.filter(type__name__in = ["Pregnancy","Birth"])
 	for r in reps:
@@ -65,17 +67,18 @@ def build_edd():
 		except Exception, e: continue
 	return True
 def solve_old_sql():
-	cursor = connection.cursor()
-	try:
-		files = glob.glob('apps/ubuzima/sql/*.sql')
-		for f in files:
-			try: cursor.execute("source %s" % f)
-			except: continue
+    cursor = connection.cursor()
+    try:
+        files = glob.glob('rapidsmsrw1000/apps/ubuzima/sql/*.sql')
+        
+        for f in files:
+            try: cursor.execute("source %s/%s" % (settings.PROJECT_PATH, f))
+            except: continue
 
-		cursor.close()
-	except Exception,e:
-		raise e
-	return True
+        cursor.close()
+    except Exception,e:
+        raise e
+    return True
 def locate_reporter():
 	reps = Reporter.objects.filter(district = None)
 	for r in reps:
@@ -102,6 +105,7 @@ def locate_user():
 			r.save()
 		except:	continue
 	return True
+
 def locate_report():
 	reps = Report.objects.filter(district = None)#.filter(pk__gte = 35552)
 	for r in reps:
@@ -110,6 +114,43 @@ def locate_report():
 			r.save()
 		except:	continue
 	return True
+
+def locate_refusal():
+	reps = Refusal.objects.filter(district = None)#.filter(pk__gte = 35552)
+	for r in reps:
+		try:
+			r.district, r.province, r.nation = r.reporter.location.district, r.reporter.location.province, r.reporter.location.nation
+			r.save()
+		except:	continue
+	return True
+
+def locate_departure():
+	reps = Departure.objects.filter(district = None)#.filter(pk__gte = 35552)
+	for r in reps:
+		try:
+			r.district, r.province, r.nation = r.reporter.location.district, r.reporter.location.province, r.reporter.location.nation
+			r.save()
+		except:	continue
+	return True
+
+def locate_reminder():
+	reps = Reminder.objects.filter(district = None)#.filter(pk__gte = 35552)
+	for r in reps:
+		try:
+			r.district, r.province, r.nation = r.reporter.location.district, r.reporter.location.province, r.reporter.location.nation
+			r.save()
+		except:	continue
+	return True
+
+def locate_alert():
+	reps = TriggeredAlert.objects.filter(district = None)#.filter(pk__gte = 35552)
+	for r in reps:
+		try:
+			r.district, r.province, r.nation = r.reporter.location.district, r.reporter.location.province, r.reporter.location.nation
+			r.save()
+		except:	continue
+	return True
+
 def locate_field():
 	fs = Field.objects.filter(district = None).exclude( report = None)#.filter(pk__gte = 35552)
 	for r in fs:
@@ -142,7 +183,7 @@ def import_location(filepath, sheetname, startrow, maxrow, coderow, namerow):
 		except: continue
 
 	return ans
-def import_provinces(filepath = "apps/ubuzima/xls/locations.xls", sheetname = "PROVINCES", startrow = 1, maxrow = 416, coderow = 1, namerow = 2):
+def import_provinces(filepath = "rapidsmsrw1000/apps/ubuzima/xls/locations.xls", sheetname = "PROVINCES", startrow = 1, maxrow = 416, coderow = 1, namerow = 2):
 	locs = []
 	cnt = import_location(filepath, sheetname, startrow, maxrow, coderow, namerow)
 	for c in cnt:
@@ -156,7 +197,7 @@ def import_provinces(filepath = "apps/ubuzima/xls/locations.xls", sheetname = "P
 			locs.append({'code' : c['code'], 'name': c['name'], 'error': e})			
 			continue
 	return locs
-def import_districts(filepath = "apps/ubuzima/xls/locations.xls", sheetname = "DISTRICTS", startrow = 1, maxrow = 416, coderow = 1, namerow = 2):
+def import_districts(filepath = "rapidsmsrw1000/apps/ubuzima/xls/locations.xls", sheetname = "DISTRICTS", startrow = 1, maxrow = 416, coderow = 1, namerow = 2):
 	locs = []
 	cnt = import_location(filepath, sheetname, startrow, maxrow, coderow, namerow)
 	for c in cnt:
@@ -170,7 +211,7 @@ def import_districts(filepath = "apps/ubuzima/xls/locations.xls", sheetname = "D
 			locs.append({'code' : c['code'], 'name': c['name'], 'error': e})			
 			continue
 	return locs
-def import_sectors(filepath = "apps/ubuzima/xls/locations.xls", sheetname = "SECTORS", startrow = 1, maxrow = 416, coderow = 1, namerow = 2):
+def import_sectors(filepath = "rapidsmsrw1000/apps/ubuzima/xls/locations.xls", sheetname = "SECTORS", startrow = 1, maxrow = 416, coderow = 1, namerow = 2):
 	locs = []
 	cnt = import_location(filepath, sheetname, startrow, maxrow, coderow, namerow)
 	for c in cnt:
@@ -184,7 +225,7 @@ def import_sectors(filepath = "apps/ubuzima/xls/locations.xls", sheetname = "SEC
 			locs.append({'code' : c['code'], 'name': c['name'], 'error': e})			
 			continue
 	return locs
-def import_cells(filepath = "apps/ubuzima/xls/locations.xls", sheetname = "CELLS", startrow = 1, maxrow = 2222, coderow = 1, namerow = 2):
+def import_cells(filepath = "rapidsmsrw1000/apps/ubuzima/xls/locations.xls", sheetname = "CELLS", startrow = 1, maxrow = 2222, coderow = 1, namerow = 2):
 	locs = []
 	cnt = import_location(filepath, sheetname, startrow, maxrow, coderow, namerow)
 	for c in cnt:
