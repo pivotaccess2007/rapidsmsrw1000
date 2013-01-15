@@ -99,7 +99,7 @@ else {
         <tr>
             <th></th>
             <th>Trigger</th>
-            <th></th>
+            <th>Destination</th>
 	    <th>Total Number</th>
             <th></th>
 	    <th></th>
@@ -110,7 +110,7 @@ else {
             <tr>
                 <td></td>
                 <td><a href="/ubuzima/alerts/type/{{trigger.type.pk}}?{%if postqn%}&{{postqn}}{%endif%}">{{trigger.type.name}}</a></td>
-                <td></td>
+                <td>{{trigger.type.destination}}</td>
                 <td>{{trigger.number}}</td>
                 <td></td>
 		<td>[<a href="/ubuzima/alerts/type/{{trigger.type.pk}}?csv{%if postqn%}&{{postqn}}{%endif%}">Export</a>]</td>
@@ -132,7 +132,7 @@ else {
             <th>Patient</th>
 	    <th>Location</th>
             <th>Reporter</th>
-	    <th>Destination</th>
+	    <!--<th>Destination</th>-->
         </tr>
     </thead>
     <tbody>
@@ -143,9 +143,9 @@ else {
                 <td><a href="/ubuzima/patient/{{alert.report.patient.id}}">{{alert.report.patient}}</a></td>
                 <td><!--<a href="/ubuzima/location/{{alert.reporter.location.id}}">-->{{alert.reporter.location}}<!--</a>--></td>
                 <td><!--<a href="/ubuzima/reporter/{{alert.reporter.id}}">-->{{ alert.reporter.connection.identity}}<!--</a>--></td>
-		<td>({{alert.trigger.destination}})+{% for sup in alert.reporter.reporter_sups %}
+		<!--<td>({{alert.trigger.destination}})+{% for sup in alert.reporter.reporter_sups %}
 		(<a href="/reporters/{{alert.reporter.id}}">{{sup.connection.identity}}</a>)
-		{%endfor%}</td>
+		{%endfor%}</td>-->
             </tr>
         {% endfor %}
     </tbody>

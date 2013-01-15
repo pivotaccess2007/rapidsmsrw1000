@@ -42,7 +42,7 @@ class CbnHandler (KeywordHandler):
         except:    activate('rw')
 
         try:
-            message.reporter = PersistantConnection.objects.filter(identity = message.connection.identity).order_by('-id')[0].reporter
+            message.reporter = Reporter.objects.filter(connections__identity = message.connection.identity)[0]
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True

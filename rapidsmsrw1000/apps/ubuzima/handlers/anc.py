@@ -29,7 +29,7 @@ class AncHandler (KeywordHandler):
             self.respond(_("You need to be registered first, use the REG keyword"))
             return True 
     def help(self):
-        self.respond("The correct format message is: ANC MOTHER_ID VISIT_DATE ANC_ROUND ACTION_CODE MOTHER_WEIGHT")
+        self.respond("The correct format message is: ANC MOTHER_ID VISIT_DATE ANC_ROUND ACTION_CODE LOCATION_CODE MOTHER_WEIGHT")
 
     def handle(self, text):
         #print self.msg.text
@@ -42,8 +42,7 @@ class AncHandler (KeywordHandler):
         except:    activate('rw')
         
     	try:
-            pconn = PersistantConnection.objects.filter(identity = message.connection.identity).order_by('-id')[0]
-            message.reporter = pconn.reporter
+            message.reporter = Reporter.objects.filter(connections__identity = message.connection.identity)[0]
             
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
@@ -51,7 +50,7 @@ class AncHandler (KeywordHandler):
         
         m = re.search("anc\s+(\d+)\s+([0-9.]+)\s(anc2|anc3|anc4)\s?(.*)\s(hp|cl)\s(wt\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)
         if not m:
-            message.respond(_("The correct format message is: ANC MOTHER_ID VISIT_DATE ANC_ROUND ACTION_CODE MOTHER_WEIGHT"))
+            message.respond(_("The correct format message is: ANC MOTHER_ID VISIT_DATE ANC_ROUND ACTION_CODE LOCATION_CODE MOTHER_WEIGHT"))
             return True
         
         try:    nid = read_nid(message, m.group(1))

@@ -225,9 +225,8 @@ msgstr "Wagombye kwandika: ANC INDANGAMUNTU_UMUBYEBYI ..."
 
 #: reports/anc.py:52
 msgid ""
-"The correct format message is: ANC MOTHER_ID LAST_VISIT ANC_ROUND "
-"ACTION_CODE MOTHER_WEIGHT"
-msgstr "Wagombye kwandika: ANC INDANGAMUNTU_UMUBYEBYI ITALIKI_YO_KWIPIMISHA INCURO IBIMENYETSO IBIRO_BY_UMUBYEYI"
+"The correct format message is: ANC MOTHER_ID VISIT_DATE ANC_ROUND ACTION_CODE LOCATION_CODE MOTHER_WEIGHT"
+msgstr "Wagombye kwandika: ANC INDANGAMUNTU_UMUBYEBYI ITALIKI_YO_KWIPIMISHA INCURO IBIMENYETSO AHO_YASUZUMIWE IBIRO_BY_UMUBYEYI"
 
 #: reports/anc.py:92
 msgid "Thank you! ANC report submitted successfully."

@@ -18,7 +18,9 @@ admin.site.register(IndicatorCategory)
 admin.site.register(HealthIndicator)
 
 class TriggerAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'description', 'message_en')
+    search_fields = ('name',)
+    
 
 class FieldTypeAdmin(admin.ModelAdmin):
     list_display = ('key', 'description', 'category')

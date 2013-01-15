@@ -690,8 +690,24 @@ def health_indicators(req, flts):
 @permission_required('ubuzima.can_view')
 def ccm_indicators(req, flts):
     rez = my_filters(req, flts)
-    fields = Field.objects.filter( type__key__in = ['pc', 'ma', 'di'], **rez)
-    return fields.values('type__id','type__description').annotate(tot=Count('id')).order_by('type__description')
+    field_types = FieldType.objects.filter( key__in = ['pc', 'ma', 'di'])
+    fields = Field.objects.filter( type__in = field_types, **rez).order_by('type__description')
+    stats = []
+    for ft in field_types:
+        stats.append({'type' : ft , 'total' : fields.filter(type = ft).count()})
+    #print stats
+    return stats
+
+@permission_required('ubuzima.can_view')
+def ibibari_indicators(req, flts):
+    rez = my_filters(req, flts)
+    field_types = FieldType.objects.filter( key__in = ['ib'])
+    fields = Field.objects.filter( type__in = field_types, **rez).order_by('type__description')
+    stats = []
+    for ft in field_types:
+        stats.append({'type' : ft , 'total' : fields.filter(type = ft).count()})
+    #print stats
+    return stats
 
 def the_chosen(hsh):
     ans = {}
@@ -1833,11 +1849,24 @@ def dashboard(req):
 def ccm(req):
     resp=pull_req_with_filters(req)
     hindics = ccm_indicators(req,resp['filters'])
+    #print hindics
     resp['hindics'] = paginated(req, hindics)
     return render_to_response(
             "ubuzima/ccm.html", resp, context_instance=RequestContext(req))
 
 #### END OF CCM DASHBOARD
+
+### IBIBARI DASHBOARD
+@permission_required('ubuzima.can_view')
+def ibibari(req):
+    resp=pull_req_with_filters(req)
+    hindics = ibibari_indicators(req,resp['filters'])
+    print hindics
+    resp['hindics'] = paginated(req, hindics)
+    return render_to_response(
+            "ubuzima/ibibari.html", resp, context_instance=RequestContext(req))
+
+#### END OF IBIBARI DASHBOARD
 
 def fetch_pnc1_info(qryset):
     return qryset.filter(fields__in=Field.objects.filter(type=FieldType.objects.get(key = 'pnc1'))).distinct()

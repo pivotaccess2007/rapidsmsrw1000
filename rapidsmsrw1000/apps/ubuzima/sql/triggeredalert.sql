@@ -1,4 +1,4 @@
-
+ALTER TABLE `ubuzima_triggeredalert` DROP `action_id` ;
 ALTER TABLE `ubuzima_triggeredalert` ADD `village` VARCHAR( 255 ) NULL AFTER `trigger_id`;
 ALTER TABLE `ubuzima_triggeredalert` ADD `cell_id` INT NULL AFTER `village`;
 ALTER TABLE `ubuzima_triggeredalert` ADD `sector_id` INT NULL AFTER `cell_id`;

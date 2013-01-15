@@ -258,7 +258,7 @@ def import_villages(filepath = "rapidsmsrw1000/apps/ubuzima/xls/locations.xls", 
 			continue
 	return locs
 
-def import_cardcodes(filepath = "rapidsmsrw1000/apps/ubuzima/xls/cardcodes.xls", sheetname = "Codes", keyrow = 1, descrow = 2, catrow = 3, valrow = 4):
+def import_cardcodes(filepath = "rapidsmsrw1000/apps/ubuzima/xls/cardcodes.xls", sheetname = "Codes", keyrow = 1, descrow = 2, catrow = 3, valrow = 4, kwrow = 5):
     book    = open_workbook(filepath)
     sheet   = book.sheet_by_name(sheetname)
     
@@ -268,16 +268,68 @@ def import_cardcodes(filepath = "rapidsmsrw1000/apps/ubuzima/xls/cardcodes.xls",
         key     = sheet.cell(row_index,keyrow-1).value.strip().lower()
         desc    = sheet.cell(row_index,descrow-1).value.strip()
         cat     = sheet.cell(row_index,catrow-1).value.strip()
-        category,created = FieldCategory.objects.get_or_create( name = cat)
+        kw     = sheet.cell(row_index,kwrow-1).value.strip()
+        try:    category,created = FieldCategory.objects.get_or_create( name = cat)
+        except: pass
         try:
             ft = FieldType.objects.get( key = key)
             ft.category = category
-        except: ft = FieldType( key = key, category = category)
+            ft.kw = kw
+        except:
+            try:    ft = FieldType( key = key, category = category)
+            except: continue
         
         ft.description = desc
         ft.has_value = True if sheet.cell(row_index,valrow-1).value.strip() == 'YES' else False             
         ft.save()          
         
+    return True
+
+def build_alerts():
+    fts = FieldType.objects.filter(category__name = 'Red Alert Codes')
+    risks = FieldType.objects.filter(category__name__icontains = 'risk', key__in = ['ib',])
+    triggers = set()
+    for t in TriggeredText.objects.all():
+        for tr in t.triggers.all(): triggers.add(tr)
+    for ft in fts:
+        if ft not in triggers:
+            chw = "Ubutumwa bwanyu turabubonye, gerageza urebeko wafasha uwo mubyeyi, tubimenyesheje inzego zitanga ubufasha nibiba ngombwa baragutabara."
+            kw  = "Umujyanama %s atumenyeshejeko umubyeyi %s utuye mu mudugudu wa %s afite ikibazo : %s. Gerageza urebe uko mwamufasha. " 
+            fr  = "Un agent de sante communautaire %s vient de rapporter que le patient %s qui habite au village %s a un probleme: %s. Veuillez l'aider s'il vous plait."
+            en  = "The community health worker %s comes to report that the patient %s in the village %s has this problem: %s. Please follow up and help."
+            text_chw = TriggeredText.objects.create( name = "%s-%s(to CHW)" % (ft.key.upper(), ft.description), destination = 'CHW', description = "A %s is ..." % ft.description,\
+                                        message_kw = chw , message_fr = fr, message_en = en)
+            text_sup = TriggeredText.objects.create( name = "%s-%s(to SUP)" % (ft.key.upper(), ft.description), destination = 'SUP', description = "A %s is ..." % ft.description,\
+                                        message_kw = kw , message_fr = fr, message_en = en)
+            text_amb = TriggeredText.objects.create( name = "%s-%s(to AMB)" % (ft.key.upper(), ft.description), destination = 'AMB', description = "A %s is ..." % ft.description,\
+                                        message_kw = kw , message_fr = fr, message_en = en)
+            text_dis = TriggeredText.objects.create( name = "%s-%s(to DIS)" % (ft.key.upper(), ft.description), destination = 'DIS', description = "A %s is ..." % ft.description,\
+                                        message_kw = kw , message_fr = fr, message_en = en)
+
+            text_chw.triggers.add(ft);text_chw.save()
+            text_sup.triggers.add(ft);text_sup.save()
+            text_amb.triggers.add(ft);text_amb.save()
+            text_dis.triggers.add(ft);text_dis.save()
+
+    for ft in risks:
+        chw = "Ubutumwa bwanyu turabubonye, gerageza urebeko wafasha uwo mubyeyi, tubimenyesheje inzego zitanga ubufasha nibiba ngombwa baragutabara."
+        kw  = "Umujyanama %s atumenyeshejeko umubyeyi %s utuye mu mudugudu wa %s afite ikibazo : %s. Gerageza urebe uko mwamufasha. " 
+        fr  = "Un agent de sante communautaire %s vient de rapporter que le patient %s qui habite au village %s a un probleme: %s. Veuillez l'aider s'il vous plait."
+        en  = "The community health worker %s comes to report that the patient %s in the village %s has this problem: %s. Please follow up and help."
+        text_chw = TriggeredText.objects.create( name = "%s-%s(to CHW)" % (ft.key.upper(), ft.description), destination = 'CHW',\
+                                                 description = "A %s is ..." % ft.description, message_kw = chw , message_fr = fr, message_en = en)
+        text_sup = TriggeredText.objects.create( name = "%s-%s(to SUP)" % (ft.key.upper(), ft.description), destination = 'SUP', \
+                                                 description = "A %s is ..." % ft.description, message_kw = kw , message_fr = fr, message_en = en)
+#        text_amb = TriggeredText.objects.create( name = "%s-%s(to AMB)" % (ft.key.upper(), ft.description), destination = 'AMB', active = False,\
+#                                                 description = "A %s is ..." % ft.description, message_kw = kw , message_fr = fr, message_en = en)
+#        text_dis = TriggeredText.objects.create( name = "%s-%s(to DIS)" % (ft.key.upper(), ft.description), destination = 'DIS', active = False,\
+#                                                 description = "A %s is ..." % ft.description, message_kw = kw , message_fr = fr, message_en = en)
+
+        text_chw.triggers.add(ft);text_chw.save()
+        text_sup.triggers.add(ft);text_sup.save()
+#        text_amb.triggers.add(ft);text_amb.save()
+#        text_dis.triggers.add(ft);text_dis.save()            
+            
     return True
 
 def initialize_reporttypes():

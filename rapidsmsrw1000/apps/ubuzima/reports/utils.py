@@ -17,6 +17,19 @@ from time import *
 from django.db.models import Q
 from rapidsmsrw1000.apps.chws import models as confirm
 
+from rapidsms.router import send
+from rapidsms.models import Connection
+
+def forward (message, identity, text):
+    
+    if message.connection:
+        conn = Connection(backend = message.connection.backend, identity = identity)        
+        send( text, conn)
+        print conn, text     
+        return True
+    else:
+        return False
+
 
 def read_weight(code_string, weight_is_mothers=False):
 	try:
@@ -186,105 +199,127 @@ def create_report(report_type_name, patient, reporter):
 	return report
     
 def run_triggers(message, report):
-	"""Called whenever we get a new report.  We run our triggers, figuring out if there 
+    """Called whenever we get a new report.  We run our triggers, figuring out if there 
 	   are messages to send out to supervisors.  We return the message that should be sent
 	   to the reporter themselves, or None if there is no matching trigger for the reporter."""
-	# find all matching triggers
-	triggers = TriggeredText.get_triggers_for_report(report)
+    try:
+        # find all matching triggers
+        triggers = TriggeredText.get_triggers_for_report(report)
 
-	# the message we'll send back to the reporter
-	reporter_message = None
+        # the message we'll send back to the reporter
+        reporter_message = None
+         
+        # for each one
+        for trigger in triggers:
+            
+            lang = get_language()
+            alert=TriggeredAlert(reporter=report.reporter, report=report, trigger=trigger)
+            alert.save()
+            curloc = report.location
 
-	# for each one
-	for trigger in triggers:
-	    lang = get_language()
-	    alert=TriggeredAlert(reporter=report.reporter, report=report, trigger=trigger)
-	    alert.save()
-	    curloc = report.location
-	    if trigger.destination == TriggeredText.DESTINATION_AMB:
-		while curloc:
-		    ambs = AmbulanceDriver.objects.filter(location = curloc)
-		    if len(ambs) < 1:
-		        curloc = curloc.parent
-		        continue
-		    for amb in ambs: amb.send_notification(message, report)
-		    break
+            
+            
+            # if the destination is the reporter himself, need to respond correctly
+            if trigger.destination == TriggeredText.DESTINATION_CHW:
+                                        
+                # calculate our message based on language, we'll return it in a bit
+                lang = get_language()
+                reporter_message = trigger.message_kw
+                if lang == 'en':
+                    reporter_message = trigger.message_en
+                elif lang == 'fr':
+                    reporter_message = trigger.message_fr
+                
+                 
+            # if we are supposed to tell the district supervisor and our current location 
+            # is a health clinic, then walk up the tree looking for a hospital
 
-	    # if the destination is the supervisor
-	    elif trigger.destination != TriggeredText.DESTINATION_CHW:
-		reporter_ident = report.reporter.connection().identity
-		sup_group = ReporterGroup.objects.get(title='Supervisor')
-
-		# figure out what location we'll use to find supervisors
-		location = report.reporter.location
-
-		# if we are supposed to tell the district supervisor and our current location 
-		# is a health clinic, then walk up the tree looking for a hospital
-		if trigger.destination == TriggeredText.DESTINATION_DIS and location.type.pk == 5:  # health center
-		    # find the parent
-		    if location.parent:
-		        location = location.parent
-		    # couldn't find it?  oh well, we'll alert the normal supervisor
+            elif trigger.destination == TriggeredText.DESTINATION_DIS or trigger.destination == TriggeredText.DESTINATION_SUP:
+                # find the parent
+                location = curloc
+                sup_group = ReporterGroup.objects.get(title='Supervisor')
+                if location.parent and trigger.destination == TriggeredText.DESTINATION_DIS: location = location.parent
+                # couldn't find it?  oh well, we'll alert the normal supervisor
 		    
-		# now look up to see if we have any reporters in this group 
-		# with the same location as  our reporter
-		sups = Reporter.objects.filter(groups=sup_group, location=location).order_by("pk")
+                # now look up to see if we have any reporters in this group 
+                # with the same location as  our reporter
+                sups = Reporter.objects.filter(groups=sup_group, location=location).order_by("pk")
+                
+                #print [sup.connection() for sup in sups]
+                # for each supervisor
+                for sup in sups:
+                    # load the connection for it
+                    conn = sup.connection()
+                    lang = sup.language
 
-		# for each supervisor
-		for sup in sups:
-		    # load the connection for it
-		    conn = sup.connection()
-		    lang = sup.language
+                    # get th appropriate message to send
+                    text = trigger.message_kw
+                    code_lang = trigger.triggers.all()[0].kw
+                    if lang == 'en':
+                        text = trigger.message_en
+                        code_lang = trigger.triggers.all()[0].en
+                    elif lang == 'fr':
+                        text = trigger.message_fr
+                        code_lang = trigger.triggers.all()[0].fr
 
-		    # get th appropriate message to send
-		    text = trigger.message_kw
-		    if lang == 'en':
-		        text = trigger.message_en
-		    elif lang == 'fr':
-		        text = trigger.message_fr
-		
-		    # and send this message to them
-		    forward = _("%(phone)s: %(text)s" % { 'phone': reporter_ident, 'text': text })
+                    # and send this message to them
+                    msg_forward = text % (message.connection.identity, report.patient.national_id, report.reporter.village, code_lang)
 
-		    message.forward(conn.identity, forward)
+                    forward(message, conn.identity, msg_forward)            
+            
+            elif trigger.destination == TriggeredText.DESTINATION_AMB:
+                           
+                try:
+                    ambs = AmbulanceDriver.objects.filter(location = curloc)
+                    
+                    if ambs.count() < 1:
+                        curloc = curloc.parent
+                        ambs = AmbulanceDriver.objects.filter(location = curloc)
+                    
+                    for amb in ambs:                    
+                        amb.send_notification(message, report)
+                        forward(message, amb.phonenumber, trigger.message_kw % (message.connection.identity, report.patient.national_id, report.reporter.village, trigger.triggers.all()[0].kw))                
+                except Exception, e:
+                    print e
+                    continue
 
-	    # otherwise, this is just a response to the reporter
-	    else:
-		# calculate our message based on language, we'll return it in a bit
-		lang = get_language()
-		reporter_message = trigger.message_kw
-		if lang == 'en':
-		    reporter_message = trigger.message_en
-		elif lang == 'fr':
-		    reporter_message = trigger.message_fr
-	# return our advice texts
-	return reporter_message
+            
+	    # return our advice texts
+        
+        return reporter_message
+    except Exception, e:
+        print e
+        return None
     
 def cc_supervisor(message, report):
-	""" CC's the supervisor of the clinic for this CHW   """
+    """ CC's the supervisor of the clinic for this CHW   """
+    try:
+       
+        # look up our supervisor group type
+        sup_group = ReporterGroup.objects.get(title='Supervisor')
 
-	# look up our supervisor group type
-	sup_group = ReporterGroup.objects.get(title='Supervisor')
+        # now look up to see if we have any reporters in this group with the same location as 
+        # our reporter
+        sups = Reporter.objects.filter(groups=sup_group, location=message.reporter.location).order_by("pk")
 
-	# now look up to see if we have any reporters in this group with the same location as 
-	# our reporter
-	sups = Reporter.objects.filter(groups=sup_group, location=message.reporter.location).order_by("pk")
+        # reporter identity
+        reporter_ident = message.reporter.connection().identity
 
-	# reporter identity
-	reporter_ident = message.reporter.connection().identity
+        #reporter village
+        reporter_village = message.reporter.village
 
-	#reporter village
-	reporter_village = message.reporter.village
+        # we have at least one supervisor
+        if sups:
+            for sup in sups:
+                # load the connection for it
+                conn = sup.connection()
 
-	# we have at least one supervisor
-	if sups:
-	    for sup in sups:
-		# load the connection for it
-		conn = sup.connection()
-		
-		# and send this message to them
-		forward = _("%(phone)s: %(report)s" % { 'phone': reporter_ident, 'report': report.as_verbose_string() })
-		message.forward(conn.identity, forward)
+                # and send this message to them
+                msg_forward = _("%(phone)s: %(report)s" % { 'phone': reporter_ident, 'report': report.as_verbose_string() })
+                forward(message, conn.identity, msg_forward)
+    except Exception, e:
+        print e
+        pass
 
 
 def parse_dob(dob_string):

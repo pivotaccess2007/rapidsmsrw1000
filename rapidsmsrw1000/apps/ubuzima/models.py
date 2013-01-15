@@ -50,6 +50,7 @@ class FieldType(models.Model):
     description = models.TextField(blank=True)
     category = models.ForeignKey(FieldCategory)
     has_value = models.BooleanField(default=False)
+    kw = models.CharField(max_length=150)
 
     def __unicode__(self):
         return self.key
@@ -446,7 +447,7 @@ class TriggeredText(models.Model):
 
     active = models.BooleanField(default=True)
     class Meta:
-        
+        unique_together = (("name", "destination"),)
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
