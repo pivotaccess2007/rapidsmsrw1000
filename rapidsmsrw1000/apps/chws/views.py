@@ -32,6 +32,23 @@ from django.utils import timezone
 from rapidsmsrw1000.apps.ubuzima.utils import *
 from rapidsmsrw1000.apps.reporters import models as old_registry
 
+from rapidsms.router import send
+from rapidsms.models import Connection,Backend
+
+def forward (identity, text):
+    try:
+        if text and identity:
+            try:    backend = Backend.objects.filter(name__icontains = 'kannel')[0]
+            except: backend = Backend.objects.filter(name = 'message_tester')[0] 
+            #print backend
+            conn = Connection(backend = backend, identity = identity)       
+            send(text, conn)
+            return True
+    except:
+        #print e
+        return False
+        pass
+
 
 @permission_required('chws.can_view')
 @require_GET
@@ -53,6 +70,87 @@ def index(request):
 
     
     return render_to_response("chws/province.html", dict(prvs=prv, user=request.user), context_instance=RequestContext(request))
+
+
+@require_GET
+@require_http_methods(["GET"])
+def group_messages(request):
+    """Messaging Feature."""
+    request.base_template = "webapp/layout.html"    
+    hc = dst = None
+    reps = Reporter.objects.all().order_by("-id")
+    try:
+        group = request.GET['group'] 
+        if group == 'SUP': 
+            reps = Supervisor.objects.all()
+        else:
+            group = Report.objects.filter(name__icontains = group)[0]    
+            reps = reps.filter(role = group)
+    except: pass
+
+    prvs = Province.objects.all()
+    try:
+        province = int(request.GET['province'])
+        
+        if not province:
+            pass
+        else:
+            reps = reps.filter( province__id = province).order_by("-id")
+            prvs = Province.objects.all().extra(select = {'selected':'id = %d' % (province,)}).order_by('name')
+            dst      =  District.objects.filter(province__id = province).order_by('name')
+                
+            try:
+                district = int(request.GET['district'])
+                if district:
+                    reps = reps.filter(district__id = district).order_by("-id") 
+                    dst      =  District.objects.filter(province__id = province).extra(select = {'selected':'id = %d' % (district,)}).order_by('-id')
+                    hc      =  HealthCentre.objects.filter(district__id = district).order_by('name')
+                    try:                        
+                        health_centre = int(request.GET['facility'])
+                        if hc:
+                            reps = reps.filter(health_centre__id = health_centre).order_by("-id")
+                            hc      =  HealthCentre.objects.filter(district__id = \
+                                                             district).extra(select = {'selected':'id = %d' % (health_centre,)}).order_by('-id')
+                        else:
+                            pass 
+                    except:
+                        pass
+                else:
+                    pass
+            except: 
+                pass
+        
+    except: pass
+    
+    if request.REQUEST.has_key('excel'):
+        return excel_regs_confirms(RegistrationConfirmation.objects.filter( reporter__in = reps).order_by("-id"))    
+    else:
+        try:
+           
+            if request.GET['send'] == 'SEND':
+                text = request.GET['text']
+                #print text,reps
+                for r in reps:
+                    try:
+                        telephone = r.telephone_moh
+                        forward(telephone, text)
+                    except:
+                        try:
+                            telephone = r.telephone
+                            forward(telephone, text)
+                        except: pass
+        except:
+            pass
+        paginator = Paginator(reps, 20)
+    
+        try: page = int(request.GET.get("page", '1'))
+        except ValueError: page = 1
+        
+        try:
+            reps = paginator.page(page)
+        except (InvalidPage, EmptyPage):
+            reps = paginator.page(paginator.num_pages)
+        return render_to_response("chws/messaging.html", dict(reps = reps, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
 @require_GET

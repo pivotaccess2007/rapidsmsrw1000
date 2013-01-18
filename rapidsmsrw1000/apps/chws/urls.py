@@ -7,6 +7,7 @@ from rapidsmsrw1000.apps.chws import views as views
 urlpatterns = patterns('',
     url(r'^$', views.view_uploads),
     url(r'^import$', views.import_reporters_from_excell, name='import_chws'),
+    url(r'^messaging$', views.group_messages, name='messaging'),
     url(r'^pendings$', views.view_pendings, name='pendings'),
     url(r'^confirms$', views.view_confirms, name='confirms'),
     url(r'^view/errors/(?P<ref>\w+)$', views.errors, name='errors'),
