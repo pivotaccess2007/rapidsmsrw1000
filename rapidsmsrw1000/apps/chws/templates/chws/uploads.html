@@ -115,7 +115,7 @@ function condDisableLocations()
                 <td><a href="/chws/confirms">{{confirms.count}}</a></td>
 		<td><a href="/chws/pendings">{{pendings.count}}</a></td>
 		<td><a href="/chws/import">Upload New List</a></td>
-		<td><a href="/chws/uploads?excel{%if request.GET.province%}&province={{request.GET.province}}{%endif%}{%if request.GET.district%}&district={{request.GET.district}}{%endif%}{%if request.GET.facility%}&facility={{request.GET.facility}}{%endif%}">Export</a></td>
+		<td><a href="/chws/view/uploads?excel{%if request.GET.province%}&province={{request.GET.province}}{%endif%}{%if request.GET.district%}&district={{request.GET.district}}{%endif%}{%if request.GET.facility%}&facility={{request.GET.facility}}{%endif%}">Export</a></td>
             </tr>
 	{% for rep in reporters %}
         		<tr>

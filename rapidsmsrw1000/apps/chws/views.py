@@ -258,18 +258,22 @@ def view_uploads(request):
         
     except: pass
     errors = [Error.objects.filter(upload_ref = s)[0] for s in uploads]
-    paginator = Paginator(errors, 10)
-    
-    try: page = int(request.GET.get("page", '1'))
-    except ValueError: page = 1
 
-    try:
-        errors = paginator.page(page)
-    except (InvalidPage, EmptyPage):
-        errors = paginator.page(paginator.num_pages)
+    if request.REQUEST.has_key('excel'):
+        return excel_regs_confirms(regs)    
+    else:
+        paginator = Paginator(errors, 10)
+        
+        try: page = int(request.GET.get("page", '1'))
+        except ValueError: page = 1
 
-    
-    return render_to_response("chws/uploads.html", dict( errors=errors,reporters = reporters , sup = sup, regs = regs, confirms = confirms, pendings = pendings, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
+        try:
+            errors = paginator.page(page)
+        except (InvalidPage, EmptyPage):
+            errors = paginator.page(paginator.num_pages)
+
+        
+        return render_to_response("chws/uploads.html", dict( errors=errors,reporters = reporters , sup = sup, regs = regs, confirms = confirms, pendings = pendings, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
 @require_GET

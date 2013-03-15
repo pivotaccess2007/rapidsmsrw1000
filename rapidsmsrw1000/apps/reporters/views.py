@@ -37,12 +37,12 @@ def index(req):
         p = UserLocation.objects.get(user=req.user)
     except UserLocation.DoesNotExist,e:
         return render_to_response("404.html",{'error':e}, context_instance=RequestContext(req))
-    lf=location_fresher(req)
-    pst=reporter_fresher(req)
-    repos=Reporter.objects.filter(**pst)
+    lf = location_fresher(req)
+    pst = reporter_fresher(req)
+    repos = Reporter.objects.filter(**pst)
     if req.REQUEST.has_key('csv'):
-        seq=[]
-        heads=['ReporterID','Telephone','NationalID','LastSeen','Village','Language','Location','Supervisors']
+        seq = []
+        heads = ['ReporterID','Telephone','NationalID','LastSeen','Village','Language','Location','Supervisors']
         htp = HttpResponse()
         htp['Content-Type'] = 'text/csv; encoding=%s' % (getdefaultencoding(),)
         wrt = csv.writer(htp, dialect = 'excel-tab')
