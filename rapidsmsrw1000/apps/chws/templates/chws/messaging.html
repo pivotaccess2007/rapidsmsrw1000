@@ -1,0 +1,216 @@
+{% extends request.base_template %}
+{% block title %}CHWs -Group Messaging{% endblock %}
+{% block javascripts %}
+<script type="text/javascript" src="/static/webapp/javascripts/jquery.flot.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/jquery.flot.pie.pack.js"></script>
+<script type="text/javascript"
+    src="/static/webapp/javascripts/jquery.datepick.min.js"></script>
+<link rel="stylesheet" type="text/css"
+    href="/static/webapp/stylesheets/jquery.datepick.css" />
+<link rel="stylesheet" type="text/css"
+    href="/static/webapp/stylesheets/stats.css" />
+
+<script type="text/javascript"> 
+$(function()
+{
+$('#send').click(function(evt)
+    {	
+	if($('#text').attr('value') == "")
+		{
+		alert("You cannot send empty message, Please type something important!");
+		return false;
+		}
+
+	else
+	{
+
+        window.location = window.location.pathname + '?facility=' +
+        $('#locchoose').attr('value') + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value') +  '&group=' + $('#group').attr('value')+ '&send=SEND'+ '&text=' +$('#text').attr('value');
+        }
+    });
+
+$('#group').change(function(evt)
+    {	
+        window.location = window.location.pathname + '?facility=' +
+        $('#locchoose').attr('value') + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value') +  '&group=' + $(this).attr('value');
+        
+    });
+
+$('#provchoose').change(function(evt)
+    {	
+        if ($(this).attr('value') != ''){window.location = window.location.pathname + '?province=' +
+        $(this).attr('value');
+	} else {
+			window.location = window.location.pathname;			
+			}
+    });
+
+condDisableDistricts();
+$('#distchoose').change(function()
+    {
+        if ($(this).attr('value') != ''){ window.location = window.location.pathname + '?district=' +
+        $(this).attr('value') + '&province=' + $('#provchoose').attr('value');
+	}
+		else {
+			window.location = window.location.pathname + '?'+ '&province=' + $('#provchoose').attr('value');			
+			}
+    });
+
+condDisableLocations();
+$('#locchoose').change(function()
+    {
+       if ($(this).attr('value') != '') { window.location = window.location.pathname + '?facility=' +
+        $(this).attr('value') + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value') ;
+	} 
+		else{
+			window.location = window.location.pathname + '?' + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value');
+			}
+    });
+
+});
+
+
+function condDisableDistricts()
+{
+    var loc = window.location.toString();
+    if(loc.search(/province/) != -1) return;
+    $('#dst').hide();
+    $('#distchoose').hide();
+}
+
+function condDisableLocations()
+{
+    var loc = window.location.toString();
+    if(loc.search(/district/) != -1) return;
+    $('#hc').hide();
+    $('#locchoose').hide();
+}
+
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+    {% load pagination-tags %}
+
+
+
+<table width="100%"> 
+    <thead>
+	<tr>
+		<td colspan = "9">
+			<div class="module contents">
+			<h2>Message Contents</h2>
+			<textarea id = "text" name ="text" cols="125" rows="10">{% if sent %} The message was successfully sent to : [{%for s in sent %}{{s}}, {%endfor%}] {% endif %}</textarea>
+			</div>
+		</td>
+	</tr>
+	<tr>			                    
+                    <td>
+	    <label id = "prv">Province:</label>
+            <select name="province" id="provchoose"><option></option>
+                {%  for prv in prvs %}<option value="{{prv.id}}" {% if prv.selected  %} selected="selected"{% endif %}>{{ prv.name }}</option>{%  endfor %}
+            </select>
+                    </td>
+                    <td>
+	    <label id = "dst">District:</label>
+            <select name="district" id="distchoose"><option></option>
+            	{%  for dst in dsts %}<option value="{{dst.id}}" {% if dst.selected  %} selected="selected"{% endif %}>{{ dst.name }}</option>{%  endfor %}  
+            </select>
+                    </td>
+                    <td>
+	    <label id = "hc">Health Centre:</label>
+            <select name="location" id="locchoose"><option></option>
+              {%  for hc in hcs %}<option value="{{hc.id}}" {% if hc.selected  %} selected="selected"{% endif %}>{{ hc.name }}</option>{%  endfor %}  
+            </select>
+                    </td>
+                    
+		
+	<td>
+		<label id = "g">CHW group:</label>
+		<select name="group" id="group">
+		{% if request.GET.group %} <option value="{{request.GET.group}}" selected = "selected">{{request.GET.group}}</option> {%endif%}
+		<option value = "ALL">ALL</option>
+		<option value="SUP">SUPERVISOR</option>
+		<option value="BINOME">BINOME</option>
+		<option value="ASM">ASM</option>
+		</select>
+	
+	</td>
+	<td>
+			<input id="send" type="button"  value="Send Messages" />
+	</td>
+	<td><!-- <a href="/chws/confirms?excel{%if request.GET.province%}&province={{request.GET.province}}{%endif%}{%if request.GET.district%}&district={{request.GET.district}}{%endif%}{%if request.GET.facility%}&facility={{request.GET.facility}}{%endif%}">Export To Excel</a> -->
+        </td>
+
+	<td colspan = "3"></td>
+        </tr>
+
+        <tr>
+        	<th>Reporter NID</th>
+		<th>Telephone</th>
+            	<th>Names</th>
+		<th>Village</th>
+		<th>Health Centre</th>
+		<th>District</th>
+		
+		<th>Cell</th>
+		<th>Sector</th>		
+		<th>Province</th> 
+            
+            
+        </tr>
+    </thead>
+    <tbody>
+	
+	
+	
+    	{% for p in reps.object_list %}
+            <tr>
+            	{% if request.GET.group %} 
+		<td>{{p.national_id}}</td>
+                <td>{{p.telephone}}</td>
+		<td>{{p.names}}</td>
+		<td>{{p.village.name}}</td>
+		<td>{{p.health_centre.name}}</td>
+		<td>{{p.district.name}}</td>
+		<td>{{p.cell.name}}</td>
+		<td>{{p.sector.name}}</td>
+		<td>{{p.province.name}}</td>
+		{% else %}
+                <td>{{p.national_id}}</td>
+                <td>{{p.telephone_moh}}</td>
+		<td>{{p.surname}} {{p.given_name}}</td>
+		<td>{{p.village.name}}</td>
+		<td>{{p.health_centre.name}}</td>
+		<td>{{p.district.name}}</td>
+		<td>{{p.cell.name}}</td>
+		<td>{{p.sector.name}}</td>		
+		<td>{{p.province.name}}</td>
+		{%endif%}
+            </tr>
+        {% endfor %}
+    </tbody>
+    
+    <tfoot>
+			<tr>
+				<td colspan="9">
+					{% paginator reps %}
+				</td>
+			</tr>
+			<tr>
+				<td colspan="9">
+				Matching Reporters: {{ reps.paginator.count }}
+				</td>
+			</tr>
+	</tfoot>
+</table>
+
+{% endblock %}
+
+

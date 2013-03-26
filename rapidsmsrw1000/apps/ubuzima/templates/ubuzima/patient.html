@@ -37,7 +37,7 @@
   <tr>
     <td>{{ reminder.type }}</td>
     <td>{{ reminder.date|date:"d.m.Y" }}</td>
-    <td><a href="../reporter/{{reminder.reporter.pk}}">{{reminder.reporter.connection.identity}}</a></td>
+    <td><a href="../reporter/{{reminder.reporter.pk}}?{%if postqn%}&{{postqn}}{%endif%}">{{reminder.reporter.connection.identity}}</a></td>
   </tr>
   {% endfor %}
 {% else %}

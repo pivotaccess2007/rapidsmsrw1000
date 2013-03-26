@@ -25,8 +25,8 @@
                 <td><a href="ubuzima/dash/chi/{{report.pk}}" onclick="return popitup('/ubuzima/dash/chi/{{report.pk}}')">{{report.get_child_id.chino}}</a></td>
                 <td><a href="/ubuzima/patient/{{report.patient.pk}}">{{report.patient.national_id}}</a></td>
 		<td>{{report.get_child.birth.sex}}</td>                
-		<td>{{report.get_child.birth.weight.value}}</td>
-		<td>{{report.get_child.birth.muac.value}}</td>
+		<td>{{report.get_child.birth.weight.value|floatformat:"2"}}</td>
+		<td>{{report.get_child.birth.muac.value|floatformat:"2"}}</td>
 		<td>{%for r in report.get_child.birth.risk %}{% if not forloop.first %},{% endif %}{{r.type.description}}{%endfor%}</td>
             </tr>
         {% endfor %}

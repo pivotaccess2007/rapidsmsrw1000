@@ -25,19 +25,14 @@ urlpatterns = patterns('',
     #(r'^locations/', include('rapidsms.contrib.locations.urls')),
     (r'^messagelog/', include('rapidsmsrw1000.apps.messagelog.urls')),
     (r'^messaging/', include('rapidsms.contrib.messaging.urls')),
-    (r'^registration/', include('rapidsms.contrib.registration.urls')),
-    (r'^scheduler/', include('rapidsms.contrib.scheduler.urls')),
+    #(r'^registration/', include('rapidsms.contrib.registration.urls')),
+    #(r'^scheduler/', include('rapidsms.contrib.scheduler.urls')),
     (r'^ubuzima/', include('rapidsmsrw1000.apps.ubuzima.urls')),
-    (r'^reporters/', include('rapidsmsrw1000.apps.reporters.urls')),
+    #(r'^reporters/', include('rapidsmsrw1000.apps.reporters.urls')),
     (r'^chws/', include('rapidsmsrw1000.apps.chws.urls')),
-    (r'^logger/', include('rapidsmsrw1000.apps.logger.urls')),
-     
-	# FAKE SMS FROM KANNEL EXTRA...
-    url(r"^backend/kannel-fake-smsc/$",
-        KannelBackendView.as_view(backend_name="kannel-fake-smsc")),
+    (r'^ambulances/', include('rapidsmsrw1000.apps.ambulances.urls')),
 
-	# USB MODEM...
-    url(r"^backend/kannel-usb0-smsc/$",
-        KannelBackendView.as_view(backend_name="kannel-usb0-smsc")),
+    url(r"^backend/kannel-smpp/$",
+        KannelBackendView.as_view(backend_name="kannel-smpp")),
 
 ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

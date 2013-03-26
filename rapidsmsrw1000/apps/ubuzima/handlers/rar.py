@@ -15,7 +15,7 @@ from django.db.models import Q
 ###DEVELOPED APPS
 from rapidsmsrw1000.apps.ubuzima.reports.utils import *
 from rapidsms.contrib.handlers.handlers.keyword import KeywordHandler
-from rapidsmsrw1000.apps.thousanddays.models import *
+
 
 class RarHandler (KeywordHandler):
     """
@@ -42,7 +42,7 @@ class RarHandler (KeywordHandler):
         except:    activate('rw')
 
     	try:
-            message.reporter = Reporter.objects.filter(connections__identity = message.connection.identity)[0]
+            message.reporter = message_reporter(message)#Reporter.objects.filter(national_id = message.connection.contact.name )[0]
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
@@ -96,7 +96,7 @@ class RarHandler (KeywordHandler):
                 report.fields.add(field)
 
 	    # either send back the advice text or our default msg
-        try:	response = run_triggers(message, report)
+        try:	response = None #run_triggers(message, report)
         except:	response = None
         if response:
             message.respond(response)

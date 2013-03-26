@@ -14,8 +14,6 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt,csrf_protect
 #from rapidsms.webui import settings
 from rapidsmsrw1000.settings import *
-from rapidsmsrw1000.apps.ubuzima.views import *
-from rapidsms.contrib.locations.models import Location, LocationType
 
 def check_availability(req):
     return HttpResponse("OK")
@@ -25,18 +23,10 @@ def dashboard(req):
 
 def login(req, template_name="webapp/login.html"):
     '''Login to rapidsms'''
-    # this view, and the one below, is overridden because 
-    # we need to set the base template to use somewhere  
-    # somewhere that the login page can access it.
+    
     req.base_template = "webapp/layout.html" 
     
-    #area={}
-    #locs=Report.objects.values_list('location', flat=True).distinct()
-    #req.session['locs']=locs
-    #req.session['dst']=[ dst for dst in Location.objects.filter(id__in=LocationShorthand.objects.filter(original__in=locs).values_list('district', flat=True).distinct())]
-    #req.session['prv']=[ prov for prov in Location.objects.filter(id__in=LocationShorthand.objects.filter(original__in=locs).values_list('province', flat=True).distinct())]
     
-    #req.session['important']=get_important_stats(req, filters)
     
     return django_login(req, **{"template_name" : template_name})
 
@@ -46,9 +36,8 @@ def logout(req, template_name="webapp/loggedout.html"):
     return django_logout(req, **{"template_name" : template_name})
 
 def working_area(req):
-    area={}
-    locs=Report.objects.values_list('location', flat=True).distinct()
-    return render_to_response("webapp/layout.html",{'locs':locs, 'z':"ZIGAMA"}, context_instance=RequestContext(req))
+    
+    return render_to_response("webapp/layout.html",context_instance=RequestContext(req))
 
 def matching_report(req, diced, alllocs = False):
     rez = {}
@@ -62,7 +51,6 @@ def matching_report(req, diced, alllocs = False):
 
 @csrf_exempt
 def home(req):
-    evt="amazi"
-    my_rc={}
+    
     req.base_template = "webapp/layout.html"
-    return render_to_response('index.html', context_instance=RequestContext(req))
+    return render_to_response('webapp/index.html', context_instance=RequestContext(req))

@@ -1,4 +1,5 @@
 {% extends request.base_template %}
+{% load locstags ambulances_extras%}
 {% block title %}Administrative Report{% endblock %}
 
 {% block javascripts %}
@@ -158,10 +159,10 @@ function fetch_stats_indics(indic){
 			<th>Start</th><th ><input style="background-color: white"  type="text" id="pickstartdate" value="{{ start_date }}"  name="start_date" 					readonly="readonly"  onFocus="displayCalendar(form.start_date,'dd.mm.yyyy',this)" onchange="return deroulement(this.form);"/></th>
 			<th>End</th><th><input style="background-color: white" type="text" id="pickenddate" value="{{ end_date }}"  name="end_date" 					readonly="readonly"  onFocus="displayCalendar(form.end_date,'dd.mm.yyyy',this)" onchange="return deroulement(this.form);"/></th>
 			<th>Location Navigation</th><th><select style="background-color: white" name="navlocation" id="navlocation" >
-						{% if sel %}<option value="{{ sel.id }}.{{sel.type.name}}"  								selected="selected" >{{ sel.name }}&nbsp;{{ sel.type.name}}</option> {% else %}
+						{% if sel %}<option value="{{ sel.id }}.{{sel|to_class_name}}"  								selected="selected" >{{ sel.name }}&nbsp;{{ sel|to_class_name}}</option> {% else %}
 							<option value="" selected="selected">{{ usrloc.location.name }}</option>{% endif %}
 						{%  for loc in locs %}
-							<option value="{{ loc.id }}.{{loc.type.name}}" {% if loc.selected  %} 								selected="selected" {% endif %}>{{ loc.name }}</option>
+							<option value="{{ loc.id }}.{{loc|to_class_name}}" {% if loc.selected  %} 								selected="selected" {% endif %}>{{ loc.name }}</option>
 						{%  endfor %}
 						
                 				
@@ -172,23 +173,23 @@ function fetch_stats_indics(indic){
         <tr>	<td colspan="6">
 		<a href={{request.path}}>Rwanda</a>
 		{% if prv %}
-		&nbsp;&gt;<a href={{request.path}}?province={{prv.id}}>{{ prv.name }}&nbsp;{{ prv.type.name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?province={{prv.id}}>{{ prv.name }}&nbsp;{{ prv|to_class_name }}</a>
 		{% else %}
-			{% if dst %}&nbsp;&gt;<a href={{request.path}}?province={{dst.parent.id}} >{{ dst.parent.name }}&nbsp;{{ dst.parent.type.name }}</a> 
+			{% if dst %}&nbsp;&gt;<a href={{request.path}}?province={{dst.province.id}} >{{ dst.province.name }}&nbsp;{{ dst.province|to_class_name }}</a> 
 			{% else %}
-			{% if lxn %}&nbsp;&gt;<a href={{request.path}}?province={{lxn.province.id}} >{{ lxn.province.name }}&nbsp;{{ lxn.province.type.name }}</a>			{% endif %}
+			{% if lxn %}&nbsp;&gt;<a href={{request.path}}?province={{lxn.province.id}} >{{ lxn.province.name }}&nbsp;{{ lxn.province|to_class_name }}</a>			{% endif %}
 			{% endif %}
 		{% endif %}
 
 		{% if dst %}
-		&nbsp;&gt;<a href={{request.path}}?district={{dst.id}}>{{ dst.name }}&nbsp;{{ dst.type.name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?district={{dst.id}}>{{ dst.name }}&nbsp;{{ dst|to_class_name }}</a>
 		{% else %}
-		{% if lxn %}&nbsp;&gt;<a href={{request.path}}?district={{lxn.district.id}} >{{ lxn.district.name }}&nbsp;{{ lxn.district.type.name }}</a>
+		{% if lxn %}&nbsp;&gt;<a href={{request.path}}?district={{lxn.district.id}} >{{ lxn.district.name }}&nbsp;{{ lxn.district|to_class_name }}</a>
 		{% endif %}
 		{% endif %}
 		
 		{% if lxn %}
-		&nbsp;&gt;<a href={{request.path}}?location={{lxn.original.id}}>{{ lxn.original.name }}&nbsp;{{ lxn.original.type.name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?location={{lxn.id}}>{{ lxn.name }}&nbsp;{{ lxn|to_class_name }}</a>
 		{% endif %}
 		
             	<td> <!-- <input type="button" value="Update Filters"  onClick="return deroulement(this.form);"/> --> </td>
@@ -196,7 +197,7 @@ function fetch_stats_indics(indic){
                 </tr>
 		 <tr>
 			<td><!--Table--></td><td ><!--Graph--></td><td><!--Map--></td><td></td>
-			<td></td><td></td><td></td><td><!-- <a href="/ubuzima/dash{%if postqn%}?{{postqn}}{%endif%}">Back To Dashboard</a> --></td>
+			<td></td><td></td><td></td><td></td>
 		</tr>
 		</tbody>
         </table>
@@ -221,7 +222,7 @@ function fetch_stats_indics(indic){
 
 <div class="Tabs" style="width: 100%;">
 
- <a onclick="return fetch_stats_indics('bir');">Births</a> <a onclick="return fetch_stats_indics('pre');">Pregnancies</a><a onclick="return fetch_stats_indics('anc');">ANCs</a><a onclick="return fetch_stats_indics('pnc');">PNCs</a><a onclick="return fetch_stats_indics('ris');">Risks</a><a onclick="return fetch_stats_indics('chi');">Child Health</a><a onclick="return fetch_stats_indics('de');">Death</a><a onclick="return fetch_stats_indics('admin');">Administrative</a>
+ <a onclick="return fetch_stats_indics('admin');">Administrative</a>
   
 </div>
 <!-- End Tabs -->
@@ -230,58 +231,6 @@ function fetch_stats_indics(indic){
 
 <div class="Pages" style="width: 100%; height: 400px;">
 
-<!-- Page Births -->
-<div class="Page"> 
-	
-	<div class="Pad">
-		
-  	</div>
-</div>
-
-<!--End Page Births -->
-
-
-<!-- Page Pregnancies -->
-  <div class="Page"> 
-  <div class="Pad">
-			
-  </div>
-  </div>
-<!--End Page Pregnancies -->
-
-<!-- Page ANCs -->
-  <div class="Page"> 
-  <div class="Pad">
-  </div>
-  </div>
-<!--End Page ANCs -->
-<!-- Page PNCs -->
-  <div class="Page"> 
-  <div class="Pad">
-  </div>
-  </div>
-<!--End Page PNCs -->
-<!-- Page Maternal Risks -->
-  <div class="Page"> 
-  <div class="Pad">
-  </div>
-  </div>
-<!--End Page Maternal Risks -->
-
-<!-- Page Child Health -->
-  <div class="Page"> 
-  <div class="Pad">
-  </div>
-  </div>
-<!--End Page Child Health -->
-
-<!-- Page Death -->
-  <div class="Page"> 
-  <div class="Pad">
-					
-  </div>
-  </div>
-<!--End Page Death -->
 
 <!-- Page ADMIN -->
   <div class="Page"> 
@@ -303,7 +252,7 @@ function fetch_stats_indics(indic){
 	</div>
 	<div id="graph">
 		<div id="content">    	
-        		<h2 >Active Reporters in {{sel.name}}-{{sel.type.name}} </h2>
+        		<h2 >Active Reporters in {{sel.name}}-{{sel|to_class_name}} </h2>
 		<div id="placeholder_l" style=" width: 100%;height:400px;"></div>
 		
     		</div>
@@ -311,7 +260,7 @@ function fetch_stats_indics(indic){
 	<div id="map">
 
 		
-		<h2 >{{sel.name}}-{{sel.type.name}} On Map</h2>
+		<h2 >{{sel.name}}-{{sel|to_class_name}} On Map</h2>
 		<div id="content" align="center">    	
         		{% include 'ubuzima/map.html' %}
     		</div>
@@ -320,7 +269,7 @@ function fetch_stats_indics(indic){
 	<div id="log">
 
 		
-		<h2 >Reporters in {{sel.name}}-{{sel.type.name}}</h2>
+		<h2 >Reporters in {{sel.name}}-{{sel|to_class_name}}</h2>
 		<div id="content">    	
         		{% include 'ubuzima/report_table.html' %}
     		</div>
@@ -362,17 +311,17 @@ function fetch_stats_indics(indic){
 
 <script type="text/javascript">
 
-tabview_switch('TabView',8);
+tabview_switch('TabView',1);
 
-var locs = "{% for l in locs %} {% if not forloop.first %},{% endif %}{{l.name}}-{{l.id}}-{{l.type}} {% endfor %}".split(",") ;
+var locs = "{% for l in locs %} {% if not forloop.first %},{% endif %}{{l.name}}-{{l.id}}-{{l|to_class_name}} {% endfor %}".split(",") ;
 var annot="{{annot_l}}";
 var trc="";
 
-if (annot.split(",")[0] == "location__parent__parent__parent__name"){
-var rep_l = jQuery.parseJSON('{ {% for tr in track.items_l.rep %} {% if not forloop.first %},{% endif %} "{{tr.location__parent__parent__parent__name}}-{{tr.location__parent__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'), act_l = jQuery.parseJSON('{ {% for tr in track.items_l.act %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__parent__name }}-{{tr.location__parent__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }');
+if (annot.split(",")[0] == "province__name"){
+var rep_l = jQuery.parseJSON('{ {% for tr in track.items_l.rep %} {% if not forloop.first %},{% endif %} "{{tr.province__name}}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), act_l = jQuery.parseJSON('{ {% for tr in track.items_l.act %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }');
 
-}else if(annot.split(",")[0] == "location__parent__parent__name"){
-	var rep_l = jQuery.parseJSON('{ {% for tr in track.items_l.rep %} {% if not forloop.first %},{% endif %} "{{tr.location__parent__parent__name}}-{{tr.location__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'), act_l = jQuery.parseJSON('{ {% for tr in track.items_l.act %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__name }}-{{tr.location__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }');
+}else if(annot.split(",")[0] == "district__name"){
+	var rep_l = jQuery.parseJSON('{ {% for tr in track.items_l.rep %} {% if not forloop.first %},{% endif %} "{{tr.district__name}}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'), act_l = jQuery.parseJSON('{ {% for tr in track.items_l.act %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }');
 
 	}else if(annot.split(",")[0] == "location__name"){
 	var rep_l = jQuery.parseJSON('{ {% for tr in track.items_l.rep %} {% if not forloop.first %},{% endif %} "{{tr.location__name}}-{{tr.location__pk}}" : {{tr.number}}  {% endfor %} }'), act_l = jQuery.parseJSON('{ {% for tr in track.items_l.act %} {% if not forloop.first %},{% endif %} "{{ tr.location__name }}-{{tr.location__pk}}" : {{tr.number}}  {% endfor %} }');
@@ -381,7 +330,7 @@ var rep_l = jQuery.parseJSON('{ {% for tr in track.items_l.rep %} {% if not forl
 var act_l_c = [], ticks_l  = [], rep_l_tot=0, act_l_tot=0, act_l_totp=0;
 	
 	
-	var str_l = "<h2 >Administrative Report Statistics in {{sel.name}}-{{sel.type.name}} By "+locs[0].split("-")[2]+"</h2><table class = 'table-design' id = 'table_l'>";	
+	var str_l = "<h2 >Administrative Report Statistics in {{sel.name}}-{{sel|to_class_name}} By "+locs[0].split("-")[2]+"</h2><table class = 'table-design' id = 'table_l'>";	
 	var theader_l = "<thead> <tr><th>"+locs[0].split("-")[2]+"</th><th>Registered CHWs</th><th>Active CHWs</th><th>Active CHWs (%)</th></tr></thead>";
 	var tdata_l = "<tbody>";
 	for ( var l in locs) {
@@ -403,7 +352,7 @@ var act_l_c = [], ticks_l  = [], rep_l_tot=0, act_l_tot=0, act_l_totp=0;
 						
 			ticks_l.push([l, loc_n]);
 			rep_l_tot += rep_l_n, act_l_tot += act_l_n ;
-			if (l%2 == 0){trc="even";} else {trc="odd";}	
+			//if (l%2 == 0){trc="even";} else {trc="odd";}	
 	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td>"+"<td>"+rep_l_n+"</td>"+"<td>"+act_l_n+"</td>"+"<td>"+act_l_np+"</td></tr>";
 		
 			}

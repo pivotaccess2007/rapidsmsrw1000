@@ -1,0 +1,264 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-03-14 10:08+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: admin.py:56
+msgid "Export to EXCEL"
+msgstr ""
+
+#: models.py:265
+#, python-format
+msgid "%s Report: "
+msgstr ""
+
+#: models.py:266
+#, python-format
+msgid "Patient=%s, "
+msgstr ""
+
+#: models.py:267
+#, python-format
+msgid "Location=%s"
+msgstr ""
+
+#: models.py:269
+#, python-format
+msgid " (%s)"
+msgstr ""
+
+#: handlers/anc.py:29 handlers/anc.py:48 handlers/bir.py:29 handlers/bir.py:47
+#: handlers/cbn.py:29 handlers/cbn.py:47 handlers/ccm.py:29 handlers/ccm.py:47
+#: handlers/chi.py:29 handlers/chi.py:47 handlers/cmr.py:29 handlers/cmr.py:47
+#: handlers/dep.py:29 handlers/dep.py:47 handlers/dth.py:29 handlers/dth.py:47
+#: handlers/nbc.py:29 handlers/nbc.py:47 handlers/pnc.py:29 handlers/pnc.py:47
+#: handlers/pre.py:28 handlers/pre.py:49 handlers/rar.py:29 handlers/rar.py:47
+#: handlers/red.py:29 handlers/red.py:47 handlers/ref.py:29 handlers/ref.py:47
+#: handlers/res.py:29 handlers/res.py:47 handlers/risk.py:28
+#: handlers/risk.py:47 reports/utils.py:472
+msgid "You need to be registered first, use the REG keyword"
+msgstr ""
+
+#: handlers/anc.py:53
+msgid ""
+"The correct format message is: ANC MOTHER_ID VISIT_DATE ANC_ROUND "
+"ACTION_CODE LOCATION_CODE MOTHER_WEIGHT"
+msgstr ""
+
+#: handlers/anc.py:91 handlers/risk.py:85
+#, python-format
+msgid ""
+"%(key)s:%(red)s is a red alert, please see how to report a red alert and try "
+"again."
+msgstr ""
+
+#: handlers/anc.py:97 handlers/bir.py:99 handlers/dth.py:99
+#: handlers/pre.py:111
+msgid ""
+"This report has been recorded, and we cannot duplicate it again. Thank you!"
+msgstr ""
+
+#: handlers/anc.py:113
+#, python-format
+msgid ""
+"Thank you! ANC report submitted. Please send also the pregnancy report of "
+"this patient %(nid)s."
+msgstr ""
+
+#: handlers/bir.py:52
+msgid ""
+"The correct format message is: BIR MOTHER_ID CHILD_NUM DOB SEX ACTION_CODE "
+"LOCATION_CODE BREASTFEEDING CHILD_WEIGHT"
+msgstr ""
+
+#: handlers/bir.py:120
+msgid "Thank you! Birth report submitted successfully."
+msgstr ""
+
+#: handlers/cbn.py:52
+msgid ""
+"The correct format message is: CBN MOTHER_ID CHILD_NUM DOB BREASTFEEDING "
+"CHILD_HEIGHT CHILD_WEIGHT MUAC"
+msgstr ""
+
+#: handlers/cbn.py:108
+msgid "Thank you! CBN report submitted successfully."
+msgstr ""
+
+#: handlers/ccm.py:52
+msgid ""
+"The correct format message is: CCM MOTHER_ID CHILD_NUM DOB SYMPTOMS "
+"INTERVENTION MUAC"
+msgstr ""
+
+#: handlers/ccm.py:106
+msgid "Thank you! CCM report submitted successfully."
+msgstr ""
+
+#: handlers/chi.py:54
+msgid ""
+"The correct format message is: CHI MOTHER_ID CHILD_NUM DOB VACCINS "
+"VACCIN_SERIE ACTION_CODE LOCATION_CODE CHILD_WEIGHT MUAC"
+msgstr ""
+
+#: handlers/chi.py:115
+msgid "Thank you! Child Health report submitted successfully."
+msgstr ""
+
+#: handlers/cmr.py:52
+msgid ""
+"The correct format message is: CMR MOTHER_ID CHILD_NUM DOB SYMPTOMS "
+"INTERVENTION MOTHER_STATUS CHILD_STATUS"
+msgstr ""
+
+#: handlers/cmr.py:107
+msgid "Thank you! CMR report submitted successfully."
+msgstr ""
+
+#: handlers/dep.py:52
+msgid ""
+"You never reported a departure. Departure are reported with the keyword DEP"
+msgstr ""
+
+#: handlers/dep.py:87
+msgid "Thank you! Dep report submitted successfully."
+msgstr ""
+
+#: handlers/dth.py:53 handlers/dth.py:71
+msgid ""
+"The correct format message is: DTH MOTHER_ID CHILD_NUMBER DATE_OF_BIRTH "
+"DEATH_CODE"
+msgstr ""
+
+#: handlers/dth.py:119
+msgid "Thank you! Death report submitted successfully."
+msgstr ""
+
+#: handlers/nbc.py:52
+msgid ""
+"The correct format message is: NBC MOTHER_ID CHILD_NUM NBC_ROUND DOB "
+"SYMPTOMS INTERVENTION CHILD_STATUS"
+msgstr ""
+
+#: handlers/nbc.py:115
+msgid "Thank you! NBC report submitted successfully."
+msgstr ""
+
+#: handlers/pnc.py:52
+msgid ""
+"The correct format message is: PNC MOTHER_ID PNC_ROUND DOB SYMPTOMS "
+"INTERVENTION CHILD_STATUS"
+msgstr ""
+
+#: handlers/pnc.py:108
+msgid "Thank you! PNC report submitted successfully."
+msgstr ""
+
+#: handlers/pre.py:55
+msgid ""
+"The correct format message is: PRE MOTHER_ID LAST_MENSES NEXT_VISIT "
+"PREVIOUS_RISK CURRENT_RISK LOCATION_CODE MOTHER_WEIGHT MOTHER_HEIGHT "
+"SANITATION TELEPHONE"
+msgstr ""
+
+#: handlers/pre.py:142
+msgid "Thank you! Pregnancy report submitted successfully."
+msgstr ""
+
+#: handlers/rar.py:52
+msgid ""
+"The correct format message is: RAR MOTHER_ID REPORTED_SYMPTOMS LOCATION_CODE "
+"INTERVENTION_CODE MOTHER_STATUS CHILD_STATUS"
+msgstr ""
+
+#: handlers/rar.py:104
+msgid "Thank you! Red Alert Result report submitted successfully."
+msgstr ""
+
+#: handlers/red.py:52
+msgid ""
+"The correct format message is: RED MOTHER_ID ACTION_CODE LOCATION_CODE "
+"MOTHER_WEIGHT"
+msgstr ""
+
+#: handlers/red.py:99
+msgid "Thank you! RED Alert report submitted successfully."
+msgstr ""
+
+#: handlers/ref.py:52
+msgid ""
+"You never reported a refusal. Refusals are reported with the keyword REF"
+msgstr ""
+
+#: handlers/ref.py:65
+msgid "Thank you! REF report submitted successfully."
+msgstr ""
+
+#: handlers/res.py:52
+msgid ""
+"The correct format message is: RES MOTHER_ID REPORTED_SYMPTOMS LOCATION_CODE "
+"INTERVENTION_CODE MOTHER_STATUS CHILD_STATUS"
+msgstr ""
+
+#: handlers/res.py:104
+msgid "Thank you! Risk Result report submitted successfully."
+msgstr ""
+
+#: handlers/risk.py:52
+msgid ""
+"The correct format message is: RISK MOTHER_ID ACTION_CODE LOCATION_CODE "
+"MOTHER_WEIGHT"
+msgstr ""
+
+#: handlers/risk.py:106
+msgid "Thank you! Risk report submitted successfully."
+msgstr ""
+
+#: reports/utils.py:93 reports/utils.py:97 reports/utils.py:101
+#: reports/utils.py:362 reports/utils.py:366 reports/utils.py:370
+msgid "Invalid date format, must be in the form: DD.MM.YYYY"
+msgstr ""
+
+#: reports/utils.py:166
+#, python-format
+msgid "Unknown action code: %(invalidcode)s.  "
+msgstr ""
+
+#: reports/utils.py:170
+msgid "You cannot give more than one location code"
+msgstr ""
+
+#: reports/utils.py:173
+#, python-format
+msgid "Error.  %(error)s"
+msgstr ""
+
+#: reports/utils.py:322
+#, python-format
+msgid "%(phone)s: %(report)s"
+msgstr ""
+
+#: reports/utils.py:374 reports/utils.py:378
+msgid "Invalid date, cannot be in the future."
+msgstr ""
+
+#: reports/utils.py:447
+#, python-format
+msgid ""
+"Error.  National ID must be exactly 16 digits, you sent the nid: %(nat_id)s "
+"with only %(uburefu)d digits"
+msgstr ""

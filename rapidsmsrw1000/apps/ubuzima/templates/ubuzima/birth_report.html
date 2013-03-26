@@ -1,4 +1,5 @@
 {% extends request.base_template %}
+{% load locstags ambulances_extras%}
 {% block title %}Delivery Report{% endblock %}
 
 {% block javascripts %}
@@ -22,6 +23,15 @@
 <link type="text/css" rel="stylesheet" href="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.css"></link>
 <script type="text/javascript" src="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.js"></script>
 
+<!-- EXTJS START  -->
+<link rel="stylesheet" type="text/css" href="/extjs/resources/css/ext-all.css">
+    
+    <script type="text/javascript" src="/extjs/ext-all-debug.js"></script>
+
+
+
+
+<!-- EXTJS START  -->
 <style type="text/css">
 .table-design thead ,.table-design th , .table-design td {
 	border:solid black 1px;
@@ -194,10 +204,10 @@ function fetch_stats_indics(indic){
 			<th>Start</th><th ><input style="background-color: white"  type="text" id="pickstartdate" value="{{ start_date }}"  name="start_date" 					readonly="readonly"  onFocus="displayCalendar(form.start_date,'dd.mm.yyyy',this)" onchange="return deroulement(this.form);"/></th>
 			<th>End</th><th><input style="background-color: white" type="text" id="pickenddate" value="{{ end_date }}"  name="end_date" 					readonly="readonly"  onFocus="displayCalendar(form.end_date,'dd.mm.yyyy',this)" onchange="return deroulement(this.form);"/></th>
 			<th>Location Navigation</th><th><select style="background-color: white" name="navlocation" id="navlocation" >
-						{% if sel %}<option value="{{ sel.id }}.{{sel.type.name}}"  								selected="selected" >{{ sel.name }}&nbsp;{{ sel.type.name}}</option> {% else %}
+						{% if sel %}<option value="{{ sel.id }}.{{sel|to_class_name}}"  								selected="selected" >{{ sel.name }}&nbsp;{{ sel|to_class_name}}</option> {% else %}
 							<option value="" selected="selected">{{ usrloc.location.name }}</option>{% endif %}
 						{%  for loc in locs %}
-							<option value="{{ loc.id }}.{{loc.type.name}}" {% if loc.selected  %} 								selected="selected" {% endif %}>{{ loc.name }}</option>
+							<option value="{{ loc.id }}.{{loc|to_class_name}}" {% if loc.selected  %} 								selected="selected" {% endif %}>{{ loc.name }}</option>
 						{%  endfor %}
 						
                 				
@@ -208,23 +218,23 @@ function fetch_stats_indics(indic){
         <tr>	<td colspan="6">
 		<a href={{request.path}}>Rwanda</a>
 		{% if prv %}
-		&nbsp;&gt;<a href={{request.path}}?province={{prv.id}}>{{ prv.name }}&nbsp;{{ prv.type.name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?province={{prv.id}}>{{ prv.name }}&nbsp;{{ prv|to_class_name }}</a>
 		{% else %}
-			{% if dst %}&nbsp;&gt;<a href={{request.path}}?province={{dst.parent.id}} >{{ dst.parent.name }}&nbsp;{{ dst.parent.type.name }}</a> 
+			{% if dst %}&nbsp;&gt;<a href={{request.path}}?province={{dst.province.id}} >{{ dst.province.name }}&nbsp;{{ dst.province|to_class_name }}</a> 
 			{% else %}
-			{% if lxn %}&nbsp;&gt;<a href={{request.path}}?province={{lxn.province.id}} >{{ lxn.province.name }}&nbsp;{{ lxn.province.type.name }}</a>			{% endif %}
+			{% if lxn %}&nbsp;&gt;<a href={{request.path}}?province={{lxn.province.id}} >{{ lxn.province.name }}&nbsp;{{ lxn.province|to_class_name }}</a>			{% endif %}
 			{% endif %}
 		{% endif %}
 
 		{% if dst %}
-		&nbsp;&gt;<a href={{request.path}}?district={{dst.id}}>{{ dst.name }}&nbsp;{{ dst.type.name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?district={{dst.id}}>{{ dst.name }}&nbsp;{{ dst|to_class_name }}</a>
 		{% else %}
-		{% if lxn %}&nbsp;&gt;<a href={{request.path}}?district={{lxn.district.id}} >{{ lxn.district.name }}&nbsp;{{ lxn.district.type.name }}</a>
+		{% if lxn %}&nbsp;&gt;<a href={{request.path}}?district={{lxn.district.id}} >{{ lxn.district.name }}&nbsp;{{ lxn.district|to_class_name }}</a>
 		{% endif %}
 		{% endif %}
 		
 		{% if lxn %}
-		&nbsp;&gt;<a href={{request.path}}?location={{lxn.original.id}}>{{ lxn.original.name }}&nbsp;{{ lxn.original.type.name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?location={{lxn.id}}>{{ lxn.name }}&nbsp;{{ lxn|to_class_name }}</a>
 		{% endif %}
 		
             	<td> <!-- <input type="button" value="Update Filters"  onClick="return deroulement(this.form);"/> --> </td>
@@ -232,7 +242,7 @@ function fetch_stats_indics(indic){
                 </tr>
 		 <tr>
 			<td><!--Table--></td><td ><!--Graph--></td><td><!--Map--></td><td></td>
-			<td></td><td></td><td></td><td><!-- <a href="/ubuzima/dash{%if postqn%}?{{postqn}}{%endif%}">Back To Dashboard</a> --></td>
+			<td></td><td></td><td></td><td></td>
 		</tr>
 		</tbody>
         </table>
@@ -257,7 +267,7 @@ function fetch_stats_indics(indic){
 
 <div class="Tabs" style="width: 100%;">
 
-<a onclick="return fetch_stats_indics('bir');">Births</a> <a onclick="return fetch_stats_indics('pre');">Pregnancies</a><a onclick="return fetch_stats_indics('anc');">ANCs</a><a onclick="return fetch_stats_indics('pnc');">PNCs</a><a onclick="return fetch_stats_indics('ris');">Risks</a><a onclick="return fetch_stats_indics('chi');">Child Health</a><a onclick="return fetch_stats_indics('de');">Death</a><a onclick="return fetch_stats_indics('admin');">Administrative</a>
+<a onclick="return fetch_stats_indics('bir');">Births</a> 
   
 </div>
 <!-- End Tabs -->
@@ -286,15 +296,15 @@ function fetch_stats_indics(indic){
 	</div>
 	<div id="graph">
 		<div id="content">    	
-        		<h2 >Comparison of Delivery Report Statistics in {{sel.name}}-{{sel.type.name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
+        		<h2 >Comparison of Delivery Report Statistics in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
 		<div id="placeholder_l" style=" width: 800px;height:400px;"></div>
-		<h2 >Variation of Delivery Report Statistics in {{sel.name}}-{{sel.type.name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
+		<h2 >Variation of Delivery Report Statistics in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
 		<div id="placeholder_m" style=" width: 2400px;height:400px;"></div>
     		</div>
 	</div>
 	<div id="map">
 
-		<h2 >{{sel.name}}-{{sel.type.name}} On Map</h2>
+		<h2 >{{sel.name}}-{{sel|to_class_name}} On Map</h2>
 		<div id="content" align="center">    	
         		{% include 'ubuzima/map.html' %}
     		</div>
@@ -302,7 +312,7 @@ function fetch_stats_indics(indic){
 	<div id="log">
 
 		
-		<h2 >Delivery Report Log in {{sel.name}}-{{sel.type.name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
+		<h2 >Delivery Report Log in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
 		<div id="content">    	
         		{% include 'ubuzima/report_table.html' %}
     		</div>
@@ -319,56 +329,7 @@ function fetch_stats_indics(indic){
 <!--End Page Births -->
 
 
-<!-- Page Pregnancies -->
-  <div class="Page"> 
-  <div class="Pad">
-  </div>
-  </div>
-<!--End Page Pregnancies -->
 
-<!-- Page ANCs -->
-  <div class="Page"> 
-  <div class="Pad">
-  </div>
-  </div>
-<!--End Page ANCs -->
-<!-- Page PNCs -->
-  <div class="Page"> 
-  <div class="Pad">
-  </div>
-  </div>
-<!--End Page PNCs -->
-
-<!-- Page Maternal Risks -->
-  <div class="Page"> 
-  <div class="Pad">
-
-  </div>
-  </div>
-<!--End Page Maternal Risks -->
-
-<!-- Page Child Health -->
-  <div class="Page"> 
-  <div class="Pad">
-
-  </div>
-  </div>
-<!--End Page Child Health -->
-
-<!-- Page Death -->
-  <div class="Page"> 
-  <div class="Pad">
-
-  </div>
-  </div>
-<!--End Page Death -->
-<!-- Page ADMIN -->
-  <div class="Page"> 
-  <div class="Pad">
-			
-  </div>
-  </div>
-<!--End Page ADMIN -->
 
 
 </div>
@@ -425,17 +386,17 @@ function fetch_stats_indics(indic){
 
 tabview_switch('TabView',1);
 
-var locs = "{% for l in locs %} {% if not forloop.first %},{% endif %}{{l.name}}-{{l.id}}-{{l.type}} {% endfor %}".split(",") ;
+var locs = "{% for l in locs %} {% if not forloop.first %},{% endif %}{{l.name}}-{{l.id}}-{{l|to_class_name}} {% endfor %}".split(",") ;
 var annot="{{annot_l}}";
 var trc="";
 var month_names = ["Month", "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 var months_b = "{% for m in track.months %} {% if not forloop.first %},{% endif %}{{m}} {% endfor %}".split(",") ;
 
-if (annot.split(",")[0] == "location__parent__parent__parent__name"){
-var fac_l = jQuery.parseJSON('{ {% for tr in track.items_l.fac %} {% if not forloop.first %},{% endif %} "{{tr.location__parent__parent__parent__name}}-{{tr.location__parent__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'), route_l = jQuery.parseJSON('{ {% for tr in track.items_l.route %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__parent__name }}-{{tr.location__parent__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'),home_l = jQuery.parseJSON('{ {% for tr in track.items_l.home %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__parent__name }}-{{tr.location__parent__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'),tot_l = jQuery.parseJSON('{ {% for tr in track.items_l.tot %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__parent__name }}-{{tr.location__parent__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }');
+if (annot.split(",")[0] == "province__name"){
+var fac_l = jQuery.parseJSON('{ {% for tr in track.items_l.fac %} {% if not forloop.first %},{% endif %} "{{tr.province__name}}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), route_l = jQuery.parseJSON('{ {% for tr in track.items_l.route %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'),home_l = jQuery.parseJSON('{ {% for tr in track.items_l.home %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'),tot_l = jQuery.parseJSON('{ {% for tr in track.items_l.tot %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }');
 
-}else if(annot.split(",")[0] == "location__parent__parent__name"){
-	var fac_l = jQuery.parseJSON('{ {% for tr in track.items_l.fac %} {% if not forloop.first %},{% endif %} "{{tr.location__parent__parent__name}}-{{tr.location__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'), route_l = jQuery.parseJSON('{ {% for tr in track.items_l.route %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__name }}-{{tr.location__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'),home_l= jQuery.parseJSON('{ {% for tr in track.items_l.home %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__name }}-{{tr.location__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'),tot_l = jQuery.parseJSON('{ {% for tr in track.items_l.tot %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__name }}-{{tr.location__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }');
+}else if(annot.split(",")[0] == "district__name"){
+	var fac_l = jQuery.parseJSON('{ {% for tr in track.items_l.fac %} {% if not forloop.first %},{% endif %} "{{tr.district__name}}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'), route_l = jQuery.parseJSON('{ {% for tr in track.items_l.route %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'),home_l= jQuery.parseJSON('{ {% for tr in track.items_l.home %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'),tot_l = jQuery.parseJSON('{ {% for tr in track.items_l.tot %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }');
 	}else if(annot.split(",")[0] == "location__name"){
 	var fac_l = jQuery.parseJSON('{ {% for tr in track.items_l.fac %} {% if not forloop.first %},{% endif %} "{{tr.location__name}}-{{tr.location__pk}}" : {{tr.number}}  {% endfor %} }'), route_l = jQuery.parseJSON('{ {% for tr in track.items_l.route %} {% if not forloop.first %},{% endif %} "{{ tr.location__name }}-{{tr.location__pk}}" : {{tr.number}}  {% endfor %} }'), home_l = jQuery.parseJSON('{ {% for tr in track.items_l.home %} {% if not forloop.first %},{% endif %} "{{ tr.location__name }}-{{tr.location__pk}}" : {{tr.number}}  {% endfor %} }'), tot_l = jQuery.parseJSON('{ {% for tr in track.items_l.tot %} {% if not forloop.first %},{% endif %} "{{ tr.location__name }}-{{tr.location__pk}}" : {{tr.number}}  {% endfor %} }');
 	}
@@ -446,7 +407,7 @@ var fac_l_c =[] , route_l_c = [], ticks_l  = [], home_l_c = [],  globaltot_l=0, 
 
 var fac_m_c =[] , route_m_c = [], ticks_m  = [], home_m_c = [], globaltot_m=0, home_m_tot=0, fac_m_tot=0, route_m_tot=0,home_m_totp=0, fac_m_totp=0, route_m_totp=0;
 
-	var str_l = "<h2 >Delivery Report Statistics in {{sel.name}}-{{sel.type.name}} By "+locs[0].split("-")[2]+"</h2><table class = 'table-design' id = 'table_l'>";
+	var str_l = "<h2 >Delivery Report Statistics in {{sel.name}}-{{sel|to_class_name}} By "+locs[0].split("-")[2]+"</h2><table class = 'table-design' id = 'table_l'>";
 	
 	var theader_l = "<thead><tr><th>"+locs[0].split("-")[2]+"</th><th>At Facility</th><th>On Route</th><th>At Home</th><th>Total</th><th>At Facility(%)</th><th>On Route(%)</th><th>At Home(%)</th></tr></thead>";
 		
@@ -459,7 +420,7 @@ var fac_m_c =[] , route_m_c = [], ticks_m  = [], home_m_c = [], globaltot_m=0, h
 			var loc_n = locs[l].trim().split("-")[0];
 			var loc_id = locs[l].trim().split("-")[1];
 			var loc_t = locs[l].trim().split("-")[2];
-			if ( loc_t == 'Health Centre') loc_t = "Location";
+			if ( loc_t == 'HealthCentre') loc_t = "Location";
 			if (fac_l[locs[l].trim().split("-")[0]+"-"+locs[l].trim().split("-")[1]]) fac_l_n = fac_l[locs[l].trim().split("-")[0]+"-"+locs[l].trim().split("-")[1]];
 			else fac_l_n = 0;
 			if (route_l[locs[l].trim().split("-")[0]+"-"+locs[l].trim().split("-")[1]]) route_l_n = route_l[locs[l].trim().split("-")[0]+"-"+locs[l].trim().split("-")[1]]; 
@@ -486,7 +447,7 @@ var fac_m_c =[] , route_m_c = [], ticks_m  = [], home_m_c = [], globaltot_m=0, h
 			ticks_l.push([l, loc_n]);
 			globaltot_l += tot_l_n, fac_l_tot += fac_l_n, route_l_tot += route_l_n, home_l_tot += home_l_n ;
 				//alert(month_names[months_b[s].trim().split("-")[0]]);//+"-"+months_b[s+1].split("-")[1]);
-				if (l%2 == 0){trc="even";} else {trc="odd";}
+				//if (l%2 == 0){trc="even";} else {trc="odd";}
 	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td>"+"<td>"+fac_l_n+"</td>"+"<td>"+route_l_n+"</td>"+"<td>"+home_l_n+"</td>"+"<td>"+tot_l_n+"</td>"+"<td>"+fac_l_np+"</td>"+"<td>"+route_l_np+"</td>"+"<td>"+home_l_np+"</td>"+"</tr>";
 	
 	
@@ -498,7 +459,7 @@ var fac_m_c =[] , route_m_c = [], ticks_m  = [], home_m_c = [], globaltot_m=0, h
 		
 		str_l += theader_l + tdata_l +"</table><div ><form> <p style ='display:none'><label for='filename_l' >Filename</label><br></br> <input type='text' name='filename_l' value='exportfile_l.xls' id='filename_l' > </p> <p id='downloadify_l' style='margin-bottom:5px;'> You must have Flash 10 installed to download this file. </p> </form></div>";
 	
-	var str_m = "<h2 >Monthly Delivery Report Statistics in {{sel.name}}-{{sel.type.name}} </h2><table class = 'table-design' id = 'table_m'>";
+	var str_m = "<h2 >Monthly Delivery Report Statistics in {{sel.name}}-{{sel|to_class_name}} </h2><table class = 'table-design' id = 'table_m'>";
 	var theader_m = "<thead> <tr><th>Month</th><th>At Facility</th><th>On Route</th><th>At Home</th><th>Total</th><th>At Facility(%)</th><th>On Route(%)</th><th>At Home(%)</th></tr></thead>";
 	var tdata_m = "<tbody>";
 	for ( var s in months_b) {
@@ -531,7 +492,7 @@ var fac_m_c =[] , route_m_c = [], ticks_m  = [], home_m_c = [], globaltot_m=0, h
 			
 			ticks_m.push([s, month_n]);
 			globaltot_m += tot_m_n, fac_m_tot += fac_m_n, route_m_tot += route_m_n, home_m_tot += home_m_n ;
-			if (s%2 == 0){trc="even";} else {trc="odd";}	
+			//if (s%2 == 0){trc="even";} else {trc="odd";}	
 
 	tdata_m += "<tr class="+trc+"><td>"+month_n+"</td>"+"<td>"+fac_m_n+"</td>"+"<td>"+route_m_n+"</td>"+"<td>"+home_m_n+"</td>"+"<td>"+tot_m_n+"</td>"+"<td>"+fac_m_np+"</td>"+"<td>"+route_m_np+"</td>"+"<td>"+home_m_np+"</td>"+"</tr>";
 	

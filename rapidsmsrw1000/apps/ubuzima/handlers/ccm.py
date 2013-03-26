@@ -15,7 +15,7 @@ from django.db.models import Q
 ###DEVELOPED APPS
 from rapidsmsrw1000.apps.ubuzima.reports.utils import *
 from rapidsms.contrib.handlers.handlers.keyword import KeywordHandler
-from rapidsmsrw1000.apps.thousanddays.models import *
+
 
 class CcmHandler (KeywordHandler):
     """
@@ -42,12 +42,12 @@ class CcmHandler (KeywordHandler):
         except:    activate('rw')
 
         try:
-            message.reporter = Reporter.objects.filter(connections__identity = message.connection.identity)[0]
+            message.reporter = message_reporter(message)#Reporter.objects.filter(national_id = message.connection.contact.name )[0]
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
 
-        m = re.search("ccm\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s(ma|di|pc)\s(pt|pr|tr|aa|al|at|na|ph)\s(muac\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)
+        m = re.search("ccm\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s(ma|di|pc)\s(pt|pr|tr|aa|al|at|na|ph)\s?(.*|muac\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)#m = re.search("ccm\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s(ma|di|pc)\s(pt|pr|tr|aa|al|at|na|ph)\s(muac\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)
         if not m:
             message.respond(_("The correct format message is: CCM MOTHER_ID CHILD_NUM DOB SYMPTOMS INTERVENTION MUAC"))
             return True
@@ -86,6 +86,11 @@ class CcmHandler (KeywordHandler):
         fields.append(Field(type=child_num_type, value=Decimal(str(number))))
 
         # save the report
+        for f in fields:
+            if f.type in FieldType.objects.filter(category__name = 'Red Alert Codes'):
+                message.respond(_("%(key)s:%(red)s is a red alert, please see how to report a red alert and try again.")\
+                                         % { 'key': f.type.key,'red' : f.type.kw})
+                return True
         report.save()
                 
         # then associate all our fields with it

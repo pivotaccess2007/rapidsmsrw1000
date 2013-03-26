@@ -4,6 +4,7 @@
 
 <table width="100%"> 
     <thead>
+	<tr><th colspan = "3"><a href={{request.url}}?csv{%if postqn%}&{{postqn}}{%endif%}>Export Reports Log -- CSV</a></th><th colspan = "2"><a href={{request.url}}?excel{%if postqn%}&{{postqn}}{%endif%}>Export Reports Log -- EXCEL</a></th><th colspan = "2"></th></tr>
         <tr>
         	<th>Id</th>
             <th>Date</th>
@@ -17,12 +18,13 @@
     <tbody>
     	{% for report in reports.object_list %}
             <tr>
-            	<td {%if report.is_risky %} class="lagging"{%endif%}><a href="/ubuzima/report/{{report.pk}}">{{report.pk}}</a></td>
+            	<td {%if report.is_red %} class="lagging"{% else %}{%if report.is_risky %} class ='risky'{% else %}
+			{% if report.is_death %}class ='death'{% endif %} {%endif%}{%endif%}><a href="/ubuzima/report/{{report.pk}}?{%if postqn%}&{{postqn}}{%endif%}">{{report.pk}}</a></td>
                 <td>{{report.created|date:"d.m.Y"}}</td>
-                <td><a href="/ubuzima/location/{{report.location.pk}}">{{report.location.name}}</a></td>
-                <td><a href="/ubuzima/type/{{report.type.pk}}">{{report.type.name}}</a></td>
-                <td><a href="/ubuzima/reporter/{{report.reporter.pk}}">{{report.reporter.alias}}</a></td>
-                <td><a href="/ubuzima/patient/{{report.patient.pk}}">{{report.patient.national_id}}</a></td>
+                <td><a href="/ubuzima/location/{{report.location.pk}}?{%if postqn%}&{{postqn}}{%endif%}">{{report.location.name}}--{{report.location.district.name}}</a></td>
+                <td><a href="/ubuzima/type/{{report.type.pk}}?{%if postqn%}&{{postqn}}{%endif%}">{{report.type.name}}</a></td>
+                <td><a href="/ubuzima/reporter/{{report.reporter.pk}}?{%if postqn%}&{{postqn}}{%endif%}">{{report.reporter.national_id}}</a></td>
+                <td><a href="/ubuzima/patient/{{report.patient.pk}}?{%if postqn%}&{{postqn}}{%endif%}">{{report.patient.national_id}}</a></td>
                 <td>{{report.summary}}</td>
 		<!-- {%for f in report.fields.all %}<td>{{f.value}}</td>{%endfor%} -->
             </tr>

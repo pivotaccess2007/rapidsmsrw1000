@@ -15,7 +15,7 @@ from django.db.models import Q
 ###DEVELOPED APPS
 from rapidsmsrw1000.apps.ubuzima.reports.utils import *
 from rapidsms.contrib.handlers.handlers.keyword import KeywordHandler
-from rapidsmsrw1000.apps.thousanddays.models import *
+
 
 class BirHandler (KeywordHandler):
     """
@@ -29,7 +29,7 @@ class BirHandler (KeywordHandler):
             self.respond(_("You need to be registered first, use the REG keyword"))
             return True 
     def help(self):
-        self.respond("The correct format message is: BIR MOTHER_ID TWINS CHILD_NUM DOB SEX ACTION_CODE LOCATION_CODE BREASTFEEDING CHILD_WEIGHT")
+        self.respond("The correct format message is: BIR MOTHER_ID CHILD_NUM DOB SEX ACTION_CODE LOCATION_CODE BREASTFEEDING CHILD_WEIGHT")
 
     def handle(self, text):
         #print self.msg.text
@@ -42,14 +42,14 @@ class BirHandler (KeywordHandler):
         except:    activate('rw')
 
         try:
-            message.reporter = Reporter.objects.filter(connections__identity = message.connection.identity)[0]
+            message.reporter = message_reporter(message)#Reporter.objects.filter(national_id = message.connection.contact.name )[0]
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
 
         m = re.search("bir\s+(\d+)\s?(.*|tw|tr)\s([0-9]+)\s([0-9.]+)\s(bo|gi)\s?(.*)\s(ho|hp|cl|or)\s?(.*|bf1)\s(wt\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)
         if not m:
-            message.respond(_("The correct format message is: BIR MOTHER_ID TWINS CHILD_NUM DOB SEX ACTION_CODE LOCATION_CODE BREASTFEEDING CHILD_WEIGHT"))
+            message.respond(_("The correct format message is: BIR MOTHER_ID CHILD_NUM DOB SEX ACTION_CODE LOCATION_CODE BREASTFEEDING CHILD_WEIGHT"))
             return True
 
         try:    nid = read_nid(message, m.group(1))
@@ -92,8 +92,14 @@ class BirHandler (KeywordHandler):
         fields.append(Field(type=child_num_type, value=Decimal(number)))
 
         # save the report
+        for f in fields:
+            if f.type in FieldType.objects.filter(category__name = 'Red Alert Codes'):
+                message.respond(_("%(key)s:%(red)s is a red alert, please see how to report a red alert and try again.")\
+                                         % { 'key': f.type.key,'red' : f.type.kw})
+                return True
         if not report.has_dups():
-        	report.save()
+            report.set_pnc_edd_dates(report.date)            
+            report.save()
         else:
     		message.respond(_("This report has been recorded, and we cannot duplicate it again. Thank you!"))
     		return True

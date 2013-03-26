@@ -2,7 +2,7 @@
 from django.core.management.base import BaseCommand
 from rapidsmsrw1000.apps.ubuzima.models import Report, Reminder, ReminderType
 from django.conf import settings
-from rapidsmsrw1000.apps.reporters.models import Reporter
+from rapidsmsrw1000.apps.chws.models import Reporter, Supervisor
 import urllib2
 import time
 import datetime
@@ -21,27 +21,7 @@ class Command(BaseCommand):
                     help='Executes a dry run, doesnt send messages or update the db.'),
         )
 
-    def send_message(self, connection, message):
-        conf = {'kannel_host':'127.0.0.1', 'kannel_port':13013, 'kannel_password':'kannel', 'kannel_username':'kannel'}
-        try:
-            conf = settings.KANNEL_CONF
-        except KeyError:
-            pass
-        url = "http://%s:%s/cgi-bin/sendsms?to=%s&text=%s&password=%s&user=%s" % (
-            conf["kannel_host"], 
-            conf["kannel_port"],
-            urllib2.quote(connection.identity.strip()), 
-            urllib2.quote(message),
-            conf['kannel_password'],
-            conf['kannel_username'])
-	print url
-        f = urllib2.urlopen(url, timeout=10)
-        if f.getcode() / 100 != 2:
-            print "Error delivering message to URL: %s" % url
-            raise RuntimeError("Got bad response from router: %d" % f.getcode())
-
-        # do things at a reasonable pace
-        time.sleep(.2)
+    cmd = Smser()
 
     def check_reminders(self, today, days, reminder_type, to_sup=False):
         try:
@@ -52,10 +32,10 @@ class Command(BaseCommand):
             for report in pending:
                 if to_sup:
                     try:
-                        print "supervisors of: %s" % report.reporter.alias
+                        print "supervisors of: %s" % report.reporter.telephone_moh
     
                         # look up the supervisors for the reporter's location
-                        sups = Reporter.objects.filter(location=report.reporter.location, groups__pk=2)
+                        sups = Supervisor.objects.filter(health_centre = report.reporter.health_centre)
                         for sup in sups:
                             # determine the right messages to send for this reporter
                             message = reminder_type.message_kw
@@ -66,11 +46,11 @@ class Command(BaseCommand):
 
                             message = message % report.patient.national_id
 
-                            print "sending reminder to %s of '%s'" % (sup.connection().identity, message)
+                            print "sending reminder to %s of '%s'" % (sup.telephone_moh, message)
 
                             # and send it off
                             if not self.dry:
-                                try:	self.send_message(sup.connection(), message)
+                                try:	self.cmd.send_message_via_kannel(sup.telephone_moh, message)
 				except:	pass
                     except Reporter.DoesNotExist:
                         pass
@@ -85,14 +65,14 @@ class Command(BaseCommand):
 
                         message = message % report.patient.national_id
 
-                        print "sending reminder to %s of '%s'" % (report.reporter.connection().identity, message)
+                        print "sending reminder to %s of '%s'" % (report.reporter.telephone_moh, message)
                         if not self.dry:
-                            self.send_message(report.reporter.connection(), message)
+                            self.cmd.send_message_via_kannel(report.reporter.telephone_moh, message)
                     except Reporter.DoesNotExist:
                         pass
 
                 if not self.dry:
-                    report.reminders.create(type=reminder_type, date=datetime.datetime.now(), reporter=report.reporter)
+                    report.reminders.create(type=reminder_type, location = report.location, date=datetime.datetime.now(), reporter=report.reporter)
         except Reporter.DoesNotExist:
             pass
 
@@ -104,7 +84,7 @@ class Command(BaseCommand):
 	    	for report in pending:
 	    		try:
 		    		if to_sup:
-		    			for x in Reporter.objects.filter(location=report.reporter.location, groups__title="Supervisor"):
+		    			for x in Supervisor.objects.filter(health_centre = report.location):
 		    				receivers.append(x)
 		    		else:	receivers.append(report.reporter)
 	     			for reporter in receivers:
@@ -113,14 +93,14 @@ class Command(BaseCommand):
 	    				elif reporter.language == 'fr':
 	    					message = reminder_type.message_fr
 	    				message = message % (report.patient.national_id,report.date_string)
-	    				print "sending reminder to %s of '%s'" % (report.reporter.connection().identity, message)
-	    				if not self.dry:	self.send_message(report.reporter.connection(), message)
+	    				print "sending reminder to %s of '%s'" % (report.reporter.telephone_moh, message)
+	    				if not self.dry:	self.cmd.send_message_via_kannel(report.reporter.telephone_moh, message)
 	     			
 	     		except :	continue
-    			if not self.dry:	report.reminders.create(type=reminder_type, date=datetime.datetime.now(), reporter=report.reporter)
+    			if not self.dry:	report.reminders.create(type=reminder_type,location = report.location, date=datetime.datetime.now(), reporter=report.reporter)
 	    		if to_mother:
 	    			if not self.dry:
-	    				if report.patient.telephone:	Smser().send_message(report.patient.telephone, message % (report.patient.national_id,report.date_string))
+	    				if report.patient.telephone:	self.cmd.send_message_via_kannel(report.patient.telephone, message % (report.patient.national_id,report.date_string))
     	except:	pass
 
 
@@ -143,15 +123,15 @@ class Command(BaseCommand):
                     if alert.reporter.language == 'en':	message = reminder_type.message_en
                     elif alert.reporter.language == 'fr':	message = reminder_type.message_fr
                     
-                    message = message % (alert.patient.national_id)
+                    msg = message % (alert.patient.national_id)
                     
-                    print "sending reminder to %s of '%s'" % (alert.reporter.connection().identity, message)
-                    if not self.dry:	self.send_message(alert.reporter.connection(), message)
+                    print "sending reminder to %s of '%s'" % (alert.reporter.telephone_moh, msg)
+                    if not self.dry:	self.cmd.send_message_via_kannel(alert.reporter.telephone_moh, msg)
                     
                 except Exception, e:
                     print e
                     continue
-            if not self.dry:	Reminder.objects.create(type=reminder_type, date=timezone.localtime(timezone.now()), reporter=alert.reporter)
+            	if not self.dry:	alert.reminders.create(type=reminder_type,location = alert.reporter.health_centre, date=timezone.localtime(timezone.now()), reporter=alert.reporter)
         except Exception, e:
             print e
             pass
@@ -175,15 +155,15 @@ class Command(BaseCommand):
                     if alert.reporter.language == 'en':	message = reminder_type.message_en
                     elif alert.reporter.language == 'fr':	message = reminder_type.message_fr
                     
-                    message = message % (alert.patient.national_id)
+                    msg = message % alert.patient.national_id
                     
-                    print "sending reminder to %s of '%s'" % (alert.reporter.connection().identity, message)
-                    if not self.dry:	self.send_message(alert.reporter.connection(), message)
+                    print "sending reminder to %s of '%s'" % (alert.reporter.telephone_moh, msg)
+                    if not self.dry:	self.cmd.send_message_via_kannel(alert.reporter.telephone_moh, msg)
                     
                 except Exception, e:
                     print e
                     continue
-            if not self.dry:	Reminder.objects.create(type=reminder_type, date=timezone.localtime(timezone.now()), reporter=alert.reporter)
+            	if not self.dry:	alert.reminders.create(type=reminder_type,location = alert.reporter.health_centre, date=timezone.localtime(timezone.now()), reporter=alert.reporter)
         except Exception, e:
             print e
             pass
@@ -204,11 +184,11 @@ class Command(BaseCommand):
     					message = reminder_type.message_kw
 	   				if reporter.language == 'en':	message = reminder_type.message_en
 	    				elif reporter.language == 'fr':	message = reminder_type.message_fr
-	    				
-	   			if not self.dry:	self.send_message(reporter.connection(), message)
+	    			print "notifying %s with '%s'" % (reporter.telephone_moh, message)	
+	   			if not self.dry:	self.cmd.send_message_via_kannel(reporter.telephone_moh, message)
 	    		except:	continue
 
-	    		if not self.dry:	Reminder.objects.create(type=reminder_type, date=datetime.datetime.now(), reporter=reporter)
+	    		if not self.dry:	Reminder.objects.create(type=reminder_type,location = reporter.health_centre, date=datetime.datetime.now(), reporter=reporter)
     	
     	except:	pass	
     	
@@ -221,7 +201,7 @@ class Command(BaseCommand):
         # get all our pending expired reporters
         for reporter in Reminder.get_expired_reporters(today):
             # look up the supervisors for this reporter
-            sups = Reporter.objects.filter(location=reporter.location, groups__pk=2)
+            sups = Supervisor.objects.filter(health_centre=reporter.health_centre)
             for sup in sups:
                 # determine the right messages to send for this reporter
                 message = reminder_type.message_kw
@@ -230,18 +210,19 @@ class Command(BaseCommand):
                 elif sup.language == 'fr':
                     message = reminder_type.message_fr
                     
-                message = message % (reporter.alias, reporter.connection().identity)
+                message = message % (reporter.national_id, reporter.telephone_moh)
 
-                print "notifying %s of expired reporter with '%s'" % (sup.connection().identity, message)
-                print reporter.last_seen()
+                print "notifying %s of expired reporter with '%s'" % (sup.telephone_moh, message)
+                #print reporter.last_seen()
                 
                 # and send it off
                 if not self.dry:
-                    try:	self.send_message(sup.connection(), message)
+                    try:	self.cmd.send_message_via_kannel(sup.telephone_moh, message)
    	   	    except:	pass
 
             if not self.dry:
-                Reminder.objects.create(type=reminder_type, date=datetime.datetime.now(), reporter=reporter)
+                try:	Reminder.objects.create(type=reminder_type, date=datetime.datetime.now(), reporter=reporter, location = reporter.health_centre)
+		except:	pass
 
     def handle(self, **options):
         print "Running reminders.."
@@ -256,19 +237,19 @@ class Command(BaseCommand):
         today = timezone.localtime(timezone.now())#datetime.date.today()
 
         # ANC2
-        reminder_type = ReminderType.objects.get(pk=1)
+        reminder_type = ReminderType.objects.get(name = '2nd ANC Visit')
         self.check_reminders(today, Report.DAYS_ANC2, reminder_type)
 
         # ANC3
-        reminder_type = ReminderType.objects.get(pk=2)
+        reminder_type = ReminderType.objects.get(name = '3rd ANC Visit')
         self.check_reminders(today, Report.DAYS_ANC3, reminder_type)
 
         # ANC4
-        reminder_type = ReminderType.objects.get(pk=3)
+        reminder_type = ReminderType.objects.get(name = '4th ANC Visit')
         self.check_reminders(today, Report.DAYS_ANC4, reminder_type)
 
         # EDD
-        reminder_type = ReminderType.objects.get(pk=4)
+        reminder_type = ReminderType.objects.get(name = 'Week Before Expected Delivery Date')
         self.check_reminders(today, Report.DAYS_EDD, reminder_type)
 
         # On the due date (Revence)
@@ -308,7 +289,7 @@ class Command(BaseCommand):
         self.check_pnc_reminders(today, Report.DAYS_MONTH24, reminder_type,to_sup=True,to_mother=True)
 
         # EDD for SUPs
-        reminder_type = ReminderType.objects.get(pk=5)
+        reminder_type = ReminderType.objects.get(name = 'Two Weeks Before Expected Delivery Date')
         self.check_reminders(today, Report.DAYS_SUP_EDD, reminder_type, to_sup=True)
 
         # RISKS RESULTS REMINDERS
@@ -321,7 +302,7 @@ class Command(BaseCommand):
    	if calendar.monthrange(today.year,today.month)[1] == today.day:	self.check_feedback()
 
         # Finally look for any reports who need reminders
-        self.check_expired_reporters()
+        #self.check_expired_reporters()
 
         print "Complete."
 

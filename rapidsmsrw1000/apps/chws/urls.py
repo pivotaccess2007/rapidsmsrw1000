@@ -14,6 +14,14 @@ urlpatterns = patterns('',
     url(r'^view/warnings/(?P<ref>\w+)$', views.warnings, name='warnings'),
     url(r'^view/uploads$', views.view_uploads, name='uploads'),
     #url(r'^chws/download/list$', views.download_chws_list_template),
+
+    url(r'^asm$',             views.view_asm),
+    url(r'^asm/active$',             views.view_active_reporters),
+    url(r'^asm/inactive$',             views.view_inactive_reporters),
+    url(r'^binome$',             views.view_binome),
+    url(r'^binome/active$',             views.view_active_reporters),
+    url(r'^binome/inactive$',             views.view_inactive_reporters),
+    url(r'^supervisor$',             views.view_supervisor),
     
     
 )

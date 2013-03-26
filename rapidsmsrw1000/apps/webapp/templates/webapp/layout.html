@@ -66,53 +66,74 @@
 		        <li><a href="/messagelog" class="parent"><span>Message Logs</span></a>
 		            
 		        <li><a href="/httptester"><span>Message Tester</span></a></li>
+			
 		    </ul></div>
 		</li>
 
-		<li><a href="#" class="parent"><span>CHWs</span></a>
+		<li><a href="/chws" class="parent"><span>CHWs</span></a>
 			<div>
 				<ul>	
-					<li><a href="/reporters"><span>Reporters & Groups</span></a>
-					<li><a href="/reporters/active"><span>Active Reporters</span></a></li>
-		                	<li><a href="/reporters/inactive"><span>Inactive Reporters</span></a></li>
-					<li><a href="/reporters/errors"><span>Error Log</span></a></li>
+					<li><a href="/chws/asm"><span>ASM</span></a>
+						<div><ul>
+		                
+							<li><a href="/chws/asm/active?group=asm"><span>Active</span></a></li>
+							<li><a href="/chws/asm/inactive?group=asm"><span>Inactive</span></a></li>
+		            			</ul></div>
+					</li>
+					<li><a href="/chws/binome"><span>Binome</span></a>
+						<div><ul>
+		                
+							<li><a href="/chws/binome/active?group=binome"><span>Active</span></a></li>
+							<li><a href="/chws/binome/inactive?group=binome"><span>Inactive</span></a></li>
+		            			</ul></div>
+					</li>
+		                	<li><a href="/chws/supervisor"><span>Supervisor</span></a></li>
+					<!--<li><a href="/chws/errors"><span>Error Log</span></a></li>-->
 					<li><a href="/chws/messaging"><span>Group Messages</span></a>	
 			    	</ul>
 			</div>	
 		</li>
 		
-		<li><a href="#" class="parent"><span>Maternal HEalth</span></a>
+		<li><a href="/ubuzima" class="parent"><span>Maternal HEalth</span></a>
 		    <div><ul>
-		        <li><a href="/ubuzima" class="parent"><span>Report Log</span></a>
-		            
-		        </li>
-		        <li><a href="#" class="parent"><span>Statistics</span></a>
+		            <li><a href="#" class="parent"><span>Statistics</span></a>
 		            <div><ul>
 		                <li><a href="/ubuzima/dash/pre"><span>Pregnancy Report</span></a></li>
 		                <li><a href="/ubuzima/dash/anc"><span>ANC Report</span></a></li>
-							<li><a href="/ubuzima/dash/ris"><span>Risk Report</span></a></li>
-							<li><a href="/ubuzima/dash/bir"><span>Delivery Report</span></a></li>
-							<li><a href="/ubuzima/dash/pnc"><span>PNC Report</span></a></li>
-							<li><a href="/ubuzima/dash/chi"><span>Child Health Report</span></a></li>
-							<li><a href="/ubuzima/dash/de"><span>Death Report</span></a></li>
-							<li><a href="/ubuzima/dash/admin"><span>Administrative Report</span></a></li>
+				<li><a href="/ubuzima/dash/ris"><span>Risk Report</span></a></li>
+				<li><a href="/ubuzima/dash/red"><span>Red Alert Report</span></a></li>
+				<li><a href="/ubuzima/dash/bir"><span>Delivery Report</span></a></li>
+				<li><a href="/ubuzima/dash/de"><span>Death Report</span></a></li>
+				<!--<li><a href="/ubuzima/dash/admin"><span>Administrative Report</span></a></li> -->
 		            </ul></div>
 		        </li>
 		        <li><a href="/ubuzima/reminders"><span>Reminders</span></a></li>
-		        <li><a href="/ubuzima/alerts"><span>Alerts</span></a></li>
-		        <li><a href="/ubuzima/triggers"><span>Triggers</span></a></li>
+			<li><a href="/ubuzima/deliverynots"><span>Delivery Notification</span></a></li>
+		        <li><a href="/ubuzima/alerts"><span>Alerts Log</span></a></li>
+			<li><a href="/ubuzima/emergency"><span>Emergency Room</span></a></li>
+		        
 		        
 						
 			</li>
 		    </ul></div>
 		</li>
-		<li><a href="/ubuzima/newborn"><span>New Born</span></a></li>
+		<li><a href="/ubuzima/newborn"><span>New Born</span></a>
+			<div>
+				<ul>
+					<li><a href="/ubuzima/newborn"><span>Newborn Visits</span></a></li>
+					<li><a href="/ubuzima/dash/chi"><span>Child Health Report</span></a></li>
+				</ul>
+			</div>
+		</li>
+		<li><a href="/ubuzima/dash/pnc"><span>PNC</span></a></li>
 			<li><a href="/ubuzima/nutrition"><span>Nutrition</span></a></li>
 		<li ><a href="/ubuzima/ccm"><span>CCM</span></a></li>
 		<li ><a href="/ubuzima/ibibari"><span>Ibibari</span></a></li>
+		<li><a href="/ambulances"><span>Ambulances</span></a></li>
+		<li><a href="/ubuzima" class="parent"><span>Report Log</span></></li>
 		<li class="last">
 				{% if user.is_authenticated %}
-					<a href="/accounts/logout/"><span>{% trans "Log out" %} {{ user.username }}</span></a>
+					<a href="/accounts/logout/"><span>{% trans "Log out" %}</span></a>
 				{% else %}
 					<a href="/accounts/login/"><span>{% trans "Log in" %}</span></a>
 				{% endif %}
@@ -135,7 +156,7 @@
     
   </div>
     <div id="footer">
-		<p> &copy; 2012 The RapidSMS RWANDA TEAM, All rights reserved.&nbsp;</p>
+		<p> &copy; 2012 The RapidSMS RWANDA, All rights reserved.&nbsp;</p>
     </div>
 </body>
 </html>

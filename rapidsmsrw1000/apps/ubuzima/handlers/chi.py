@@ -15,7 +15,7 @@ from django.db.models import Q
 ###DEVELOPED APPS
 from rapidsmsrw1000.apps.ubuzima.reports.utils import *
 from rapidsms.contrib.handlers.handlers.keyword import KeywordHandler
-from rapidsmsrw1000.apps.thousanddays.models import *
+
 
 class ChiHandler (KeywordHandler):
     """
@@ -42,13 +42,14 @@ class ChiHandler (KeywordHandler):
         except:    activate('rw')
 
     	try:
-            message.reporter = Reporter.objects.filter(connections__identity = message.connection.identity)[0]
+            message.reporter = message_reporter(message)#Reporter.objects.filter(national_id = message.connection.contact.name )[0]
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
 
-        m = re.search("chi\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s(v1|v2|v3|v4|v5|v6)\s(vc|vi)\s?(.*)\s(ho|hp|cl|or)\s(wt\d+\.?\d*)\s(muac\d+\.?\d*)\s?(.*)",\
-                         message.text, re.IGNORECASE)
+        m = re.search("chi\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s?(.*|v1|v2|v3|v4|v5|v6)\s(.*|vc|vi)\s?(.*)\s(ho|hp|cl|or)\s(wt\d+\.?\d*)\s?(.*|muac\d+\.?\d*)\s?(.*)",\
+                         message.text, re.IGNORECASE)#m = re.search("chi\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s(v1|v2|v3|v4|v5|v6)\s(vc|vi)\s?(.*)\s(ho|hp|cl|or)\s(wt\d+\.?\d*)\s(muac\d+\.?\d*)\s?(.*)",\
+                         #message.text, re.IGNORECASE)
         if not m:
             message.respond(_("The correct format message is: CHI MOTHER_ID CHILD_NUM DOB VACCINS VACCIN_SERIE ACTION_CODE LOCATION_CODE CHILD_WEIGHT MUAC"))
             return True
@@ -90,6 +91,11 @@ class ChiHandler (KeywordHandler):
         fields.append(Field(type=child_num_type, value=Decimal(str(number))))
         
         # save the report
+        for f in fields:
+            if f.type in FieldType.objects.filter(category__name = 'Red Alert Codes'):
+                message.respond(_("%(key)s:%(red)s is a red alert, please see how to report a red alert and try again.")\
+                                         % { 'key': f.type.key,'red' : f.type.kw})
+                return True
         report.save()
                 
         # then associate all our fields with it

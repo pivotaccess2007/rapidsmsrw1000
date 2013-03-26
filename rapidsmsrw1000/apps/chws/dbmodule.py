@@ -5,20 +5,27 @@ from django.core import management
 from django.db import connection
 from rapidsmsrw1000.apps.chws.models import *
 from xlrd import open_workbook ,cellname,XL_CELL_NUMBER,XLRDError
-import datetime
-from django.utils import timezone
-from rapidsmsrw1000.apps.reporters import models as old_registry
-from random import randint
 
-def build_locations():
+from django.utils import timezone
+from rapidsms.models import *
+from random import randint
+from django.conf import settings
+import datetime
+
+def build_chws():
     try:
+        create_backends()
         create_nation()
         import_provinces()
         import_districts()
         import_sectors()
+        import_facilities()
+        create_role()
+        import_supervisors()
         import_cells()
         import_villages()
-        import_facilities()
+        update_cells_villages()
+        
         
         return True
     except Exception, e:
@@ -29,6 +36,27 @@ def create_nation(name = "Rwanda", code = '00'):
     try:
         nation = Nation(name = name, code = code)
         nation.save()
+        return True
+    except Exception:
+        return False
+
+def create_backends():
+    for b in settings.INSTALLED_BACKENDS.keys():
+        try:
+            backend, created = Backend.objects.get_or_create( name = b)
+            backend.save()
+        except Exception, e:
+            pass
+            return False
+    return True
+    
+
+def create_role():
+    try:
+        asm = Role(name = 'ASM', code = "asm")
+        binome = Role(name = 'Binome', code = "binome")
+        asm.save()
+        binome.save()
         return True
     except Exception:
         return False
@@ -215,13 +243,14 @@ def import_supervisors(filepath = "rapidsmsrw1000/apps/chws/xls/supervisors.xls"
             district = sheet.cell(row_index,6).value
             try:
                 district = District.objects.filter(name__icontains = district)[0]
+                
                 if area_level.upper().strip() == 'HC':
-                    loc = HealthCentre.objects.filter(name__icontains = area, district = district)[0]
-                    sup, created = Supervisor.objects.get_or_create(telephone = parse_phone_number(telephone), health_centre = loc)
+                    loc = HealthCentre.objects.filter(name = area, district = district)[0]
+                    sup, created = Supervisor.objects.get_or_create(telephone_moh = parse_phone_number(telephone) , health_centre = loc, email = email)
                 elif area_level.upper().strip() == 'HOSPITAL':
                     loc = Hospital.objects.filter(name__icontains = area, district = district)[0]
-                    sup, created = Supervisor.objects.get_or_create(telephone = parse_phone_number(telephone), hospital = loc)
-                if sup.random_nid is None:  sup.random_nid = "%s%s" % ( sup.telephone[3:] , str(random_with_N_digits(6)))
+                    sup, created = Supervisor.objects.get_or_create(telephone_moh = parse_phone_number(telephone), referral_hospital = loc, email = email)
+                if sup.national_id is None:  sup.national_id = "%s%s" % ( sup.telephone_moh[3:] , str(random_with_N_digits(6)))
                 sup.names = names
                 sup.dob = get_date(dob)
                 sup.area_level = area_level.upper().strip()
@@ -229,23 +258,63 @@ def import_supervisors(filepath = "rapidsmsrw1000/apps/chws/xls/supervisors.xls"
                 sup.district = loc.district
                 sup.province = loc.province
                 sup.nation = loc.nation
-                #sup.telephone  = parse_phone_number(telephone)
-                sup.email = email
-                #print sup, loc
-                #print loc, district, parse_phone_number(telephone), email
-                if sup.health_centre is None:
-                    if sup.hospital is None:
-                        sup.delete()
-                else:
-                    sup.save()
-                    sup_old_reg(sup)
+                sup.language = sup.language_kinyarwanda
+                sup.save()
+                    
             except Exception, e:
-                #print e, area
+                print e, area
                 pass
             #print "\nNames : %s\n DOB : %s\n Health Centre : %s\n Hospital : %s\n Telephone : %s\n Email: %s\n District : %s\n"\
                  #% (sup.names,sup.dob,sup.health_centre,sup.hospital,sup.telephone,sup.email,sup.district)
         except Exception, e:
             #print e
+            pass
+
+def import_testers(filepath = "rapidsmsrw1000/apps/chws/xls/Testers.xls", sheetname = "testers"):
+
+    book = open_workbook(filepath)
+    sheet = book.sheet_by_name(sheetname)
+    
+    for row_index in range(sheet.nrows):
+        if row_index < 1: continue   
+        try:
+            names = sheet.cell(row_index,0).value
+            telephone = sheet.cell(row_index,1).value
+            
+            try:
+                hc = HealthCentre.objects.get(name = "TEST")
+                hp = Hospital.objects.get(name = "TEST")
+                telephone = parse_phone_number(telephone)
+                nid = "%s%s" % ( telephone[3:] , str(random_with_N_digits(6)))
+                try:    tester = Reporter.objects.get(telephone_moh = telephone, health_centre = hc, referral_hospital = hp)
+                except:
+                    tester, created = Reporter.objects.get_or_create(telephone_moh = telephone, national_id = nid, health_centre = hc, referral_hospital = hp)
+
+                tester.surname      = names	
+                tester.role            = Role.objects.get(code = 'asm')	
+                tester.sex 	        =  Reporter.sex_male	
+                tester.education_level = Reporter.education_universite
+                tester.date_of_birth   =	datetime.datetime.today()	
+                tester.join_date		=   datetime.datetime.today()
+                tester.district		=   hc.district
+                tester.nation			=   hc.nation
+                tester.province		=   hc.province
+                tester.sector			=   Sector.objects.get(name = 'TEST')
+                
+                tester.cell			=	Cell.objects.get(name = 'TEST')
+                tester.village		=   Village.objects.get(name = 'TEST')      
+                tester.updated		    = timezone.localtime(timezone.now())
+                tester.language        = Reporter.language_kinyarwanda
+                
+                tester.save()
+                confirm, created = RegistrationConfirmation.objects.get_or_create(reporter = tester)
+                confirm.save()    
+            except Exception, e:
+                print e
+                pass
+            
+        except Exception, e:
+            print e
             pass
 
 def parse_phone_number(number):
@@ -291,69 +360,54 @@ def get_date(date_of_birth):
         except:   date_of_birth = datetime.date.today() - datetime.timedelta(days = 7665)
     return date_of_birth
 
-def sup_old_reg(sup):
-    if sup.random_nid is None:  sup.random_nid = "%s%s" % ( sup.telephone[3:] , str(random_with_N_digits(6)))
-    sup.save()
-    try:
-        old_reporter = get_reporter(sup.random_nid)
-        
-        if sup.health_centre:   old_reporter.location = old_registry.Location.objects.get(code = fosa_to_code(sup.health_centre.code))
-        elif sup.hospital:  old_reporter.location = old_registry.Location.objects.get(code = fosa_to_code(sup.hospital.code))
-          
-        old_reporter.groups.add(old_registry.ReporterGroup.objects.get(title='Supervisor'))
-        old_reporter.groups.remove(old_registry.ReporterGroup.objects.get(title='CHW'))
-        
-        if sup.village: old_reporter.village = sup.village.name
-        else:   old_reporter.village = "Village Ntizwi" 
-        old_reporter.language = "rw"
-        old_reporter.save()
-        
-        old_connection = get_connection(sup.telephone, reporter = old_reporter)
-        
-        #print old_connection
-    except Exception, e:
-        #print e
-        pass
-
 def random_with_N_digits(n):
     range_start = 10**(n-1)
     range_end = (10**n)-1
     return randint(range_start, range_end)
 
-def get_reporter(national_id):
+def get_reporter(national_id, telephone_moh):
     try:
-        reporter = old_registry.Reporter.objects.filter(alias = national_id)[0]
+        reporter = Reporter.objects.filter(national_id = national_id , telephone_moh = telephone_moh)[0]
         return reporter
     except Exception, e:
         try:
-            reporter = old_registry.Reporter(alias = national_id)
+            reporter = Reporter(national_id = national_id , telephone_moh = telephone_moh)
             reporter.save()
             return reporter
             
         except Exception, e:
             return None
 
-def get_connection(telephone_moh, reporter = None):
-    
+def get_connections(reporter):
+    connections = None
     try:
-        connection = old_registry.PersistantConnection.objects.filter(identity = telephone_moh)[0]
+        connections = Connection.objects.filter(identity = reporter.telephone_moh)
         
-        if connection.reporter: return connection
-        else:  
-            connection.reporter = reporter
-            connection.save()
-            return connection
     except Exception, e:
-        try:
-            if reporter.exists():
-                
-                backend = old_registry.PersistantBackend.objects.get(title="kannel")
-                
-                connection = old_registry.PersistantConnection(backend = backend, identity = telephone_moh, \
-                                                                                        reporter = reporter, last_seen = timezone.localtime(timezone.now()))
+        contact, created = Contact.objects.get_or_create(name = reporter.national_id)
+        if reporter.language:    contact.language = reporter.language.lower()
+        else:   contact.language = 'rw'
+
+        backends = Backend.objects.all()
+        for b in backends:
+            try:
+                identity = reporter.telephone_moh if b.name != 'message_tester' else reporter.telephone_moh.replace('+','')
+                connection, created = Connection.objects.get_or_create(contact = contact, backend = b, identity = identity)
+
                 connection.save()
-                return connection
-            else:
-                return None
-        except Exception, e:
-            return None
+            except:
+                continue
+        
+        contact.save()
+        connections = Connection.objects.filter(contact = contact)
+    return connections
+    
+        
+def update_empty_contact_connections():
+	empty_contact_connections = Connection.objects.filter(contact = None)
+	reporters_with_empty_contact_connections = Reporter.objects.filter(telephone_moh__in = empty_contact_connections.values_list('identity'))
+	for r in reporters_with_empty_contact_connections:
+		conn = Connection.objects.get(identity = r.telephone_moh)
+		conn.contact = Contact.objects.get(name = r.national_id)
+		conn.save()
+	return True

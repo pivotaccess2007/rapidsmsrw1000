@@ -3,9 +3,9 @@
 
 from rapidsmsrw1000.apps.ubuzima.models import *
 from rapidsmsrw1000.apps.ambulances.models import *
-from rapidsmsrw1000.apps.locations.models import *
 from rapidsmsrw1000.apps.ubuzima.models import *
-from rapidsmsrw1000.apps.reporters.models import *
+from rapidsmsrw1000.apps.chws.models import *
+
 
 from django.utils.translation import ugettext as _
 from django.utils.translation import activate, get_language
@@ -15,7 +15,9 @@ import traceback
 from datetime import *
 from time import *
 from django.db.models import Q
-from rapidsmsrw1000.apps.chws import models as confirm
+from django.conf import settings
+import re
+from random import randint
 
 from rapidsms.router import send
 from rapidsms.models import Connection
@@ -25,7 +27,7 @@ def forward (message, identity, text):
     if message.connection:
         conn = Connection(backend = message.connection.backend, identity = identity)        
         send( text, conn)
-        print conn, text     
+        #print conn, text     
         return True
     else:
         return False
@@ -41,7 +43,7 @@ def read_weight(code_string, weight_is_mothers=False):
 
 def read_height(code_string, height_is_mothers=False):
 	try:
-	    field_type = FieldType.objects.get(key="mother_height" if not height_is_mothers else "mother_height")
+	    field_type = FieldType.objects.get(key="child_height" if not height_is_mothers else "mother_height")
 	    value = Decimal(code_string[2:])
 	    field = Field(type=field_type, value=value)
 	    return field
@@ -186,7 +188,7 @@ def get_or_create_patient(reporter, national_id):
     except Patient.DoesNotExist, e:
         # not found?  create the patient instead
         
-        patient = Patient.objects.create(national_id=national_id, location = reporter.location)
+        patient = Patient.objects.create(national_id=national_id, location = reporter.health_centre)
 
     return patient
 
@@ -195,7 +197,7 @@ def create_report(report_type_name, patient, reporter):
 
 	report_type = ReportType.objects.get(name=report_type_name)
 	report = Report(patient=patient, reporter=reporter, type=report_type,
-		        location=reporter.location, village=reporter.village)
+		        location=reporter.health_centre, village=reporter.village)
 	return report
     
 def run_triggers(message, report):
@@ -205,7 +207,7 @@ def run_triggers(message, report):
     try:
         # find all matching triggers
         triggers = TriggeredText.get_triggers_for_report(report)
-
+        
         # the message we'll send back to the reporter
         reporter_message = None
          
@@ -213,7 +215,9 @@ def run_triggers(message, report):
         for trigger in triggers:
             
             lang = get_language()
-            alert=TriggeredAlert(reporter=report.reporter, report=report, trigger=trigger)
+            alert = TriggeredAlert(reporter=report.reporter, report=report, trigger=trigger, location = report.location, village = report.reporter.village,\
+                                 cell = report.reporter.cell, sector = report.reporter.sector, district = report.reporter.district,\
+                                 province = report.reporter.province, nation= report.reporter.nation)
             alert.save()
             curloc = report.location
 
@@ -237,14 +241,12 @@ def run_triggers(message, report):
             elif trigger.destination == TriggeredText.DESTINATION_DIS or trigger.destination == TriggeredText.DESTINATION_SUP:
                 # find the parent
                 location = curloc
-                sup_group = ReporterGroup.objects.get(title='Supervisor')
-                if location.parent and trigger.destination == TriggeredText.DESTINATION_DIS: location = location.parent
+                sups = Supervisor.objects.filter(health_centre = location).order_by("pk")
+                if trigger.destination == TriggeredText.DESTINATION_DIS:
+                    location = report.reporter.referral_hospital
+                    sups = Supervisor.objects.filter(health_centre = location).order_by("pk")
                 # couldn't find it?  oh well, we'll alert the normal supervisor
-		    
-                # now look up to see if we have any reporters in this group 
-                # with the same location as  our reporter
-                sups = Reporter.objects.filter(groups=sup_group, location=location).order_by("pk")
-                
+		                    
                 #print [sup.connection() for sup in sups]
                 # for each supervisor
                 for sup in sups:
@@ -270,11 +272,11 @@ def run_triggers(message, report):
             elif trigger.destination == TriggeredText.DESTINATION_AMB:
                            
                 try:
-                    ambs = AmbulanceDriver.objects.filter(location = curloc)
+                    ambs = AmbulanceDriver.objects.filter(health_centre = curloc)
                     
                     if ambs.count() < 1:
-                        curloc = curloc.parent
-                        ambs = AmbulanceDriver.objects.filter(location = curloc)
+                        curloc = report.reporter.referral_hospital
+                        ambs = AmbulanceDriver.objects.filter(referral_hospital = curloc)
                     
                     for amb in ambs:                    
                         amb.send_notification(message, report)
@@ -285,7 +287,12 @@ def run_triggers(message, report):
 
             
 	    # return our advice texts
-        
+        if is_mother_weight_loss(report):
+            forward(message, message.connection.identity, "Uyu mubyeyi %s yatakaje ibiro, nukureba uko wamugira inama." % report.patient.national_id)
+        elif is_mother_risky(report):
+            forward(message, message.connection.identity, "Uyu mubyeyi %s afite uburebure budashyitse, nukureba uko mwamuba hafi kugeza abyaye." \
+                            % report.patient.national_id)
+          
         return reporter_message
     except Exception, e:
         print e
@@ -293,14 +300,11 @@ def run_triggers(message, report):
     
 def cc_supervisor(message, report):
     """ CC's the supervisor of the clinic for this CHW   """
-    try:
-       
-        # look up our supervisor group type
-        sup_group = ReporterGroup.objects.get(title='Supervisor')
-
+    try:       
+        
         # now look up to see if we have any reporters in this group with the same location as 
         # our reporter
-        sups = Reporter.objects.filter(groups=sup_group, location=message.reporter.location).order_by("pk")
+        sups = Supervisor.objects.filter(health_centre = message.reporter.health_centre).order_by("pk")
 
         # reporter identity
         reporter_ident = message.reporter.connection().identity
@@ -318,7 +322,7 @@ def cc_supervisor(message, report):
                 msg_forward = _("%(phone)s: %(report)s" % { 'phone': reporter_ident, 'report': report.as_verbose_string() })
                 forward(message, conn.identity, msg_forward)
     except Exception, e:
-        print e
+        #print e
         pass
 
 
@@ -394,12 +398,51 @@ def read_number(code_string):
         return field
     except:	return None
 
+def read_gravity(code_string):
+    try:
+        field_type = FieldType.objects.get(key="gravity")
+        value = Decimal(code_string)
+        field = Field(type=field_type, value=value)
+        return field
+    except:	return None
+def read_parity(code_string):
+    try:
+        field_type = FieldType.objects.get(key="parity")
+        value = Decimal(code_string)
+        field = Field(type=field_type, value=value)
+        return field
+    except:	return None
+
+def read_bmi(report):
+    try:
+        weight = report.fields.get(type__key = 'mother_weight').value
+        height = report.fields.get(type__key = 'mother_height').value
+        bmi = weight*100*100/(height*height)
+        return bmi
+    except:	pass
+
+def is_mother_weight_loss(report):
+    try:
+        weight = report.fields.get(type__key = 'mother_weight').value
+        history = Report.objects.filter(patient = report.patient).order_by('-id')[0].fields.get(type__key = 'mother_weight').value
+        if weight < history:    return True
+        else:   return False 
+    except: return False
+
+def is_mother_risky(report):
+    try:
+        height = report.fields.get(type__key = 'mother_height').value
+        if height < 145:    return True
+        else:   return False 
+    except: return False
+
 
 def read_nid(message, nid):
     if len(nid) != 16:
         err = ErrorNote(errmsg = message.text, type = ErrorType.objects.get(name = "Invalid ID"), errby = message.reporter, identity =\
-				            message.connection.identity, village=message.reporter.village, district = message.reporter.location.district,\
-                         province = message.reporter.location.province, nation =   message.reporter.location.nation)
+		                message.connection.identity, location =message.reporter.health_centre , village=message.reporter.village,\
+                        cell = message.reporter.cell, sector = message.reporter.sector, district = message.reporter.health_centre.district,\
+                         province = message.reporter.health_centre.province, nation =   message.reporter.health_centre.nation).save()
         
         raise Exception(_("Error.  National ID must be exactly 16 digits, you sent the nid: %(nat_id)s with only %(uburefu)d digits") % 
                             { "nat_id": nid , "uburefu": len(nid) } )
@@ -420,4 +463,90 @@ def set_date_string(date_string):
     except ValueError,e:
         # no-op, just keep the date_string value
         pass
+
+def message_reporter(message):
+    try:
+        return Reporter.objects.filter(national_id = message.connection.contact.name )[0]
+    except :
+        if settings.TRAINING_ENV == True:   return anonymous_reporter(message.connection.identity)
+        else:   raise Exception(_("You need to be registered first, use the REG keyword"))
+
+def anonymous_reporter(identity):
+    reporter = None
+    try:
+        names = "ANONYMOUS"
+        telephone = identity
+        
+        try:
+            hc = HealthCentre.objects.get(name = "TEST")
+            hp = Hospital.objects.get(name = "TEST")
+            telephone = parse_phone_number(telephone)
+            nid = "%s%s" % ( telephone[3:] , str(random_with_N_digits(6)))
+            try:    tester = Reporter.objects.get(telephone_moh = telephone, health_centre = hc, referral_hospital = hp)
+            except:
+                tester, created = Reporter.objects.get_or_create(telephone_moh = telephone, national_id = nid, health_centre = hc, referral_hospital = hp)
+
+            tester.surname      = names	
+            tester.role            = Role.objects.get(code = 'asm')	
+            tester.sex 	        =  Reporter.sex_male	
+            tester.education_level = Reporter.education_universite
+            tester.date_of_birth   =	datetime.today()	
+            tester.join_date		=   datetime.today()
+            tester.district		=   hc.district
+            tester.nation			=   hc.nation
+            tester.province		=   hc.province
+            tester.sector			=   Sector.objects.get(name = 'TEST')
+            
+            tester.cell			=	Cell.objects.get(name = 'TEST')
+            tester.village		=   Village.objects.get(name = 'TEST')      
+            tester.updated		    = datetime.now()
+            tester.language        = Reporter.language_kinyarwanda
+            
+            tester.save()
+            confirm, created = RegistrationConfirmation.objects.get_or_create(reporter = tester)
+            confirm.save()
+            reporter = tester    
+        except Exception, e:
+            print e
+            pass
+        
+    except Exception, e:
+        print e
+        pass
+    
+    return reporter
+
+def parse_phone_number(number):
+
+    number = number
+    try:
+        number = str(int(float(number)))
+    except:
+        try:
+            number = str(int(number))
+        except:
+            try:
+                number = str(number)
+            except:
+                    return False
+    number = number.replace(" ", "")
+    try:
+        if type(number)!=str:
+            number=str(int(number))
+        if number[:3]=="+25" and len(number[3:])==10:
+            number=number
+        elif number[:3]=="250" and len(number[3:])==9:
+            number="+"+number
+        elif number[:3]=="078" and len(number[3:])==7:
+            number="+25"+number
+        elif number[:2]=="78" and len(number[2:])==7:
+            number="+250"+number
+        return number
+    except: 
+            return False
+
+def random_with_N_digits(n):
+    range_start = 10**(n-1)
+    range_end = (10**n)-1
+    return randint(range_start, range_end)
 

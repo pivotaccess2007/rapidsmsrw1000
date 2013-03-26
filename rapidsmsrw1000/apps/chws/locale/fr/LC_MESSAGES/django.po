@@ -1,0 +1,77 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-01-04 15:48+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+
+#: handlers/last.py:32 handlers/last.py:49 handlers/last.py:53
+#: handlers/ndemeye.py:33 handlers/ndemeye.py:50 handlers/ndemeye.py:54
+#: handlers/ndemeye.py:72 handlers/reg.py:31 handlers/who.py:32
+#: handlers/who.py:50
+msgid "You need to be registered first, use the REG keyword"
+msgstr ""
+
+#: handlers/last.py:59
+msgid "You have not yet sent a report."
+msgstr ""
+
+#: handlers/last.py:68
+#, python-format
+msgid " Date: %(date)s"
+msgstr ""
+
+#: handlers/reg.py:50
+msgid "The correct message format is: SUP YOUR_ID CLINIC_ID LANG VILLAGE"
+msgstr ""
+
+#: handlers/reg.py:52
+msgid "The correct message format is: REG YOUR_ID CLINIC_ID LANG VILLAGE"
+msgstr ""
+
+#: handlers/reg.py:58
+#, python-format
+msgid ""
+"Error.  National ID must be exactly 16 digits, you sent the id: %(nat_id)s"
+msgstr ""
+
+#: handlers/reg.py:77
+msgid "Please contact your Health Centre to register your National ID"
+msgstr ""
+
+#: handlers/reg.py:98
+#, python-format
+msgid "Unknown Health Clinic ID: %(clinic)s"
+msgstr ""
+
+#: handlers/reg.py:136
+#, python-format
+msgid "Thank you for registering at %(clinic)s"
+msgstr ""
+
+#: handlers/who.py:55
+#, python-format
+msgid "You are not in a group, located at %(location)s, you speak %(language)s"
+msgstr ""
+
+#: handlers/who.py:62
+#, python-format
+msgid "You are a %(group)s, located at %(location)s, you speak %(language)s"
+msgstr ""
+
+#: handlers/who.py:66
+msgid "We don't recognize you"
+msgstr ""

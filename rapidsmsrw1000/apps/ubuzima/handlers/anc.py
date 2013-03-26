@@ -15,7 +15,7 @@ from django.db.models import Q
 ###DEVELOPED APPS
 from rapidsmsrw1000.apps.ubuzima.reports.utils import *
 from rapidsms.contrib.handlers.handlers.keyword import KeywordHandler
-from rapidsmsrw1000.apps.thousanddays.models import *
+
 
 class AncHandler (KeywordHandler):
     """
@@ -25,7 +25,7 @@ class AncHandler (KeywordHandler):
     keyword = "anc"
     
     def filter(self):
-        if not getattr(message, 'connection', None):
+        if not getattr(msg, 'connection', None):
             self.respond(_("You need to be registered first, use the REG keyword"))
             return True 
     def help(self):
@@ -42,7 +42,7 @@ class AncHandler (KeywordHandler):
         except:    activate('rw')
         
     	try:
-            message.reporter = Reporter.objects.filter(connections__identity = message.connection.identity)[0]
+            message.reporter = message_reporter(message)#Reporter.objects.filter(national_id = message.connection.contact.name )[0]
             
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
@@ -86,25 +86,34 @@ class AncHandler (KeywordHandler):
             return True
 
         # save the report
+        for f in fields:
+            if f.type in FieldType.objects.filter(category__name = 'Red Alert Codes'):
+                message.respond(_("%(key)s:%(red)s is a red alert, please see how to report a red alert and try again.")\
+                                         % { 'key': f.type.key,'red' : f.type.kw})
+                return True
         if not report.has_dups():
             	report.save()
         else:
 	        message.respond(_("This report has been recorded, and we cannot duplicate it again. Thank you!"))
 	        return True
-
+        
         # then associate all our fields with it
         fields.append(read_weight(weight, weight_is_mothers=True))
         fields.append(read_key(tour))
         fields.append(read_key(location))
+        
         for field in fields:
             if field:
                 field.report = report
                 field.save()
                 report.fields.add(field)
-	    # either send back the advice text or our default msg
-	    if not Report.objects.filter(patient=patient,type__name='Pregnancy',created__gte=(date.today()-timedelta(270))):
-		    message.respond("Thank you! ANC report submitted. Please send also the pregnancy report of this patient (%s)."%str(patient.national_id))
-		    return True
+        created = date.today()-timedelta(270)
+
+        if not Report.objects.filter(patient=patient,type__name='Pregnancy',created__gte = date.today()-timedelta(270)):
+            message.respond(_("Thank you! ANC report submitted. Please send also the pregnancy report of this patient %(nid)s.") % {'nid' : patient.national_id})
+            return True
+
+        # either send back the advice text or our default msg
         try:	response = run_triggers(message, report)
         except:	response = None
 	                

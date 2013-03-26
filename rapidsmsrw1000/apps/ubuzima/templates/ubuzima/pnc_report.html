@@ -1,5 +1,6 @@
 {% extends request.base_template %}
-{% block title %}Report Log{% endblock %}
+{% load locstags ambulances_extras%}
+{% block title %} PNC Report{% endblock %}
 
 {% block javascripts %}
 <!-- <link type="text/css" rel="stylesheet" href="/static/webapp/stylesheets/layout.css" ></link> -->
@@ -197,10 +198,10 @@ function fetch_stats_indics(indic){
 			<th>Start</th><th ><input style="background-color: white"  type="text" id="pickstartdate" value="{{ start_date }}"  name="start_date" 					readonly="readonly"  onFocus="displayCalendar(form.start_date,'dd.mm.yyyy',this)" onchange="return deroulement(this.form);"/></th>
 			<th>End</th><th><input style="background-color: white" type="text" id="pickenddate" value="{{ end_date }}"  name="end_date" 					readonly="readonly"  onFocus="displayCalendar(form.end_date,'dd.mm.yyyy',this)" onchange="return deroulement(this.form);"/></th>
 			<th>Location Navigation</th><th><select style="background-color: white" name="navlocation" id="navlocation" >
-						{% if sel %}<option value="{{ sel.id }}.{{sel.type.name}}"  								selected="selected" >{{ sel.name }}&nbsp;{{ sel.type.name}}</option> {% else %}
+						{% if sel %}<option value="{{ sel.id }}.{{sel|to_class_name}}"  								selected="selected" >{{ sel.name }}&nbsp;{{ sel|to_class_name}}</option> {% else %}
 							<option value="" selected="selected">{{ usrloc.location.name }}</option>{% endif %}
 						{%  for loc in locs %}
-							<option value="{{ loc.id }}.{{loc.type.name}}" {% if loc.selected  %} 								selected="selected" {% endif %}>{{ loc.name }}</option>
+							<option value="{{ loc.id }}.{{loc|to_class_name}}" {% if loc.selected  %} 								selected="selected" {% endif %}>{{ loc.name }}</option>
 						{%  endfor %}
 						
                 				
@@ -211,23 +212,23 @@ function fetch_stats_indics(indic){
         <tr>	<td colspan="6">
 		<a href={{request.path}}>Rwanda</a>
 		{% if prv %}
-		&nbsp;&gt;<a href={{request.path}}?province={{prv.id}}>{{ prv.name }}&nbsp;{{ prv.type.name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?province={{prv.id}}>{{ prv.name }}&nbsp;{{ prv|to_class_name }}</a>
 		{% else %}
-			{% if dst %}&nbsp;&gt;<a href={{request.path}}?province={{dst.parent.id}} >{{ dst.parent.name }}&nbsp;{{ dst.parent.type.name }}</a> 
+			{% if dst %}&nbsp;&gt;<a href={{request.path}}?province={{dst.province.id}} >{{ dst.province.name }}&nbsp;{{ dst.province|to_class_name }}</a> 
 			{% else %}
-			{% if lxn %}&nbsp;&gt;<a href={{request.path}}?province={{lxn.province.id}} >{{ lxn.province.name }}&nbsp;{{ lxn.province.type.name }}</a>			{% endif %}
+			{% if lxn %}&nbsp;&gt;<a href={{request.path}}?province={{lxn.province.id}} >{{ lxn.province.name }}&nbsp;{{ lxn.province|to_class_name }}</a>			{% endif %}
 			{% endif %}
 		{% endif %}
 
 		{% if dst %}
-		&nbsp;&gt;<a href={{request.path}}?district={{dst.id}}>{{ dst.name }}&nbsp;{{ dst.type.name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?district={{dst.id}}>{{ dst.name }}&nbsp;{{ dst|to_class_name }}</a>
 		{% else %}
-		{% if lxn %}&nbsp;&gt;<a href={{request.path}}?district={{lxn.district.id}} >{{ lxn.district.name }}&nbsp;{{ lxn.district.type.name }}</a>
+		{% if lxn %}&nbsp;&gt;<a href={{request.path}}?district={{lxn.district.id}} >{{ lxn.district.name }}&nbsp;{{ lxn.district|to_class_name }}</a>
 		{% endif %}
 		{% endif %}
 		
 		{% if lxn %}
-		&nbsp;&gt;<a href={{request.path}}?location={{lxn.original.id}}>{{ lxn.original.name }}&nbsp;{{ lxn.original.type.name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?location={{lxn.id}}>{{ lxn.name }}&nbsp;{{ lxn|to_class_name }}</a>
 		{% endif %}
 		
             	<td> <!-- <input type="button" value="Update Filters"  onClick="return deroulement(this.form);"/> --> </td>
@@ -260,7 +261,7 @@ function fetch_stats_indics(indic){
 
 <div class="Tabs" style="width: 100%;">
 
- <a onclick="return fetch_stats_indics('bir');">Births</a> <a onclick="return fetch_stats_indics('pre');">Pregnancies</a><a onclick="return fetch_stats_indics('anc');">ANCs</a><a onclick="return fetch_stats_indics('pnc');">PNCs</a><a onclick="return fetch_stats_indics('ris');">Risks</a><a onclick="return fetch_stats_indics('chi');">Child Health</a><a onclick="return fetch_stats_indics('de');">Death</a><a onclick="return fetch_stats_indics('admin');">Administrative</a>
+ <a onclick="return fetch_stats_indics('pnc');">PNCs</a>
   
 </div>
 <!-- End Tabs -->
@@ -268,34 +269,6 @@ function fetch_stats_indics(indic){
 <!-- *** Pages ************************************************************* -->
 
 <div class="Pages" style="width: 100%; height: 400px;">
-
-<!-- Page Births -->
-<div class="Page"> 
-	
-	<div class="Pad">
-		
-  	</div>
-</div>
-
-<!--End Page Births -->
-
-
-<!-- Page Pregnancies -->
-  <div class="Page"> 
-  <div class="Pad">
-
-  </div>
-  </div>
-<!--End Page Pregnancies -->
-
-<!-- Page ANCs -->
-<div class="Page"> 
-  <div class="Pad">
-
-  </div>
-  </div>
-<!--End Page ANCs -->
-
 
 
 
@@ -319,22 +292,22 @@ function fetch_stats_indics(indic){
 	</div>
 	<div id="graph">
 		<div id="content">    	
-        		<h2 >Comparison of PNC Report Statistics in {{sel.name}}-{{sel.type.name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
+        		<h2 >Comparison of PNC Report Statistics in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
 		<div id="placeholder_l" style=" width: 100%;height:400px;"></div>
-		<h2 >Variation of PNC Statistics in {{sel.name}}-{{sel.type.name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
+		<h2 >Variation of PNC Statistics in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
 		<div id="placeholder_m" style=" width: 100%;height:400px;"></div>
     		</div>
 	</div>
 	<div id="map">
 
-		<h2 >{{sel.name}}-{{sel.type.name}} On Map</h2>
+		<h2 >{{sel.name}}-{{sel|to_class_name}} On Map</h2>
 		<div id="content" align="center">    	
         		{% include 'ubuzima/map.html' %}
     		</div>
 	</div>
 	<div id="log">
 
-		<h2 >PNCs Report Log in {{sel.name}}-{{sel.type.name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
+		<h2 >PNCs Report Log in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
                 <div id="content">    	
         		{% include 'ubuzima/report_table.html' %}
     		</div>
@@ -351,37 +324,7 @@ function fetch_stats_indics(indic){
 <!--End Page PNCs -->
 
 
-<!-- Page Maternal Risks -->
-  <div class="Page"> 
-  <div class="Pad">
 
-  </div>
-  </div>
-<!--End Page Maternal Risks -->
-
-<!-- Page Child Health -->
-  <div class="Page"> 
-  <div class="Pad">
-
-  </div>
-  </div>
-<!--End Page Child Health -->
-
-<!-- Page Death -->
-  <div class="Page"> 
-  <div class="Pad">
-
-  </div>
-  </div>
-<!--End Page Death -->
-
-<!-- Page ADMIN -->
-  <div class="Page"> 
-  <div class="Pad">
-			
-  </div>
-  </div>
-<!--End Page ADMIN -->
 
 </div>
 
@@ -437,21 +380,22 @@ function fetch_stats_indics(indic){
 <script type="text/javascript">
 
 
-tabview_switch('TabView',4);
+tabview_switch('TabView',1);
 
 
-var locs = "{% for l in locs %} {% if not forloop.first %},{% endif %}{{l.name}}-{{l.id}}-{{l.type}} {% endfor %}".split(",") ;
+var locs = "{% for l in locs %} {% if not forloop.first %},{% endif %}{{l.name}}-{{l.id}}-{{l|to_class_name}} {% endfor %}".split(",") ;
+
 var annot="{{annot_l}}";
 
 var month_names = ["Month", "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 var months_b = "{% for m in track.months %} {% if not forloop.first %},{% endif %}{{m}} {% endfor %}".split(",") ;
 
 
-if (annot.split(",")[0] == "location__parent__parent__parent__name"){
-var pnc1 = jQuery.parseJSON('{ {% for tr in track.items.pnc1 %} {% if not forloop.first %},{% endif %} "{{tr.location__parent__parent__parent__name}}-{{tr.location__parent__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'), pnc2 = jQuery.parseJSON('{ {% for tr in track.items.pnc2 %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__parent__name }}-{{tr.location__parent__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'),pnc3 = jQuery.parseJSON('{ {% for tr in track.items.pnc3 %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__parent__name }}-{{tr.location__parent__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'),tot = jQuery.parseJSON('{ {% for tr in track.items.tot %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__parent__name }}-{{tr.location__parent__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }');
+if (annot.split(",")[0] == "province__name"){
+var pnc1 = jQuery.parseJSON('{ {% for tr in track.items.pnc1 %} {% if not forloop.first %},{% endif %} "{{tr.province__name}}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), pnc2 = jQuery.parseJSON('{ {% for tr in track.items.pnc2 %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'),pnc3 = jQuery.parseJSON('{ {% for tr in track.items.pnc3 %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'),tot = jQuery.parseJSON('{ {% for tr in track.items.tot %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }');
 
-}else if(annot.split(",")[0] == "location__parent__parent__name"){
-	var pnc1 = jQuery.parseJSON('{ {% for tr in track.items.pnc1 %} {% if not forloop.first %},{% endif %} "{{tr.location__parent__parent__name}}-{{tr.location__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'), pnc2 = jQuery.parseJSON('{ {% for tr in track.items.pnc2 %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__name }}-{{tr.location__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'),pnc3 = jQuery.parseJSON('{ {% for tr in track.items.pnc3 %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__name }}-{{tr.location__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }'),tot = jQuery.parseJSON('{ {% for tr in track.items.tot %} {% if not forloop.first %},{% endif %} "{{ tr.location__parent__parent__name }}-{{tr.location__parent__parent__pk}}" : {{tr.number}}  {% endfor %} }');
+}else if(annot.split(",")[0] == "district__name"){
+	var pnc1 = jQuery.parseJSON('{ {% for tr in track.items.pnc1 %} {% if not forloop.first %},{% endif %} "{{tr.district__name}}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'), pnc2 = jQuery.parseJSON('{ {% for tr in track.items.pnc2 %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'),pnc3 = jQuery.parseJSON('{ {% for tr in track.items.pnc3 %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'),tot = jQuery.parseJSON('{ {% for tr in track.items.tot %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }');
 }else if(annot.split(",")[0] == "location__name"){
 	var pnc1 = jQuery.parseJSON('{ {% for tr in track.items.pnc1 %} {% if not forloop.first %},{% endif %} "{{tr.location__name}}-{{tr.location__pk}}" : {{tr.number}}  {% endfor %} }'), pnc2 = jQuery.parseJSON('{ {% for tr in track.items.pnc2 %} {% if not forloop.first %},{% endif %} "{{ tr.location__name }}-{{tr.location__pk}}" : {{tr.number}}  {% endfor %} }'),pnc3 = jQuery.parseJSON('{ {% for tr in track.items.pnc3 %} {% if not forloop.first %},{% endif %} "{{ tr.location__name }}-{{tr.location__pk}}" : {{tr.number}}  {% endfor %} }'),tot = jQuery.parseJSON('{ {% for tr in track.items.tot %} {% if not forloop.first %},{% endif %} "{{ tr.location__name }}-{{tr.location__pk}}" : {{tr.number}}  {% endfor %} }');
 	}
@@ -467,14 +411,14 @@ var pnc1_c_m =[] , pnc2_c_m = [], ticks_m  = [], pnc3_c_m = [], globaltot_m=0,pn
 	
 	var theader1_1 = "<thead><!--<tr><th></th><th colspan=4>Delivery Report Numbers</th><th colspan=3>Delivery Report Percentages</th></tr>-->";
 	var tdata1 = "";
-	var str1 = "<h2 >PNC Report Statistics in {{sel.name}}-{{sel.type.name}} By "+locs[0].split("-")[2]+"</h2><table class = 'table-design' id = 'table1'>";
+	var str1 = "<h2 >PNC Report Statistics in {{sel.name}}-{{sel|to_class_name}} By "+locs[0].split("-")[2]+"</h2><table class = 'table-design' id = 'table1'>";
 	var theader1 = "<thead><tr><th>Location</th><th>PNC1</th><th>PNC2</th><th>PNC3</th><th>Total</th><th>PNC1(%)</th><th>PNC2(%)</th><th>PNC3(%)</th></tr></thead>";
 
 
 
 	var theader2_1 = "<thead><!--<tr><th></th><th colspan=5>Delivery Report Numbers</th><th colspan=4>Delivery Report Percentages</th></tr> -->";
 	var tdata2 = "";
-	var str2 = "<h2 >Monthly PNC Report Statistics in {{sel.name}}-{{sel.type.name}} </h2><table class = 'table-design' id = 'table2'>";
+	var str2 = "<h2 >Monthly PNC Report Statistics in {{sel.name}}-{{sel|to_class_name}} </h2><table class = 'table-design' id = 'table2'>";
 	var theader2 = "<thead><tr><th>Month</th><th> PNC1 </th><th> PNC2   </th><th> PNC3  </th><th>Total</th><th> PNC1(%) </th><th>  PNC2(%)  </th><th>  PNC3(%)  </th></tr></thead>";
 
 	for ( var l in locs) {
@@ -483,8 +427,8 @@ var pnc1_c_m =[] , pnc2_c_m = [], ticks_m  = [], pnc3_c_m = [], globaltot_m=0,pn
 			var loc_n = locs[l].trim().split("-")[0];
 			var loc_id = locs[l].trim().split("-")[1];
 			var loc_t = locs[l].trim().split("-")[2];
-			if ( loc_t == 'Health Centre') loc_t = "Location";
-			if ( loc_t == 'Health Centre') loc_t = "Location";
+			if ( loc_t == 'HealthCentre') loc_t = "Location";
+			
 			if (pnc1[locs[l].trim().split("-")[0]+"-"+locs[l].trim().split("-")[1]]) pnc1_n = pnc1[locs[l].trim().split("-")[0]+"-"+locs[l].trim().split("-")[1]];
 			else pnc1_n = 0;
                         
@@ -515,7 +459,7 @@ var pnc1_c_m =[] , pnc2_c_m = [], ticks_m  = [], pnc3_c_m = [], globaltot_m=0,pn
 			globaltot += tot_n, pnc1_tot += pnc1_n, pnc2_tot += pnc2_n, pnc3_tot += pnc3_n;
 				//alert(month_names[months_b[s].trim().split("-")[0]]);//+"-"+months_b[s+1].split("-")[1]);
 
-	tdata1 += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td>"+"<td>"+pnc1_n+"</td>"+"<td>"+pnc2_n+"</td>"+"<td>"+pnc3_n+"</td>"+"<td>"+tot_n+"</td>"+"<td>"+pnc1_np+"</td>"+"<td>"+pnc2_np+"</td>"+"<td>"+pnc3_np+"</td></tr>";
+	tdata1 += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td>"+pnc1_n+"</td>"+"<td>"+pnc2_n+"</td>"+"<td>"+pnc3_n+"</td>"+"<td>"+tot_n+"</td>"+"<td>"+pnc1_np+"</td>"+"<td>"+pnc2_np+"</td>"+"<td>"+pnc3_np+"</td></tr>";
 	
 			
 			}

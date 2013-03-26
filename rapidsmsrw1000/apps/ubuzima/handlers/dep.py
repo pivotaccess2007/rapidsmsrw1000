@@ -15,7 +15,7 @@ from django.db.models import Q
 ###DEVELOPED APPS
 from rapidsmsrw1000.apps.ubuzima.reports.utils import *
 from rapidsms.contrib.handlers.handlers.keyword import KeywordHandler
-from rapidsmsrw1000.apps.thousanddays.models import *
+
 
 class DepHandler (KeywordHandler):
     """
@@ -42,7 +42,7 @@ class DepHandler (KeywordHandler):
         except:    activate('rw')
 
     	try:
-            message.reporter = Reporter.objects.filter(connections__identity = message.connection.identity)[0]
+            message.reporter = message_reporter(message)#Reporter.objects.filter(national_id = message.connection.contact.name )[0]
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
@@ -52,16 +52,32 @@ class DepHandler (KeywordHandler):
     	    message.respond(_('You never reported a departure. Departure are reported with the keyword DEP'))
     	    return True
         try:
+            
             depid = read_nid(message, rez.group(1))
-            dep = Departure(reporter = message.reporter, depid = depid)
+
+            # get or create the patient
+            patient = get_or_create_patient(message.reporter, depid)            
+            report = create_report('Departure', patient, message.reporter)
+
+            dep = report#Departure(reporter = message.reporter, depid = depid, location = message.reporter.health_centre)
+            dep.save()
             optional_part = rez.group(2)
+            fields = []
             if optional_part:                
                 optional_part = re.search(r'([0-9]+)\s+([0-9.]+)', optional_part, re.IGNORECASE)
                 child_number = optional_part.group(1)
                 dob = parse_dob(optional_part.group(2))
-                dep.dob = set_date_string(dob)
-                dep.child_number = child_number
-    	    dep.save()
+                dep.set_date_string(dob)
+                # set the child number
+                dep.save()
+                child_num_type = FieldType.objects.get(key='child_number')
+                fields.append(Field(type=child_num_type, value=Decimal(child_number)))
+	        
+            for field in fields:
+                if field:
+                    field.report = report
+                    field.save()
+                    report.fields.add(field)
         except Exception, e:
             # there were invalid fields, respond and exit
             message.respond("%s" % e)

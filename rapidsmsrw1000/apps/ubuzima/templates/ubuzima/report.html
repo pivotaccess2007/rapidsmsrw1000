@@ -21,12 +21,12 @@
     
         <tr>
         	<td>Reporter</td>
-        	<td><a href="/ubuzima/reporter/{{report.reporter.pk}}">{{report.reporter.alias}}</a> ({{report.reporter.connection}})</td>
+        	<td><a href="/ubuzima/reporter/{{report.reporter.pk}}?{%if postqn%}&{{postqn}}{%endif%}">{{report.reporter.national_id}}</a> ({{report.reporter.connection}})</td>
         </tr>
         
         <tr>
         	<td>Mother Id</td>
-        	<td><a href="/ubuzima/patient/{{report.patient.pk}}">{{report.patient}}</a>
+        	<td><a href="/ubuzima/patient/{{report.patient.pk}}?{%if postqn%}&{{postqn}}{%endif%}">{{report.patient}}</a>
         </tr>
 
         {% if report.date_string %}
@@ -37,12 +37,33 @@
         {% endif %}
     
         <tr>
-        	<td>Location</td>
+        	<td>Facility</td>
         	<td>{{report.location.name}}
         </tr>
         <tr>
         	<td>Village</td>
         	<td>{{report.village}}</td>
+		
+        </tr>
+	<tr>
+        	<td>Cell</td>
+        	<td>{{report.reporter.cell}}</td>
+		
+        </tr>
+	<tr>
+        	<td>Sector</td>
+        	<td>{{report.reporter.sector}}</td>
+		
+        </tr>
+	<tr>
+        	<td>District</td>
+        	<td>{{report.reporter.district}}</td>
+		
+        </tr>
+	<tr>
+        	<td>Province</td>
+        	<td>{{report.reporter.province}}</td>
+		
         </tr>
 </tbody>
 </table>

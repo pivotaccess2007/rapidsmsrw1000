@@ -4,12 +4,24 @@
 from django.core import management
 from django.db import connection
 from rapidsmsrw1000.apps.ubuzima.models import *
-from rapidsmsrw1000.apps.locations.models import *
+from rapidsmsrw1000.apps.chws.models import *
 import glob
 from xlrd import open_workbook ,cellname,XL_CELL_NUMBER,XLRDError
 import csv
 from rapidsmsrw1000.apps.ubuzima.smser import Smser
 from django.conf import settings
+
+def build_ubuzima():
+    try:
+        initialize_reporttypes()
+        import_cardcodes()
+        build_alerts()
+        return True
+        
+    except:
+        pass
+        return False
+
 
 def loc_short_deletion():
 	table='ubuzima_locationshorthand'
@@ -274,11 +286,11 @@ def import_cardcodes(filepath = "rapidsmsrw1000/apps/ubuzima/xls/cardcodes.xls",
         try:
             ft = FieldType.objects.get( key = key)
             ft.category = category
-            ft.kw = kw
+            
         except:
             try:    ft = FieldType( key = key, category = category)
             except: continue
-        
+        ft.kw = kw
         ft.description = desc
         ft.has_value = True if sheet.cell(row_index,valrow-1).value.strip() == 'YES' else False             
         ft.save()          
@@ -293,7 +305,7 @@ def build_alerts():
         for tr in t.triggers.all(): triggers.add(tr)
     for ft in fts:
         if ft not in triggers:
-            chw = "Ubutumwa bwanyu turabubonye, gerageza urebeko wafasha uwo mubyeyi, tubimenyesheje inzego zitanga ubufasha nibiba ngombwa baragutabara."
+            chw = "Ubutumwa bwanyu turabubonye, gerageza urebeko wafasha uwo mubyeyi, tubimenyesheje inzego zitanga ubufasha baragutabara."
             kw  = "Umujyanama %s atumenyeshejeko umubyeyi %s utuye mu mudugudu wa %s afite ikibazo : %s. Gerageza urebe uko mwamufasha. " 
             fr  = "Un agent de sante communautaire %s vient de rapporter que le patient %s qui habite au village %s a un probleme: %s. Veuillez l'aider s'il vous plait."
             en  = "The community health worker %s comes to report that the patient %s in the village %s has this problem: %s. Please follow up and help."
@@ -311,22 +323,22 @@ def build_alerts():
             text_amb.triggers.add(ft);text_amb.save()
             text_dis.triggers.add(ft);text_dis.save()
 
-    for ft in risks:
-        chw = "Ubutumwa bwanyu turabubonye, gerageza urebeko wafasha uwo mubyeyi, tubimenyesheje inzego zitanga ubufasha nibiba ngombwa baragutabara."
-        kw  = "Umujyanama %s atumenyeshejeko umubyeyi %s utuye mu mudugudu wa %s afite ikibazo : %s. Gerageza urebe uko mwamufasha. " 
-        fr  = "Un agent de sante communautaire %s vient de rapporter que le patient %s qui habite au village %s a un probleme: %s. Veuillez l'aider s'il vous plait."
-        en  = "The community health worker %s comes to report that the patient %s in the village %s has this problem: %s. Please follow up and help."
-        text_chw = TriggeredText.objects.create( name = "%s-%s(to CHW)" % (ft.key.upper(), ft.description), destination = 'CHW',\
-                                                 description = "A %s is ..." % ft.description, message_kw = chw , message_fr = fr, message_en = en)
-        text_sup = TriggeredText.objects.create( name = "%s-%s(to SUP)" % (ft.key.upper(), ft.description), destination = 'SUP', \
-                                                 description = "A %s is ..." % ft.description, message_kw = kw , message_fr = fr, message_en = en)
+#    for ft in risks:
+#        chw = "Ubutumwa bwanyu turabubonye, gerageza urebeko wafasha uwo mubyeyi, tubimenyesheje inzego zitanga ubufasha nibiba ngombwa baragutabara."
+#        kw  = "Umujyanama %s atumenyeshejeko umubyeyi %s utuye mu mudugudu wa %s afite ikibazo : %s. Gerageza urebe uko mwamufasha. " 
+#        fr  = "Un agent de sante communautaire %s vient de rapporter que le patient %s qui habite au village %s a un probleme: %s. Veuillez l'aider s'il vous plait."
+#        en  = "The community health worker %s comes to report that the patient %s in the village %s has this problem: %s. Please follow up and help."
+#        text_chw = TriggeredText.objects.create( name = "%s-%s(to CHW)" % (ft.key.upper(), ft.description), destination = 'CHW',\
+#                                                 description = "A %s is ..." % ft.description, message_kw = chw , message_fr = fr, message_en = en)
+#        text_sup = TriggeredText.objects.create( name = "%s-%s(to SUP)" % (ft.key.upper(), ft.description), destination = 'SUP', \
+#                                                 description = "A %s is ..." % ft.description, message_kw = kw , message_fr = fr, message_en = en)
 #        text_amb = TriggeredText.objects.create( name = "%s-%s(to AMB)" % (ft.key.upper(), ft.description), destination = 'AMB', active = False,\
 #                                                 description = "A %s is ..." % ft.description, message_kw = kw , message_fr = fr, message_en = en)
 #        text_dis = TriggeredText.objects.create( name = "%s-%s(to DIS)" % (ft.key.upper(), ft.description), destination = 'DIS', active = False,\
 #                                                 description = "A %s is ..." % ft.description, message_kw = kw , message_fr = fr, message_en = en)
-
-        text_chw.triggers.add(ft);text_chw.save()
-        text_sup.triggers.add(ft);text_sup.save()
+#
+#        text_chw.triggers.add(ft);text_chw.save()
+#        text_sup.triggers.add(ft);text_sup.save()
 #        text_amb.triggers.add(ft);text_amb.save()
 #        text_dis.triggers.add(ft);text_dis.save()            
             
@@ -334,7 +346,7 @@ def build_alerts():
 
 def initialize_reporttypes():
     t = ['ANC', 'Birth', 'Community Based Nutrition', 'Community Case Management', 'Child Health', 'Case Management Response', 'Death', 'Newborn Care', \
-            'PNC', 'Pregnancy', 'Red Alert Result', 'Red Alert', 'Risk Result', 'Risk', ]
+            'PNC', 'Pregnancy', 'Red Alert Result', 'Red Alert', 'Risk Result', 'Risk', 'Refusal', 'Departure' ]
     try:
         for r in t:
             ReportType.objects.get_or_create(name = r)

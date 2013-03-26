@@ -73,7 +73,7 @@ msgstr ""
 #: handlers/bir.py:49 reports/bir.py:28
 #, fuzzy
 msgid ""
-"The correct format message is: BIR MOTHER_ID TWINS CHILD_NUM DOB SEX "
+"The correct format message is: BIR MOTHER_ID CHILD_NUM DOB SEX "
 "ACTION_CODE LOCATION_CODE BREASTFEEDING CHILD_WEIGHT"
 msgstr ""
 "Erreur. Le format du message est BIR MAMAN_ID ACTION_CODE LOCALISATION_CODE "

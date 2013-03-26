@@ -189,13 +189,13 @@ text-decoration:none;
                     </td>
                     <td>
             <input type="button" value="Update Filters"  onClick="return deroulement(this.form);"/>
-                    </td><td><a href={{request.url}}?csv{%if postqn%}&{{postqn}}{%endif%}>Export Reports Log</a></td>
+                    </td><td></td>
                 </tr>
             </tbody>
         </table>
     </form>
     <div class="clear-hack"></div>
 </div>
-<h2>LoGS {%if not request.GET.province and not request.GET.district and not request.GET.location %}<p style=" text-align:center; ">{{usrloc.location}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%else%}<p style=" text-align:center; ">{{locationname}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%endif%}</h2> 
+<h2>LoGS {%if not locationname %}<p style=" text-align:center; ">Nation Wide, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%else%}<p style=" text-align:center; ">{{locationname}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%endif%}</h2> 
 {% include 'ubuzima/report_table.html' %}
 {% endblock %}

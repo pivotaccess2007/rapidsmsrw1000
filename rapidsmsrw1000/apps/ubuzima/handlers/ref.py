@@ -15,7 +15,7 @@ from django.db.models import Q
 ###DEVELOPED APPS
 from rapidsmsrw1000.apps.ubuzima.reports.utils import *
 from rapidsms.contrib.handlers.handlers.keyword import KeywordHandler
-from rapidsmsrw1000.apps.thousanddays.models import *
+
 
 class RefHandler (KeywordHandler):
     """
@@ -42,7 +42,7 @@ class RefHandler (KeywordHandler):
         except:    activate('rw')
 
     	try:
-            message.reporter = Reporter.objects.filter(connections__identity = message.connection.identity)[0]
+            message.reporter = message_reporter(message)#Reporter.objects.filter(national_id = message.connection.contact.name )[0]
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
@@ -56,8 +56,11 @@ class RefHandler (KeywordHandler):
             # there were invalid fields, respond and exit
             message.respond("%s" % e)
             return True
-    	ref = Refusal(reporter = message.reporter, refid = refid)
-    	ref.save()
+        # get or create the patient
+        patient = get_or_create_patient(message.reporter, refid)
+        
+        report = create_report('Refusal', patient, message.reporter)
+    	report.save()
 
         message.respond(_("Thank you! REF report submitted successfully."))
                	

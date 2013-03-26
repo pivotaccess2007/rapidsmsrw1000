@@ -15,7 +15,7 @@ from django.db.models import Q
 ###DEVELOPED APPS
 from rapidsmsrw1000.apps.ubuzima.reports.utils import *
 from rapidsms.contrib.handlers.handlers.keyword import KeywordHandler
-from rapidsmsrw1000.apps.thousanddays.models import *
+
 
 class DthHandler (KeywordHandler):
     """
@@ -42,12 +42,12 @@ class DthHandler (KeywordHandler):
         except:    activate('rw')
 
     	try:
-            message.reporter = Reporter.objects.filter(connections__identity = message.connection.identity)[0]
+            message.reporter = message_reporter(message)#Reporter.objects.filter(national_id = message.connection.contact.name )[0]
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
 
-        m = re.search("dth\s+(\d+)\s?(.*)\s(nd|cd|md)\s?(.*)", message.text, re.IGNORECASE)
+        m = re.search("dth\s+(\d+)\s([0-9]+)\s([0-9.]+)\s(hp|cl|or|ho)\s(nd|cd|md)\s?(.*)", message.text, re.IGNORECASE)
         
         if not m:
             message.respond(_("The correct format message is: DTH MOTHER_ID CHILD_NUMBER DATE_OF_BIRTH DEATH_CODE"))
@@ -59,18 +59,13 @@ class DthHandler (KeywordHandler):
             message.respond("%s" % e)
             return True
 
-        ibibazo = m.group(3)
-        chidob = number = None
-        if m.group(2):
-            optional_part = re.search(r'([0-9]+)\s+([0-9.]+)', m.group(2),re.IGNORECASE)
-            number = optional_part.group(1)
-            chidob = optional_part.group(1)
+        number = m.group(2)
+        chidob = m.group(3)
+        location = m.group(4)
+        death = m.group(5)
 
-        if ibibazo.lower() in ['nd','cd']:            
-            if not number or not chidob:
-                message.respond(_("The correct format message is: DTH MOTHER_ID CHILD_NUMBER DATE_OF_BIRTH DEATH_CODE"))
-                return True
-    
+        ibibazo = "%s %s" % ( location, death)            
+            
         # get or create the patient
         patient = get_or_create_patient(message.reporter, nid)
 
@@ -93,6 +88,11 @@ class DthHandler (KeywordHandler):
             report.set_date_string(dob)
 
         # save the report
+        for f in fields:
+            if f.type in FieldType.objects.filter(category__name = 'Red Alert Codes'):
+                message.respond(_("%(key)s:%(red)s is a red alert, please see how to report a red alert and try again.")\
+                                         % { 'key': f.type.key,'red' : f.type.kw})
+                return True
         if not report.has_dups():
         	report.save()
         else:

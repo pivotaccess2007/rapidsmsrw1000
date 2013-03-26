@@ -19,6 +19,18 @@
     font-weight: bolder;
 }
 
+.risky
+{
+    background: yellow;
+    font-weight: bolder;
+}
+
+.death
+{
+    background: black;
+    font-weight: bolder;
+}
+
 .maptd
 {
     text-align:center;

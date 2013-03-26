@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # vim: ai ts=4 sts=4 et sw=4
+from django.conf import settings
+
 
 ##ENABLED REPORT###
 #1.Pregnancy Confirmation Report
@@ -17,3 +19,6 @@
 #14.Case Management Response Report
 #15.Community Case Management Report
 #16.Postnatal Care Report
+
+settings.LANGUAGE_CODE = 'rw'
+        

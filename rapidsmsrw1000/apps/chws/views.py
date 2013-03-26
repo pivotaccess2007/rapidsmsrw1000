@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # vim: ai ts=4 sts=4 et sw=4
 
+
 from rapidsmsrw1000.apps.chws.models import *
+from rapidsmsrw1000.apps.utils import *
 from xlrd import open_workbook ,cellname,XL_CELL_NUMBER,XLRDError
 from django.template import RequestContext
 
@@ -15,7 +17,7 @@ from django.core.urlresolvers import reverse
 from django import forms ###deal with form in views
 from os.path import join, isfile
 from django.db.models import Count,Sum
-import csv
+
 
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseServerError, HttpResponseRedirect,Http404
@@ -29,8 +31,8 @@ from django.contrib.auth.models import *
 import time
 import datetime
 from django.utils import timezone
-from rapidsmsrw1000.apps.ubuzima.utils import *
-from rapidsmsrw1000.apps.reporters import models as old_registry
+from rapidsmsrw1000.apps.chws.utils import *
+from django.conf import settings
 
 from rapidsms.router import send
 from rapidsms.models import Connection,Backend
@@ -38,7 +40,7 @@ from rapidsms.models import Connection,Backend
 def forward (identity, text):
     try:
         if text and identity:
-            try:    backend = Backend.objects.filter(name__icontains = 'kannel')[0]
+            try:    backend = Backend.objects.filter(name = settings.PRIMARY_BACKEND)[0]
             except: backend = Backend.objects.filter(name = 'message_tester')[0] 
             #print backend
             conn = Connection(backend = backend, identity = identity)       
@@ -49,6 +51,20 @@ def forward (identity, text):
         return False
         pass
 
+
+def paginated(req, data):
+    req.base_template = "webapp/layout.html"
+    paginator = Paginator(data, 20)
+        
+    try: page = int(req.GET.get("page", '1'))
+    except ValueError: page = 1
+
+    try:
+        data = paginator.page(page)
+    except (InvalidPage, EmptyPage):
+        data = paginator.page(paginator.num_pages)
+
+    return data
 
 @permission_required('chws.can_view')
 @require_GET
@@ -78,6 +94,7 @@ def group_messages(request):
     """Messaging Feature."""
     request.base_template = "webapp/layout.html"    
     hc = dst = None
+    sent = []
     reps = Reporter.objects.all().order_by("-id")
     try:
         group = request.GET['group'] 
@@ -129,11 +146,12 @@ def group_messages(request):
            
             if request.GET['send'] == 'SEND':
                 text = request.GET['text']
-                #print text,reps
+                
                 for r in reps:
                     try:
                         telephone = r.telephone_moh
                         forward(telephone, text)
+                        sent.append(telephone)
                     except:
                         try:
                             telephone = r.telephone
@@ -150,7 +168,7 @@ def group_messages(request):
             reps = paginator.page(page)
         except (InvalidPage, EmptyPage):
             reps = paginator.page(paginator.num_pages)
-        return render_to_response("chws/messaging.html", dict(reps = reps, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
+        return render_to_response("chws/messaging.html", dict(reps = reps, sent = sent, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
 @require_GET
@@ -258,10 +276,10 @@ def view_uploads(request):
         
     except: pass
     errors = [Error.objects.filter(upload_ref = s)[0] for s in uploads]
-
     if request.REQUEST.has_key('excel'):
-        return excel_regs_confirms(regs)    
+        return excel_regs_confirms(pendings)        
     else:
+        
         paginator = Paginator(errors, 10)
         
         try: page = int(request.GET.get("page", '1'))
@@ -423,10 +441,11 @@ def import_reporters_from_excell(req):
                         try:
                             
                             reporter = initialize_reporter(row_num, sheet)
+                            
                             chw, created = Reporter.objects.get_or_create(national_id = reporter.national_id, telephone_moh = reporter.telephone_moh)
                             chw = update_reporter(row_num, sheet, chw)
-                            #chw.save()
-                            #print r, chw.surname, chw.given_name, chw.role, chw.sex, chw.education_level, chw.date_of_birth, chw.join_date, chw.national_id, chw.telephone_moh, chw.village, chw.cell, chw.sector, chw.health_centre, chw.referral_hospital, chw.district, chw.province, chw.nation, chw.created, chw.updated, chw.language
+                            chw.save()
+                            print r, chw.surname, chw.given_name, chw.role, chw.sex, chw.education_level, chw.date_of_birth, chw.join_date, chw.national_id, chw.telephone_moh, chw.village, chw.cell, chw.sector, chw.health_centre, chw.referral_hospital, chw.district, chw.province, chw.nation, chw.created, chw.updated, chw.language
                             if not reporter.national_id:
                                 ikosa = set_error("Row: %d ===>>> Error: %s" % (int(row_num+1),"Wrong National ID"), \
                                                                     req, reporter.district, row_num, sheet, upload_ref,e)
@@ -438,74 +457,25 @@ def import_reporters_from_excell(req):
                                 continue#print ikosa 
 
                             try:
-                                #chw = Reporter.objects.filter(national_id = reporter.national_id, telephone_moh = reporter.telephone_moh)
+                                confirm, created = RegistrationConfirmation.objects.get_or_create(reporter = chw)
+                                confirm.save()
                                 
-                                #if chw.exists():                                
-                                #    chw = update_reporter(row_num, sheet, reporter = chw[0])
-                                #curl -s -D/dev/stdout 'http://127.0.0.1:8082/%2B250788301293/WHO?charset=UTF-8'
-    
-                                #else:
-                                try:
-                                    #chw = reporter
-                                    try:
-                                        chw.save()
-                                        confirm = RegistrationConfirmation(reporter = chw)
-                                        confirm.save()
-                                    except IntegrityError, e:
-                                        chw = Reporter.objects.get(national_id = chw.national_id, telephone_moh = chw.telephone_moh)
-                                        confirm = RegistrationConfirmation.objects.get(reporter = chw)
-                                        
-                                    try:
-                                        old_reporter = get_reporter(chw.national_id)
-                                        old_reporter.location = old_registry.Location.objects.get(code = fosa_to_code(chw.health_centre.code))
-                                        
-                                        if chw.role.code.lower() == "asm":  old_reporter.groups.add(old_registry.ReporterGroup.objects.get(title='CHW'))
-                                        elif chw.role.code.lower() == "binome":
-                                            old_reporter.groups.add(old_registry.ReporterGroup.objects.get(title='Binome'))
-                                            old_reporter.groups.remove(old_registry.ReporterGroup.objects.get(title='CHW'))
-                                        if chw.village: old_reporter.village = chw.village.name
-                                        else:   old_reporter.village = "Village Ntizwi" 
-                                        old_reporter.language = chw.language.lower()
-                                        old_reporter.save()
-                                        chw.old_ref = old_reporter
-                                        chw.save() 
-                                        old_connection = get_connection(chw.telephone_moh, reporter = old_reporter)
-                                        r = r+1
-                                        #print r , old_reporter, old_connection
-                                    except Exception, e:
-                                        pass
-                                    for c in reporter.__dict__:
-                                            if c[0] == "_":  pass
-                                            else:
-                                                if reporter.__dict__[c] == '' or  reporter.__dict__[c] == None:
-                                                    ikosa = set_warn("Row: %d ===>>> Warning: %s MISSING OR WRONG" % (int(row_num+1), c), \
-                                                                    req, reporter.district, row_num, sheet, upload_ref)
-
-                                except Exception, e:
-
-                                    try:
-                                        chw = Reporter.objects.filter(national_id = reporter.national_id, telephone_moh = reporter.telephone_moh)
-                                        if chw.exists():
-                                            chw = update_reporter(row_num, sheet, reporter = chw[0])
-                                            ikosa = set_error("Row: %d ===>>> Error: %s" % ((row_num+1),"Duplicate Entry"), \
-                                                                    req, reporter.district, row_num, sheet, upload_ref,e )
+                                for c in reporter.__dict__:
+                                        if c[0] == "_":  pass
                                         else:
-                                            ikosa = set_error("Row: %d ===>>> Error: %s" % ((row_num+1),e), \
-                                                                    req, reporter.district, row_num, sheet, upload_ref,e )
-                                    except Exception, e:
-                                        ikosa = set_error("Row: %d ===>>> Error: Unknown (%s)" % ((row_num+1),e), \
-                                                                    req, reporter.district, row_num, sheet, upload_ref,e )
-                                        pass
-     
-                                    pass                                         
+                                            if reporter.__dict__[c] == '' or  reporter.__dict__[c] == None:
+                                                ikosa = set_warn("Row: %d ===>>> Warning: %s MISSING OR WRONG" % (int(row_num+1), c), \
+                                                                req, reporter.district, row_num, sheet, upload_ref)
+
                                 #r = r + 1
                                 #print r, chw.surname, chw.given_name, chw.role, chw.sex, chw.education_level, chw.date_of_birth, chw.join_date, chw.national_id, chw.telephone_moh, chw.village, chw.cell, chw.sector, chw.health_centre, chw.referral_hospital, chw.district, chw.province, chw.nation, chw.created, chw.updated, chw.language         
                             except Exception, e:
-                                #print e, row_num
+                                print e, row_num
                                 pass
                             error_list, warnings = Error.objects.filter( upload_ref = upload_ref), Warn.objects.filter( upload_ref = upload_ref)
                         except Exception,e:
                                 errornum+=1
+                                print e
                                 continue
 
         else:
@@ -515,13 +485,13 @@ def import_reporters_from_excell(req):
         return render_to_response('chws/import.html', {'form': form,'error':error_list, 'warn':warnings, 'ref':upload_ref}, context_instance=RequestContext(req))
 
     except Exception,e:
-        return render_to_response("ubuzima/404.html",{'error':e}, context_instance=RequestContext(req))
+        return render_to_response("chws/404.html",{'error':e}, context_instance=RequestContext(req))
     
 
 def process_import_file(import_file, session):
     """
     Open the uploaded file and save it to the temp file location specified
-    in BATCH_IMPORT_TEMPFILE_LOCATION, adding the current session key to
+    in BATCH_IMPORT_TEMPFILE_LOCATION, adding the current session key t
     the file name. Then return the file name so it can be stored in the
     session for the current user.
 
@@ -549,9 +519,6 @@ def process_import_file(import_file, session):
     destination.close()
     return save_file_name
 
-
-def alert_to_start(reporter):
-    Command().send_message(reporter.connections.get(backend__title="kannel"),"Muraho murakomeye! Umwaka mushya muhire. Twagirango tubamenyesheko mushobora gutangira kohereza ubutumwa ku buzima bw'umubyeyi n'umwana kuri numero 1110. Rapidsms numero 1110. Murakoze")
 
 
 def parse_alias(alias):
@@ -649,42 +616,6 @@ class UploadImportFileForm(forms.Form):
 	import_district = forms.ModelChoiceField(queryset = District.objects.all(), required = False, label = "Select District:")
 	import_file = forms.FileField(label='Select your XLS file:')
 
-
-def get_reporter(national_id):
-    try:
-        reporter = old_registry.Reporter.objects.filter(alias = national_id)[0]
-        return reporter
-    except Exception, e:
-        try:
-            reporter = old_registry.Reporter(alias = national_id)
-            reporter.save()
-            return reporter
-            
-        except Exception, e:
-            return None
-
-def get_connection(telephone_moh, reporter = None):
-    try:
-        connection = old_registry.PersistantConnection.objects.filter(identity = telephone_moh)[0]
-        if connection.reporter: return connection
-        else:  
-            connection.reporter = reporter
-            connection.save()
-            return connection
-    except Exception, e:
-        try:
-            if reporter:
-
-                backend = old_registry.PersistantBackend.objects.get(title="kannel")
-                connection = old_registry.PersistantConnection(backend = backend, identity = telephone_moh, \
-                                                                                        reporter = reporter, last_seen = timezone.localtime(timezone.now()))
-                connection.save()
-                return connection
-            else:
-                return None
-        except Exception, e:
-            return None
-
 def get_name(name):
     try:
         name    = "%s %s" % (name[0],name[1])
@@ -738,7 +669,7 @@ def get_date(date_of_birth):
 
 def get_nation(name = "Rwanda"):
     try:
-        return Nation.objects.get(name__icontains = name)
+        return Nation.objects.get(name = name)
     except: return None
 
 def get_district(name):
@@ -756,7 +687,7 @@ def parse_l_r_name(name):
   
 def get_sector(name, district):
     try:
-        sector = Sector.objects.filter(name__icontains = name, district = district)
+        sector = Sector.objects.filter(name = name, district = district)
         return sector[0]            
     except:
         sector = Sector.objects.filter(name__icontains = parse_l_r_name(name), district = district)
@@ -766,7 +697,7 @@ def get_sector(name, district):
 
 def get_cell(name, sector):
     try:
-        cell = Cell.objects.filter(name__icontains = name, sector = sector)
+        cell = Cell.objects.filter(name = name, sector = sector)
         return cell[0]            
     except:
         cell = Cell.objects.filter(name__icontains = parse_l_r_name(name), sector = sector)
@@ -775,7 +706,7 @@ def get_cell(name, sector):
 
 def get_village(name, cell):
     try:
-        village = Village.objects.filter(name__icontains = name, cell = cell)
+        village = Village.objects.filter(name = name, cell = cell)
         return village[0]            
     except:
         village = Village.objects.filter(name__icontains = parse_l_r_name(name), cell = cell)
@@ -784,7 +715,7 @@ def get_village(name, cell):
 
 def get_health_centre(name, district):
     try:
-        hc = HealthCentre.objects.filter(name__icontains = name, district = district)
+        hc = HealthCentre.objects.filter(name = name, district = district)
         return hc[0]           
     except:
         hc = HealthCentre.objects.filter(name__icontains = parse_l_r_name(name), district = district)
@@ -793,7 +724,7 @@ def get_health_centre(name, district):
 
 def get_referral_hospital(name, district):
     try:
-        hosp = Hospital.objects.filter(name__icontains = name, district = district)
+        hosp = Hospital.objects.filter(name = name, district = district)
         return hosp[0]            
     except:
         hosp = Hospital.objects.filter(name__icontains = parse_l_r_name(name), district = district)
@@ -802,27 +733,29 @@ def get_referral_hospital(name, district):
 
         
 def initialize_reporter(row, sheet):
-    reporter = Reporter()
-    reporter.national_id     = parse_alias(sheet.cell(row,7).value)
-    reporter.telephone_moh   = parse_phone_number(sheet.cell(row,8).value)
-    reporter.surname         = get_name(parse_name(sheet.cell(row,0).value))        	
-    reporter.given_name      = get_name(parse_name(sheet.cell(row,1).value))	
-    reporter.role            = get_role(sheet.cell(row,2).value)	
-    reporter.sex 	        =  get_sex(sheet.cell(row,3).value)	
-    reporter.education_level = get_education(sheet.cell(row,4).value)
-    reporter.date_of_birth   =	get_date(sheet.cell(row,5).value)	
-    reporter.join_date		=   get_date(sheet.cell(row,6).value)
-    reporter.district		=   get_district(sheet.cell(row,14).value)
-    reporter.nation			=   reporter.district.nation
-    reporter.province		=   reporter.district.province
-    reporter.sector			=   get_sector(sheet.cell(row,11).value, district = reporter.district)
-    #print reporter.sector
-    reporter.referral_hospital=	get_referral_hospital(name = sheet.cell(row,13).value, district = reporter.district)
-    reporter.health_centre	=   get_health_centre(name = sheet.cell(row,12).value, district = reporter.district)
-    reporter.cell			=	get_cell(name = sheet.cell(row,10).value, sector = reporter.sector)	
-    reporter.village		=   get_village(name = sheet.cell(row,9).value, cell = reporter.cell)      
-    reporter.updated		    = timezone.localtime(timezone.now())
-    reporter.language        = reporter.language_kinyarwanda
+    
+    try:
+        reporter = Reporter( national_id = parse_alias(sheet.cell(row,7).value), telephone_moh = parse_phone_number(sheet.cell(row,8).value)) 
+        reporter.surname         = get_name(parse_name(sheet.cell(row,0).value))        	
+        reporter.given_name      = get_name(parse_name(sheet.cell(row,1).value))	
+        reporter.role            = get_role(sheet.cell(row,2).value)	
+        reporter.sex 	        =  get_sex(sheet.cell(row,3).value)	
+        reporter.education_level = get_education(sheet.cell(row,4).value)
+        reporter.date_of_birth   =	get_date(sheet.cell(row,5).value)	
+        reporter.join_date		=   get_date(sheet.cell(row,6).value)
+        reporter.district		=   get_district(sheet.cell(row,14).value)
+        reporter.nation			=   reporter.district.nation
+        reporter.province		=   reporter.district.province
+        reporter.sector			=   get_sector(sheet.cell(row,11).value, district = reporter.district)
+        #print reporter.sector
+        reporter.referral_hospital=	get_referral_hospital(name = sheet.cell(row,13).value, district = reporter.district)
+        reporter.health_centre	=   get_health_centre(name = sheet.cell(row,12).value, district = reporter.district)
+        reporter.cell			=	get_cell(name = sheet.cell(row,10).value, sector = reporter.sector)	
+        reporter.village		=   get_village(name = sheet.cell(row,9).value, cell = reporter.cell)      
+        reporter.updated		    = timezone.localtime(timezone.now())
+        reporter.language        = reporter.language_kinyarwanda
+        
+    except Exception, e:    print e
     return reporter
 
 def update_reporter(row, sheet, reporter):
@@ -845,7 +778,7 @@ def update_reporter(row, sheet, reporter):
     reporter.cell			=	get_cell(name = sheet.cell(row,10).value, sector = reporter.sector)	
     reporter.village		=   get_village(name = sheet.cell(row,9).value, cell = reporter.cell)      
     reporter.updated		= timezone.localtime(timezone.now())
-    reporter.language       = reporter.language
+    reporter.language       = reporter.language_kinyarwanda
 
     return reporter
     
@@ -867,60 +800,286 @@ def set_warn(msg, req, district, row_num, sheet, upload_ref):
 def get_time_string(localtime): ##  localtime   = time.localtime()
 		return time.strftime("%Y_%m_%d_%H_%M_%S", localtime)
 
-def excel_regs_confirms(regs):
-    workbook = create_workbook()
-    sheet = create_worksheet(workbook, "Reporters")
-    
-    sheet = create_heads(sheet, ['IZINA RY\'UMURYANGO','ANDI MAZINA','ICYO AKORA(Binome, ASM)','IGITSINA(F:Gore,M:Gabo)',\
-                                    'AMASHULI YIZE(P:Primaire, S:Secondaire, U:University, N:Ntabwo yize)','ITARIKI Y\'AMAVUKO(DD/MM/AAAA)',\
-                                'ITARIKI Y\'UBUJYANAMA(AAAA:Umwaka)','NUMERO Y\'INDANGAMUNTU', 'NUMERO YA TELEPHONE YAHAWE NA MNISANTE', 'UMUDUGUDU',\
-                                 'AKAGARI', 'SECTEUR', 'CENTRE DE SANTE(Ivuriro)', 'HOPITAL(Ibitaro)', 'DISTRICT(Akarere)'])
-    row   = 1
-    
-    for r in regs:
-        
-        surname = given_name = role = sex = education_level = date_of_birth = join_date = national_id = telephone_moh = \
-                 village = cell = sector = district = health_centre = referral_hospital = ""
 
-        try:    surname = r.reporter.surname
-        except: pass
-        try:    given_name = r.reporter.given_name
-        except: pass            
-        try:    role = r.reporter.role.name
-        except: pass
-        try:    sex = r.reporter.sex
-        except: pass
-        try:    education_level = r.reporter.education_level
-        except: pass
-        try:    date_of_birth = "%d/%d/%d" % (r.reporter.date_of_birth.day, r.reporter.date_of_birth.month, r.reporter.date_of_birth.year )
-        except: pass
-        try:    join_date = "%d/%d/%d" % (r.reporter.join_date.day, r.reporter.join_date.month, r.reporter.join_date.year)
-        except: pass
-        try:    national_id = r.reporter.national_id
-        except: pass
-        try:    telephone_moh = r.reporter.telephone_moh
-        except: pass          
-        try:    village = r.reporter.village.name
-        except: pass
-        try:    cell = r.reporter.cell.name
-        except: pass
-        try:    sector = r.reporter.sector.name
-        except: pass
-        try:    district = r.reporter.district.name
-        except: pass
-        try:    health_centre = r.reporter.health_centre.name
-        except: pass
-        try:    referral_hospital = r.reporter.referral_hospital.name
-        except: pass
-        
-        sheet  = create_content(sheet, row, [surname, given_name, role, sex, \
-                                                education_level, date_of_birth , join_date, national_id,\
-                                                 telephone_moh, village, cell, sector,\
-                                                 health_centre, referral_hospital, district])
-        
-        row = row + 1
+
+####START INACTIVITY
+
+
+def inactive_reporters(req,rez,group):
+    inactive_reps=[]
+    reps=Reporter.objects.filter(role = group, **rez)#reps=Reporter.objects.filter(groups__title='CHW',**rez)
+    pst=reporter_fresher(req)
+    for rep in reps.filter(**pst):
+        if rep.is_expired():
+            inactive_reps.append(rep)
+    return inactive_reps
+
+
+def active_reporters(req,rez, group):
+    active_reps=[]
+    reps = Reporter.objects.filter(role = group, **rez)#reps=Reporter.objects.filter(groups__title='CHW',**rez)
+    pst=reporter_fresher(req)
     
-    response = HttpResponse(mimetype = "application/ms-excel")
-    response['Content-Disposition'] = 'attachment; filename = reporters.xls'
-    workbook.save(response)
-    return response
+    for rep in reps.filter(**pst):
+        if not rep.is_expired():
+            active_reps.append(rep)
+    return active_reps
+
+
+def matching_filters(req,diced,alllocs=False):
+    rez = {}
+    pst = None
+    
+    try:
+        if alllocs: raise KeyError
+        loc = int(req.REQUEST['location'])
+        rez['health_centre__id'] = loc
+    except KeyError:
+        try:
+            rez['district__id'] = int(req.REQUEST['district'])
+        except KeyError:
+            try:
+                rez['province__id'] = int(req.REQUEST['province'])
+            except KeyError:
+                pass
+
+    return rez
+
+
+def view_active_reporters(req,**flts):
+    req.base_template = "webapp/layout.html"
+    try:    group = Role.objects.get(code = req.REQUEST['group'])
+    except Exception,err: return render_to_response("chws/404.html",{"error":err}, context_instance=RequestContext(req))
+    filters = {'period':default_period(req),
+             'location':default_location(req),
+             'province':default_province(req),
+             'district':default_district(req)}
+    lox, lxn = 0, location_name(req)
+
+    rez = matching_filters(req,filters)
+    reporters = active_reporters(req,rez, group)
+    if req.REQUEST.has_key('location') and req.REQUEST['location'] != '0':
+        lox = int(req.REQUEST['location'])
+        lxn = HealthCentre.objects.get(id = lox)
+        lxn=lxn.name+' '+"Health Centre"+', '+lxn.district.name+' '+"District"+', '+lxn.province.name+' '
+    
+    if req.REQUEST.has_key('excel'):
+        return excel_chws(reporters)
+    elif req.REQUEST.has_key('csv'):
+        return csv_chws(reporters, group)
+    else: 
+        return render_to_response(
+            "chws/active.html", {
+            "reporters": paginated(req, active_reporters(req,rez, group)),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+             'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
+              }, context_instance=RequestContext(req))
+
+def view_inactive_reporters(req,**flts):
+    
+    req.base_template = "webapp/layout.html"
+    try:    group = Role.objects.get(code = req.REQUEST['group'])
+    except Exception,err: return render_to_response("chws/404.html",{"error":err}, context_instance=RequestContext(req))
+    filters = {'period':default_period(req),
+             'location':default_location(req),
+             'province':default_province(req),
+             'district':default_district(req)}
+    lox, lxn = 0, location_name(req)
+
+    rez = matching_filters(req,filters)
+    reporters = inactive_reporters(req,rez, group)
+    if req.REQUEST.has_key('location') and req.REQUEST['location'] != '0':
+        lox = int(req.REQUEST['location'])
+        lxn = HealthCentre.objects.get(id = lox)
+        lxn=lxn.name+' '+"Health Centre"+', '+lxn.district.name+' '+"District"+', '+lxn.province.name+' '
+    
+    if req.REQUEST.has_key('excel'):
+        return excel_chws(reporters)
+    elif req.REQUEST.has_key('csv'):
+        return csv_chws(reporters, group)
+    else: 
+        return render_to_response(
+        "chws/inactive.html", {
+        "reporters": paginated(req, reporters),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+         'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
+          }, context_instance=RequestContext(req))
+
+
+#####END OF INACTIVITY
+
+@permission_required('chws.can_view')
+@require_GET
+@require_http_methods(["GET"])
+def view_asm(request):
+    """asm listing."""
+    request.base_template = "webapp/layout.html"    
+    hc = dst = None
+    
+    asms = Reporter.objects.filter(role__code = 'asm').order_by("-id")
+    prvs = Province.objects.all()
+    
+    try:
+        province = int(request.GET['province'])
+        
+        if not province:
+            pass
+        else:
+            
+            asms = asms.filter( province__id = province).order_by("-id")
+            prvs = Province.objects.all().extra(select = {'selected':'id = %d' % (province,)}).order_by('name')
+            dst      =  District.objects.filter(province__id = province).order_by('name')
+                
+            try:
+                district = int(request.GET['district'])
+                if district:
+                    asms =  asms.filter(district__id = district).order_by("-id") 
+                    dst      =  District.objects.filter(province__id = province).extra(select = {'selected':'id = %d' % (district,)}).order_by('-id')
+                    hc      =  HealthCentre.objects.filter(district__id = district).order_by('name')
+                    try:                        
+                        health_centre = int(request.GET['facility'])
+                        if hc:
+                            asms = asms.filter(health_centre__id = health_centre).order_by("-id")
+                            hc      =  HealthCentre.objects.filter(district__id = \
+                                                             district).extra(select = {'selected':'id = %d' % (health_centre,)}).order_by('-id')
+                        else:
+                            pass 
+                    except:
+                        pass
+                else:
+                    pass
+            except: 
+                pass
+        
+    except: pass
+    
+    if request.REQUEST.has_key('excel'):
+        return excel_chws(asms)    
+    else:
+        paginator = Paginator(asms, 20)
+    
+        try: page = int(request.GET.get("page", '1'))
+        except ValueError: page = 1
+        
+        try:
+            asms = paginator.page(page)
+        except (InvalidPage, EmptyPage):
+            asms = paginator.page(paginator.num_pages)
+        return render_to_response("chws/asm.html", dict(asms = asms, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
+
+
+@permission_required('chws.can_view')
+@require_GET
+@require_http_methods(["GET"])
+def view_binome(request):
+    """asm listing."""
+    request.base_template = "webapp/layout.html"    
+    hc = dst = None
+    
+    binomes = Reporter.objects.filter(role__code = 'binome').order_by("-id")
+    prvs = Province.objects.all()
+    
+    try:
+        province = int(request.GET['province'])
+        
+        if not province:
+            pass
+        else:
+            
+            binomes = binomes.filter( province__id = province).order_by("-id")
+            prvs = Province.objects.all().extra(select = {'selected':'id = %d' % (province,)}).order_by('name')
+            dst      =  District.objects.filter(province__id = province).order_by('name')
+                
+            try:
+                district = int(request.GET['district'])
+                if district:
+                    binomes =  binomes.filter(district__id = district).order_by("-id") 
+                    dst      =  District.objects.filter(province__id = province).extra(select = {'selected':'id = %d' % (district,)}).order_by('-id')
+                    hc      =  HealthCentre.objects.filter(district__id = district).order_by('name')
+                    try:                        
+                        health_centre = int(request.GET['facility'])
+                        if hc:
+                            binomes = binomes.filter(health_centre__id = health_centre).order_by("-id")
+                            hc      =  HealthCentre.objects.filter(district__id = \
+                                                             district).extra(select = {'selected':'id = %d' % (health_centre,)}).order_by('-id')
+                        else:
+                            pass 
+                    except:
+                        pass
+                else:
+                    pass
+            except: 
+                pass
+        
+    except: pass
+    
+    if request.REQUEST.has_key('excel'):
+        return excel_chws(binomes)    
+    else:
+        paginator = Paginator(binomes, 20)
+    
+        try: page = int(request.GET.get("page", '1'))
+        except ValueError: page = 1
+        
+        try:
+            binomes = paginator.page(page)
+        except (InvalidPage, EmptyPage):
+            binomes = paginator.page(paginator.num_pages)
+        return render_to_response("chws/binome.html", dict(binomes = binomes, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
+
+@permission_required('chws.can_view')
+@require_GET
+@require_http_methods(["GET"])
+def view_supervisor(request):
+    """asm listing."""
+    request.base_template = "webapp/layout.html"    
+    hc = dst = None
+    
+    supervisors = Supervisor.objects.all().order_by("-id")
+    prvs = Province.objects.all()
+    
+    try:
+        province = int(request.GET['province'])
+        
+        if not province:
+            pass
+        else:
+            
+            supervisors = supervisors.filter( province__id = province).order_by("-id")
+            prvs = Province.objects.all().extra(select = {'selected':'id = %d' % (province,)}).order_by('name')
+            dst      =  District.objects.filter(province__id = province).order_by('name')
+                
+            try:
+                district = int(request.GET['district'])
+                if district:
+                    supervisors =  supervisors.filter(district__id = district).order_by("-id") 
+                    dst      =  District.objects.filter(province__id = province).extra(select = {'selected':'id = %d' % (district,)}).order_by('-id')
+                    hc      =  HealthCentre.objects.filter(district__id = district).order_by('name')
+                    try:                        
+                        health_centre = int(request.GET['facility'])
+                        if hc:
+                            supervisors = supervisors.filter(health_centre__id = health_centre).order_by("-id")
+                            hc      =  HealthCentre.objects.filter(district__id = \
+                                                             district).extra(select = {'selected':'id = %d' % (health_centre,)}).order_by('-id')
+                        else:
+                            pass 
+                    except:
+                        pass
+                else:
+                    pass
+            except: 
+                pass
+        
+    except: pass
+    
+    if request.REQUEST.has_key('excel'):
+        return excel_supervisors(supervisors)    
+    else:
+        paginator = Paginator(supervisors, 20)
+    
+        try: page = int(request.GET.get("page", '1'))
+        except ValueError: page = 1
+        
+        try:
+            supervisors = paginator.page(page)
+        except (InvalidPage, EmptyPage):
+            supervisors = paginator.page(paginator.num_pages)
+        return render_to_response("chws/supervisor.html", dict(supervisors = supervisors, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))

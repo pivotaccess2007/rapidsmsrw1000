@@ -95,13 +95,13 @@ function condDisableLocations()
               {%  for hc in hcs %}<option value="{{hc.id}}" {% if hc.selected  %} selected="selected"{% endif %}>{{ hc.name }}</option>{%  endfor %}  
             </select>
                     </td>
-                    <td><a href="/chws/pendings?excel{%if request.GET.province%}&province={{request.GET.province}}{%endif%}{%if request.GET.district%}&district={{request.GET.district}}{%endif%}{%if request.GET.facility%}&facility={{request.GET.facility}}{%endif%}">Export To Excel</a>
+                    <td>
                     </td><td></td>
                 </tr>
         <tr>
-        	<th>Number of CHWs Uploaded</th>
-		<th>Number of CHWs confirmed</th>
-		<th>Number of CHWs pending</th>
+        	<th>Number of CHWs Uploaded(<a href="/chws/view/uploads?excel{%if request.GET.province%}&province={{request.GET.province}}{%endif%}{%if request.GET.district%}&district={{request.GET.district}}{%endif%}{%if request.GET.facility%}&facility={{request.GET.facility}}{%endif%}">Export To Excel</a>)</th>
+		<th>Number of CHWs confirmed(<a href="/chws/confirms?excel{%if request.GET.province%}&province={{request.GET.province}}{%endif%}{%if request.GET.district%}&district={{request.GET.district}}{%endif%}{%if request.GET.facility%}&facility={{request.GET.facility}}{%endif%}">Export To Excel</a>)</th>
+		<th>Number of CHWs pending(<a href="/chws/pendings?excel{%if request.GET.province%}&province={{request.GET.province}}{%endif%}{%if request.GET.district%}&district={{request.GET.district}}{%endif%}{%if request.GET.facility%}&facility={{request.GET.facility}}{%endif%}">Export To Excel</a>)</th>
             <th>&nbsp;</th>
             <th>&nbsp;</th>
             
@@ -115,7 +115,7 @@ function condDisableLocations()
                 <td><a href="/chws/confirms">{{confirms.count}}</a></td>
 		<td><a href="/chws/pendings">{{pendings.count}}</a></td>
 		<td><a href="/chws/import">Upload New List</a></td>
-		<td><a href="/chws/view/uploads?excel{%if request.GET.province%}&province={{request.GET.province}}{%endif%}{%if request.GET.district%}&district={{request.GET.district}}{%endif%}{%if request.GET.facility%}&facility={{request.GET.facility}}{%endif%}">Export</a></td>
+		<td></td>
             </tr>
 	{% for rep in reporters %}
         		<tr>

@@ -19,18 +19,25 @@ $(function()
 
     $('#provchoose').change(function(evt)
     {	
-        if ($(this).attr('value') != ''){window.location = (window.location.pathname + '?province=' +
+	var group = "?";
+	if ($('#group')) group = '?group=' + $('#group').attr('value'); 
+	
+        if ($(this).attr('value') != ''){window.location = (window.location.pathname + group + '&province=' +
         $(this).attr('value') + '&start_date=' +
         $('#pickstartdate').attr('value') + '&end_date=' + $('#pickenddate').attr('value'));
 	} else {
 			window.location = window.location.pathname;			
 			}
+	
     });
 
     condDisableDistricts();
     $('#distchoose').change(function()
     {
-        if ($(this).attr('value') != ''){ window.location = (window.location.pathname + '?district=' +
+	var group = "?";
+	if ($('#group')) group = '?group=' + $('#group').attr('value'); 
+
+        if ($(this).attr('value') != ''){ window.location = (window.location.pathname + group + '&district=' +
         $(this).attr('value') + '&province=' + $('#provchoose').attr('value')
         + '&start_date=' + $('#pickstartdate').attr('value') + '&end_date=' +
         $('#pickenddate').attr('value'));
@@ -45,7 +52,9 @@ $(function()
     condDisableLocations();
     $('#locchoose').change(function()
     {
-       if ($(this).attr('value') != '') { window.location = (window.location.pathname + '?location=' +
+       var group = "?";
+       if ($('#group')) group = '?group=' + $('#group').attr('value'); 
+       if ($(this).attr('value') != '') { window.location = (window.location.pathname + group + '&location=' +
         $(this).attr('value') + '&province=' + $('#provchoose').attr('value') +
         '&district=' + $('#distchoose').attr('value') + '&start_date=' +
         $('#pickstartdate').attr('value') + '&end_date=' + $('#pickenddate').attr('value'));

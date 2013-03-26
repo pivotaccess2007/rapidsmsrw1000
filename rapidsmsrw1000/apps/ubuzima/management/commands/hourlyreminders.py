@@ -4,7 +4,7 @@
 from django.core.management.base import BaseCommand
 from rapidsmsrw1000.apps.ubuzima.models import Report, Reminder, ReminderType
 from django.conf import settings
-from rapidsmsrw1000.apps.reporters.models import Reporter
+from rapidsmsrw1000.apps.chws.models import Reporter
 import urllib2
 import time
 import datetime
@@ -23,28 +23,7 @@ class Command(BaseCommand):
                     help='Executes a dry run, doesnt send messages or update the db.'),
         )
 
-    def send_message(self, connection, message):
-        conf = {'kannel_host':'127.0.0.1', 'kannel_port':13013, 'kannel_password':'kannel', 'kannel_username':'kannel'}
-        try:
-            conf = settings.KANNEL_CONF
-        except KeyError:
-            pass
-        
-        url = "http://%s:%s/cgi-bin/sendsms?to=%s&text=%s&password=%s&user=%s" % (
-            conf["kannel_host"], 
-            conf["kannel_port"],
-            urllib2.quote(connection.identity.strip()), 
-            urllib2.quote(message),
-            conf['kannel_password'],
-            conf['kannel_username'])
-        
-        f = urllib2.urlopen(url, timeout=10)
-        if f.getcode() / 100 != 2:
-            print "Error delivering message to URL: %s" % url
-            raise RuntimeError("Got bad response from router: %d" % f.getcode())
-
-        # do things at a reasonable pace
-        time.sleep(.2)
+    cmd = Smser()
 
 
     def check_unresponded_red_alerts(self):
@@ -61,20 +40,23 @@ class Command(BaseCommand):
             reminder_type = ReminderType.objects.get(name = "Red Alert Result")
             message = reminder_type.message_kw
             
-            for alert in pending:                
+            for alert in pending:
+                reminders = Reminder.objects.filter(reporter = alert.reporter, type=reminder_type, date__gte = today - datetime.timedelta(hours = 24)).order_by('-date')
+                if reminders : continue             
                 try:
+                    
                     if alert.reporter.language == 'en':	message = reminder_type.message_en
                     elif alert.reporter.language == 'fr':	message = reminder_type.message_fr
                     
                     message = message % (alert.patient.national_id)
                     
-                    print "sending reminder to %s of '%s'" % (alert.reporter.connection().identity, message)#;print alert,message
-                    if not self.dry:	self.send_message(alert.reporter.connection(), message)
+                    print "sending reminder to %s of '%s'" % (alert.reporter.telephone_moh, message)#;print alert,message
+                    if not self.dry:	self.cmd.send_message_via_kannel(alert.reporter.telephone_moh, message)
                     
                 except Exception, e:
                     print e
                     continue
-            if not self.dry:	Reminder.objects.create(type=reminder_type, date=timezone.localtime(timezone.now()), reporter=alert.reporter)
+                if not self.dry:	Reminder.objects.create(type=reminder_type, location = alert.location,  date=timezone.localtime(timezone.now()), reporter=alert.reporter)
         except Exception, e:
             print e
             pass

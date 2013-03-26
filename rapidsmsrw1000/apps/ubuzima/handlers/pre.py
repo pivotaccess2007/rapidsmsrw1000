@@ -15,7 +15,6 @@ from django.db.models import Q
 ###DEVELOPED APPS
 from rapidsmsrw1000.apps.ubuzima.reports.utils import *
 from rapidsms.contrib.handlers.handlers.keyword import KeywordHandler
-from rapidsmsrw1000.apps.thousanddays.models import *
 
 class PreHandler (KeywordHandler):
     """
@@ -25,7 +24,7 @@ class PreHandler (KeywordHandler):
     keyword = "pre"
     
     def filter(self):
-        if not getattr(message, 'connection', None):
+        if not getattr(msg, 'connection', None):
             self.respond(_("You need to be registered first, use the REG keyword"))
             return True 
     def help(self):
@@ -45,7 +44,7 @@ class PreHandler (KeywordHandler):
         #self.debug("PRE message: %s" % message.text)
         #print message, message.connection.identity
         try:
-            message.reporter = Reporter.objects.filter(connections__identity = message.connection.identity)[0]
+            message.reporter = message_reporter(message)#Reporter.objects.filter(national_id = message.connection.contact.name )[0]
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
@@ -98,17 +97,21 @@ class PreHandler (KeywordHandler):
             return True
         
         # save the report
-        
+        for f in fields:
+            if f.type in FieldType.objects.filter(category__name = 'Red Alert Codes'):
+                message.respond(_("%(key)s:%(red)s is a red alert, please see how to report a red alert and try again.")\
+                                         % { 'key': f.type.key,'red' : f.type.kw})
+                return True
+
     	if not report.has_dups():
+            ##Remember for Pregnancy to adjust next appointment if given while scheduling the mother as follow
+            report.set_preg_edd_dates(report.date)
+            if next_visit:
+                next_visit = datetime.strptime(parse_date(next_visit), "%d.%m.%Y").date()
+                report.edd_anc2_date = next_visit            
+                
             report.save()
-            try:
-                pregnancy = Pregnancy(report = report, plmp = datetime.datetime.strptime(parse_dob(lmp), "%d.%m.%Y").date(), \
-						pnext_visit = datetime.datetime.strptime(parse_date(next_visit), "%d.%m.%Y").date(), mtelephone = "+25%s"%telephone)
-                pregnancy.save()
-            except Exception, e:
-                print e
-                report.delete()	
-                message.respond(_("Unknown Error, please check message format and try again."))	
+            
         else:
     		message.respond(_("This report has been recorded, and we cannot duplicate it again. Thank you!"))
     		return True
@@ -116,15 +119,24 @@ class PreHandler (KeywordHandler):
         # then associate all our fields with it
         fields.append(read_weight(weight, weight_is_mothers=True))
         fields.append(read_height(height, height_is_mothers=True))
+        fields.append(read_gravity(gravity))
+        fields.append(read_parity(parity))
         fields.append(read_key(toilet))
         fields.append(read_key(handwash))
         fields.append(read_key(location))
-        
+
         for field in fields:
             if field:
                 field.report = report
                 field.save()
-                report.fields.add(field)     
+                report.fields.add(field)
+        bmi = read_bmi(report)
+        report.bmi_anc1 = bmi
+        report.save()
+
+        if is_mother_weight_loss(report):
+            forward(message, message.connection.identity, "Uyu mubyeyi %s yatakaje ibiro, nukureba uko wamugira inama." % report.patient.national_id)
+     
         #print message, message.connection, last_menses, fields, patient,report
         # either return an advice text, or our default text for this message type
         try:	response = run_triggers(message, report)

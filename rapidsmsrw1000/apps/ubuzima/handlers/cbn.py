@@ -15,7 +15,7 @@ from django.db.models import Q
 ###DEVELOPED APPS
 from rapidsmsrw1000.apps.ubuzima.reports.utils import *
 from rapidsms.contrib.handlers.handlers.keyword import KeywordHandler
-from rapidsmsrw1000.apps.thousanddays.models import *
+
 
 class CbnHandler (KeywordHandler):
     """
@@ -42,12 +42,12 @@ class CbnHandler (KeywordHandler):
         except:    activate('rw')
 
         try:
-            message.reporter = Reporter.objects.filter(connections__identity = message.connection.identity)[0]
+            message.reporter = message_reporter(message)#Reporter.objects.filter(national_id = message.connection.contact.name )[0]
         except Exception, e:
             message.respond(_("You need to be registered first, use the REG keyword"))
             return True
 
-        m = re.search("cbn\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s(nb|ebf|cbf|br)\s(ht\d+\.?\d*)\s(wt\d+\.?\d*)\s(muac\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)
+        m = re.search("cbn\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s(nb|ebf|cbf|br)\s?(.*|ht\d+\.?\d*)\s(wt\d+\.?\d*)\s?(.*|muac\d+\.?\d*)\s?(.*)", message.text, re.IGNORECASE)#m = re.search("cbn\s+(\d+)\s+([0-9]+)\s([0-9.]+)\s(nb|ebf|cbf|br)\s(ht\d+\.?\d*)\s(wt\d+\.?\d*)\s(muac\d+\.?\d*)\s?(.*)"
         if not m:
             message.respond(_("The correct format message is: CBN MOTHER_ID CHILD_NUM DOB BREASTFEEDING CHILD_HEIGHT CHILD_WEIGHT MUAC"))
             return True
@@ -59,9 +59,10 @@ class CbnHandler (KeywordHandler):
             return True
         number = m.group(2)
         chidob = m.group(3)
-        height = m.group(4)
-        weight = m.group(5)
-        muac = m.group(6)
+        ibibazo = m.group(4)
+        height = m.group(5)
+        weight = m.group(6)
+        muac = m.group(7)
 
         # get or create the patient
         patient = get_or_create_patient(message.reporter, nid)
@@ -70,7 +71,7 @@ class CbnHandler (KeywordHandler):
         
         # read our fields
         try:
-            (fields, dob) = read_fields("", False, False)
+            (fields, dob) = read_fields(ibibazo, False, False)
     	    dob = parse_dob(chidob)
         except Exception, e:
             # there were invalid fields, respond and exit
@@ -86,12 +87,18 @@ class CbnHandler (KeywordHandler):
         fields.append(Field(type=child_num_type, value=Decimal(str(number))))
         
         # save the report
+        for f in fields:
+            if f.type in FieldType.objects.filter(category__name = 'Red Alert Codes'):
+                message.respond(_("%(key)s:%(red)s is a red alert, please see how to report a red alert and try again.")\
+                                         % { 'key': f.type.key,'red' : f.type.kw})
+                return True
         report.save()
                 
         # then associate all our fields with it
         fields.append(read_weight(weight, weight_is_mothers=False))
         fields.append(read_height(height, height_is_mothers=False))
         fields.append(read_muac(muac))
+        
         for field in fields:
             if field:
                 field.report = report

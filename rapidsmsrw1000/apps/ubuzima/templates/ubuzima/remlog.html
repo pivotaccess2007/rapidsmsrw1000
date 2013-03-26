@@ -141,13 +141,14 @@ else {
                 <td>{{reminder.date|date:"d-M-Y H:m:s"}}</td>
                 <td><a href="/ubuzima/reminders/type/{{reminder.type.id}}">{{reminder.type}}</a></td>
                 <td><a href="/ubuzima/patient/{{reminder.report.patient.id}}">{{reminder.report.patient}}</a></td>
-		<td>{{reminder.report.edd}}</td>
-                <td><!--<a href="/ubuzima/location/{{reminder.reporter.location.id}}">-->{{reminder.reporter.location}}<!--</a>--></td>
+		<td>{{reminder.report.show_edd}}</td>
+                <td><!--<a href="/ubuzima/location/{{reminder.reporter.location.id}}">-->{{reminder.location.name}}--{{reminder.location.district.name}}<!--</a>--></td>
                 <td><!--<a href="/ubuzima/reporter/{{reminder.reporter.id}}">-->{{ reminder.reporter.connection.identity}}<!--</a>--></td>
 		<td>{% for sup in reminder.reporter.reporter_sups %}
 		(<a href="/reporters/{{reminder.reporter.id}}">{{sup.connection.identity}}</a>)
 		{%endfor%}</td>
-		<td></th>
+		
+		
             </tr>
         {% endfor %}
     </tbody>

@@ -49,6 +49,14 @@ class Message(models.Model):
         
         # all is well; save the object as usual
         models.Model.save(self, *args, **kwargs)
+    class Meta:
+        
+        # define a permission for this app to use the @permission_required
+        # in the admin's auth section, we have a group called 'manager' whose
+        # users have this permission -- and are able to see this section
+        permissions = (
+            ("can_view", "Can view"),
+        ) 
 
     @property
     def who(self):
