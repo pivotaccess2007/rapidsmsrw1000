@@ -1,6 +1,0 @@
-django==1.3.1
-pytz
-xlrd
-#sudo apt-get install python-dev  libmysqlclient-dev ##in ubuntu
-
-MySQL-python
