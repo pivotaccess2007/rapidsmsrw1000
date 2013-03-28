@@ -190,7 +190,6 @@ INSTALLED_APPS = (
     "rapidsms.contrib.handlers",
     "rapidsms.contrib.default",
     "rapidsms.contrib.httptester",
-    "rapidsms.contrib.locations",
     "rapidsms.contrib.messagelog",
     "rapidsms.contrib.messaging",
     "rapidsms.contrib.echo",
