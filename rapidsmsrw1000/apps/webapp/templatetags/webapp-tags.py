@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 # vim: ai ts=4 sts=4 et sw=4
 from django import template
+from django.conf import settings
 register = template.Library()
 
-from rapidsmsrw1000.apps.webapp.app import App as webui_app
-#from rapidsms.webui.settings import RAPIDSMS_APPS as app_conf
-from rapidsmsrw1000.settings import INSTALLED_APPS as app_conf
+
 @register.tag(name="ifhasperm")
 def do_perm_check(parser, token):
     # save everything between the beginning and ending tags
     nodelist = parser.parse(('endifhasperm',))
     # according to django documentation:
-    # "After parser.parse() is called, the parser hasn't yet "consumed" the 
-    # {% endifhasperm %} tag, so the code needs to explicitly call 
+    # "After parser.parse() is called, the parser hasn't yet "consumed" the
+    # {% endifhasperm %} tag, so the code needs to explicitly call
     # parser.delete_first_token()." Hmm
     parser.delete_first_token()
 
@@ -26,6 +25,7 @@ def do_perm_check(parser, token):
         # make sure our perm_string is in quotes
         raise template.TemplateSyntaxError, "%r tag's argument should be in quotes" % tag_name
     return PermCheck(user, app_name, perm_string[1:-1], nodelist)
+
 
 class PermCheck(template.Node):
     def __init__(self, user, app_name, perm_string, nodelist):
@@ -44,18 +44,18 @@ class PermCheck(template.Node):
             user = self.user.resolve(context)
             # construct the permission we will check for
             permission = app['type'] + '.' + self.perm_string
-            # return an empty string unless there is content to display. 
+            # return an empty string unless there is content to display.
             # otherwise 'None' will show up rather than a tab or nothing
             display = ''
-            if user.has_perm(permission): 
+            if user.has_perm(permission):
                 # return the stuff between the tags
                 display = self.nodelist.render(context)
             elif user.is_anonymous():
                 # for anonymous users, check against anon_perms
-                # defined in the webui section of rapidsms.ini 
-                if app_conf['webapp'] and "anon_perms" in app_conf["webapp"]:
-                    if permission in app_conf['webapp']['anon_perms']:
-                        display =  self.nodelist.render(context)
+                # defined in the webui section of rapidsms.ini
+                if settings.INSTALLED_APPS['webapp'] and "anon_perms" in settings.INSTALLED_APPS["webapp"]:
+                    if permission in settings.INSTALLED_APPS['webapp']['anon_perms']:
+                        display = self.nodelist.render(context)
             return display
 
         except template.VariableDoesNotExist:
