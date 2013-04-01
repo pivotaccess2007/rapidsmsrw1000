@@ -13,4 +13,5 @@
 docs/_build/*
 dist/*
 *.mo
-*/settings/local.py
+settings.py
+local.py

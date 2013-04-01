@@ -1,4 +1,4 @@
-# Django settings for rapidsmsrw1000 project.
+# Sample Settings File for Local dev; copy to settings.py
 
 import os
 
@@ -35,6 +35,7 @@ TIME_ZONE = 'Africa/Kigali'
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
+LANGUAGES = (('rw', 'Kinyarwanda'), ('en', 'English'), ('fr', 'Francais'))
 
 SITE_ID = 1
 
@@ -117,6 +118,7 @@ WSGI_APPLICATION = 'rapidsmsrw1000.wsgi.application'
 
 TEMPLATE_DIRS = (
     os.path.join(PROJECT_PATH, 'templates'),
+    os.path.join(PROJECT_PATH, 'rapidsmsrw1000/webapp/templates'),
 )
 
 FIXTURE_DIRS = (
@@ -182,27 +184,26 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     # External apps
-#    "south",
-#    "django_nose",
-#    "django_tables2",
-#    "djcelery",
+    "django_nose",
+    "djtables",
     "rapidsms",
     "rapidsms.contrib.handlers",
     "rapidsms.contrib.default",
-    "rapidsms.contrib.httptester",
-    "rapidsms.contrib.messagelog",
-    "rapidsms.contrib.messaging",
-    "rapidsms.contrib.echo",
+    #Developed apps
     "rapidsmsrw1000.apps.ambulances",
     "rapidsmsrw1000.apps.chws",
-    "rapidsmsrw1000.apps.locations",
-    "rapidsmsrw1000.apps.logger",
-    "rapidsmsrw1000.apps.parsers",
-    "rapidsmsrw1000.apps.patterns",
-    "rapidsmsrw1000.apps.reporters",
-    "rapidsmsrw1000.apps.thousanddays",
     "rapidsmsrw1000.apps.ubuzima",
     "rapidsmsrw1000.apps.webapp",
+
+    # ???
+    "rapidsmsrw1000.apps.httptester",
+    "rapidsmsrw1000.apps.messagelog",
+    # "rapidsmsrw1000.apps.locations",
+    # "rapidsmsrw1000.apps.parsers",
+    # "rapidsmsrw1000.apps.patterns",
+    # "rapidsmsrw1000.apps.reporters",
+    # "rapidsmsrw1000.apps.thousanddays",
+
 )
 
 INSTALLED_BACKENDS = {
