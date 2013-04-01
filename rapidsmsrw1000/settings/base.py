@@ -17,8 +17,8 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'rapidsmsrw1000.db',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'rapidsmsrw1000',
         'USER': '',
         'PASSWORD': '',
         'HOST': '',
