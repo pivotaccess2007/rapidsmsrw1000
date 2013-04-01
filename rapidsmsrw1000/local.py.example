@@ -215,6 +215,30 @@ INSTALLED_BACKENDS = {
     "message_tester": {
         "ENGINE": "rapidsms.contrib.httptester.backend",
     },
+
+    "kannel-smpp" : {
+        "ENGINE":  "rapidsms.backends.kannel.outgoing",
+        "sendsms_url": "http://127.0.0.1:13013/cgi-bin/sendsms",
+        "sendsms_params": {"smsc": "smpp",
+                           "from": SHORTCODE, # not set automatically by SMSC
+                           "username": "CHANGEME",
+                           "password": "CHANGEME"}, # or set in localsettings.py
+        "coding": 0,
+        "charset": "ascii",
+        "encode_errors": "ignore", # strip out unknown (unicode) characters
+    },
 }
+
+# this rapidsms-specific setting defines which views are linked by the
+# tabbed navigation. when adding an app to INSTALLED_APPS, you may wish
+# to add it here, also, to expose it in the rapidsms ui.
+RAPIDSMS_TABS = [
+    #("rapidsms.contrib.messagelog.views.message_log",       "Message Log"),
+    #("rapidsms.contrib.registration.views.registration",    "Registration"),
+    #("rapidsms.contrib.messaging.views.messaging",          "Messaging"),
+    #("rapidsms.contrib.locations.views.locations",          "Map"),
+    #("rapidsms.contrib.scheduler.views.index",              "Event Scheduler"),
+    #("rapidsms.contrib.httptester.views.generate_identity", "Message Tester"),
+]
 
 LOGIN_REDIRECT_URL = '/'
