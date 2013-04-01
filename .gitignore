@@ -15,3 +15,5 @@ dist/*
 *.mo
 settings.py
 local.py
+rem.json
+*.old
