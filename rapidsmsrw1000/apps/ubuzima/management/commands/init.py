@@ -13,7 +13,7 @@ from django.core.management.base import NoArgsCommand
 from rapidsmsrw1000.apps.locations.models import *  # we are importing model classes from locations app
 from rapidsmsrw1000.apps.ubuzima.models import *
 
-IMPORT_DIR = os.path.join(settings.PROJECT_PATH, "apps/ubuzima/import")
+IMPORT_DIR = os.path.join(settings.PROJECT_PATH, "apps", "ubuzima", "import")
 
 #the indexes in fosa_table.csv
 PROVINCE_NAME = 5
