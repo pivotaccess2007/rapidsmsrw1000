@@ -1,17 +1,16 @@
 from .base import *
 
 #CELERY_ALWAYS_EAGER = True
-#
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#        'NAME': 'appointments',
-#        'USER': 'postgres',
-#        'PASSWORD': '',
-#        'HOST': '',
-#        'PORT': '',
-#    }
-#}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'rapidsmsrw1000',
+        'USER': 'rapidsmsrw1000',
+        'PASSWORD': '123456',
+        'HOST': '',
+        'PORT': '',
+    }
+}
 
 
 #import warnings
