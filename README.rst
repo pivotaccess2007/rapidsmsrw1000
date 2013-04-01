@@ -9,6 +9,12 @@ local development system:
 - Python >= 2.6 (2.7 recommended)
 - `pip >= 1.1 <http://www.pip-installer.org/>`_
 - `virtualenv >= 1.8 <http://www.virtualenv.org/>`_
+- MySQL >= 5.1
+- git >= 1.7
+
+For Ubuntu:
+
+    sudo apt-get install python-dev
 
 Getting Started
 ---------------
@@ -21,8 +27,15 @@ necessary requirements::
     cd rapidsmsrw1000
     pip install -r requirements/base.txt
 
-Run syncdb::
+Create the MySQL database and run the initial syncdb/migrate::
 
+    mysql -u root -p
+    mysql> CREATE DATABASE rapidsmsrw1000;
+    mysql> CREATE USER rapidsmsrw1000 identified by '123456';
+    mysql> GRANT ALL ON rapidsmsrw1000.* TO 'rapidsmsrw1000'@'%';
+    mysql> GRANT ALL ON test_rapidsmsrw1000.* TO 'rapidsmsrw1000'@'%';
+    mysql> FLUSH privileges;
+    mysql> quit
     python manage.py syncdb
 
 You should now be able to run the development server::
