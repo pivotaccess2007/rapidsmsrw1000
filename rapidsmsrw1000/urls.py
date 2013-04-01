@@ -13,9 +13,9 @@ urlpatterns = patterns('',
     # RapidSMS core URLs
     #(r'^accounts/', include('rapidsms.urls.login_logout')),
     url(r'^$',    'rapidsmsrw1000.apps.webapp.views.home' ),
-    url(r'^home/$', 'rapidsmsrw1000.apps.webapp.views.dashboard'),
-    (r'^accounts/login/$', "rapidsmsrw1000.apps.webapp.views.login"),
-    (r'^accounts/logout/$', "rapidsmsrw1000.apps.webapp.views.logout"),
+    url(r'^home/$', 'rapidsmsrw1000.apps.webapp.views.dashboard', name='rapidsms-dashboard'),
+    url(r'^accounts/login/$', "rapidsmsrw1000.apps.webapp.views.login", name='rapidsms-login'),
+    url(r'^accounts/logout/$', "rapidsmsrw1000.apps.webapp.views.logout", name='rapidsms-logout'),
     # RapidSMS contrib app URLs
     #(r'^export/', include('rapidsms.contrib.export.urls')),
     url(r'^httptester/$',
