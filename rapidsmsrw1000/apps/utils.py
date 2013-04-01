@@ -8,8 +8,7 @@ from datetime import date, timedelta
 
 from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import get_object_or_404
 
 from rapidsmsrw1000.apps.chws.models import *
 from rapidsmsrw1000.apps.ubuzima.models import *
@@ -448,14 +447,11 @@ def paginated(req, data):
 
     return data
 
+
 @permission_required('ubuzima.can_view')
 def get_user_location(req):
-    req.base_template = "webapp/layout.html"
-    try:
-        uloc = UserLocation.objects.get(user=req.user)
-        return uloc
-    except UserLocation.DoesNotExist, e:
-        return render_to_response("ubuzima/404.html", {'error': e}, context_instance=RequestContext(req))
+    uloc = get_object_or_404(UserLocation, user=req.user)
+    return uloc
 
 
 def csv_chws(chws,group):
