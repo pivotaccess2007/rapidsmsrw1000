@@ -1,0 +1,29 @@
+import os
+import sys
+
+# set up python path and virtualenv
+activate_this = '/home/zigama/projects/python/virtualenvs/rapidsms/bin/activate_this.py'
+execfile(activate_this, dict(__file__=activate_this))
+
+filedir = os.path.dirname(__file__)
+
+rootpath = os.path.join(filedir, "..")
+sys.path.append(os.path.join(rootpath))
+sys.path.append(os.path.join(rootpath,'apps'))
+sys.path.append(os.path.join(rootpath,'lib'))
+sys.path.append(os.path.join(rootpath,'lib','rapidsms'))
+sys.path.append(os.path.join(rootpath,'lib','rapidsms','webui'))
+
+
+os.environ['RAPIDSMS_INI'] = os.path.join(rootpath,'rapidsms.ini')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rapidsms.webui.settings'
+os.environ["RAPIDSMS_HOME"] = rootpath
+
+from rapidsms.webui import settings
+
+sys.path.append("/home/zigama/projects/python/virtualenvs/rapidsms/rapidsms")
+
+import django.core.handlers.wsgi
+application = django.core.handlers.wsgi.WSGIHandler()
+
+

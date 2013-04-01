@@ -1,0 +1,1 @@
+[{"pk": 1, "model": "ubuzima.healthindicator", "fields": {"category": 1, "name": "Total Number of  women registered", "description": "This is a total number of women registered in RapidSMS System, this information allow the users of the system to see how many women RapidSMS is trying to save both their lives and children lives. "}}]
