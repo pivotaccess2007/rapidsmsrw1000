@@ -27,6 +27,12 @@ necessary requirements::
     cd rapidsmsrw1000
     pip install -r requirements/base.txt
 
+Update your settings file::
+
+    cp local.py.example settings.py
+
+Configure settings as needed for your local environment.
+
 Create the MySQL database and run the initial syncdb/migrate::
 
     mysql -u root -p
