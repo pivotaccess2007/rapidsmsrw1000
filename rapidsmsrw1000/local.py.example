@@ -8,6 +8,11 @@ PROJECT_ROOT = os.path.abspath(os.path.join(PROJECT_PATH, os.pardir))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+TRAINING_ENV = True
+SHORTCODE = ""  # Change Me
+PRIMARY_BACKEND = ""  # Change Me
+SERVER_IP = '127.0.0.1'
+SERVER_PORT = '5000'
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
