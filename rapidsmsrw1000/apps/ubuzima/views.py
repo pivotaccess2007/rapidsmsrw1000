@@ -1487,9 +1487,11 @@ def get_my_child_zscores(child):
 
     return {'wfa': wfa, 'lhfa': lhfa, 'wfl': wfl}
 
+
 @permission_required('ubuzima.can_view')
 def view_nutrition_charts(req):
     return HttpResponse(json.dumps(growth_chart_data()), content_type='application/json')
+
 
 def growth_chart_data():
     reps = Report.objects.filter(type__pk=3)
@@ -1535,8 +1537,16 @@ def growth_chart_data():
                     girls.append(chart_data)
             else:
                 if child['id']['chino'] is not None:
+                    """
+                    # TODO this is super slow and doesnt find any sex for any
+                    # of the cbn cases, so skip for now...
                     # see if child's sex is noted in another report
-                    sexes = list(set([r.get_child().get('birth').get('sex') for r in Report.objects.filter(patient__national_id=rep.patient.national_id) if r.get_child_id().get('chino') == child['id']['chino']]))
+                    sexes = []
+                    for rep in Report.objects.filter(patient__national_id=rep.patient.national_id):
+                        if rep.get_child_id() is not None and rep.get_child_id().get('chino') == child['id']['chino']:
+                            if rep.get_child() is not None and rep.get_child().get('birth') is not None:
+                                sexes.append(rep.get_child().get('birth').get('sex'))
+                    sexes = list(set(sexes))
                     if len(sexes) == 1 and sexes[0] is not None:
                         child_data.update({'sex': sexes[0]})
                         chart_data.update({'sex': sexes[0]})
@@ -1546,6 +1556,7 @@ def growth_chart_data():
                             boys.append(chart_data)
                         else:
                             girls.append(chart_data)
+                    """
                     unknown.append(chart_data)
     return {'boys': boys, 'girls': girls, 'unknown': unknown}
 

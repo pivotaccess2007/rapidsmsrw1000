@@ -22,11 +22,12 @@
   stroke: black;
   stroke-width: 1.5px;
   cursor: pointer;
+	opacity: .4;
 }
 
 .dotSelected {
 	fill: #FFFFFF;
-	stroke: #FFFFFF;
+	stroke: #000000;
   stroke-width: 1.5px;
   cursor: pointer;
 }
