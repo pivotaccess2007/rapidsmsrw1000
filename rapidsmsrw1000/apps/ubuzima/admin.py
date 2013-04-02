@@ -56,7 +56,6 @@ def export_model_as_excel(modeladmin, request, queryset):
 export_model_as_excel.short_description = _('Export to EXCEL')
 
 admin.site.register(ReportType)
-admin.site.register(Field)
 admin.site.register(Patient)
 admin.site.register(Reminder)
 admin.site.register(UserLocation)
@@ -91,9 +90,15 @@ class ReportAdmin(admin.ModelAdmin):
     list_display = ('id', 'type', 'patient', 'date')
 
 
+class FieldAdmin(admin.ModelAdmin):
+    list_filter = ('type__category__name',)
+    list_display = ('id', '__unicode__', 'report',)
+
 admin.site.register(TriggeredText, TriggerAdmin)
 admin.site.register(FieldType, FieldTypeAdmin)
 admin.site.register(ReminderType, ReminderAdmin)
 admin.site.register(Report, ReportAdmin)
+admin.site.register(Field, FieldAdmin)
+
 
 
