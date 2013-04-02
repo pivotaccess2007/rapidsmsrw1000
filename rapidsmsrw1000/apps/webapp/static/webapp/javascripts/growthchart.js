@@ -321,6 +321,8 @@ function display_growth_chart(growthData, el, chartType, config) {
 		.selectAll(".dot")
 			.data(growthData)
 		.enter()
+			.append("svg:a")
+			  .attr("xlink:href", function(d) { return "/ubuzima/national_id/" + d.id; })
 			.append("circle")
 			.attr("class", "dot")
 		.call(dotHandler(function(d, i) {

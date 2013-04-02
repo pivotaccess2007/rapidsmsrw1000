@@ -171,6 +171,22 @@ def by_patient(req, pk):
                                                         "reports":    paginated(req, reports),
                                                         "reminders":  reminders ,'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 
+@permission_required('ubuzima.can_view')
+@require_http_methods(["GET"])
+def by_national_id(req, national_id):
+    patient = get_object_or_404(Patient, national_id=national_id)
+    reports = Report.objects.filter(patient=patient).order_by("-created")
+
+    # look up any reminders sent to this patient
+    reminders = []
+    for report in reports:
+        for reminder in report.reminders.all():
+            reminders.append(reminder)
+
+    return render_to_response("ubuzima/patient.html", { "patient":    patient,
+                                                        "reports":    paginated(req, reports),
+                                                        "reminders":  reminders ,'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
+
 @require_http_methods(["GET"])
 def by_type(req, pk, **flts):
     report_type = get_object_or_404(ReportType, pk=pk)
