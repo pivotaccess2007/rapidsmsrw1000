@@ -47,3 +47,7 @@ Create the MySQL database and run the initial syncdb/migrate::
 You should now be able to run the development server::
 
     python manage.py runserver
+
+Many views in this project return a 404 error unless your user is associated
+with a location. To associate a location, navigate to the Django admin and add
+a new 'User Location' under the 'Ubuzima' section.
