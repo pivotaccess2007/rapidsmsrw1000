@@ -39,24 +39,22 @@ def export_model_as_excel(modeladmin, request, queryset):
         col = 0
         for field in field_list:
             field_obj, attr, value = admin_util.lookup_field(field, obj, modeladmin)
-            
+
             try:
-                if field in has_name_fields:  sheet.write(row, col, value.name)    
+                if field in has_name_fields:  sheet.write(row, col, value.name)
                 elif field in is_date_fields: sheet.write(row, col, "%d/%d/%d" % (value.day, value.month, value.year))
                 else:   sheet.write(row, col, value)
             except Exception, e:
                 try:    sheet.write(row, col, value)
-                except: sheet.write(row, col, "NULL")                
+                except: sheet.write(row, col, "NULL")
             col = col + 1
         row = row + 1
- 
+
     workbook.save(response)
     return response
 
 export_model_as_excel.short_description = _('Export to EXCEL')
 
-
-admin.site.register(Report)
 admin.site.register(ReportType)
 admin.site.register(Field)
 admin.site.register(Patient)
@@ -68,25 +66,34 @@ admin.site.register(ErrorNote)
 admin.site.register(Refusal)
 admin.site.register(Departure)
 
+
 class TriggerAdmin(admin.ModelAdmin):
     actions = (export_model_as_excel, )
     exportable_fields = ('id','name', 'description', 'destination', 'message_en', 'message_fr', 'message_kw')
     list_display = ('name', 'description', 'destination', 'message_en', 'message_fr', 'message_kw')
     search_fields = ('name',)
 
+
 class ReminderAdmin(admin.ModelAdmin):
     actions = (export_model_as_excel, )
     exportable_fields = ('id','name','message_en', 'message_fr', 'message_kw')
     list_display = ('name', 'message_en', 'message_fr', 'message_kw')
     search_fields = ('name',)
-    
+
 
 class FieldTypeAdmin(admin.ModelAdmin):
     list_display = ('key', 'description', 'category')
     search_fields = ('key', 'description')
 
+
+class ReportAdmin(admin.ModelAdmin):
+    list_filter = ('type',)
+    list_display = ('id', 'type', 'patient', 'date')
+
+
 admin.site.register(TriggeredText, TriggerAdmin)
 admin.site.register(FieldType, FieldTypeAdmin)
 admin.site.register(ReminderType, ReminderAdmin)
+admin.site.register(Report, ReportAdmin)
 
 
