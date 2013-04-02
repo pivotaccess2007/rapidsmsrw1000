@@ -24,15 +24,15 @@ class FieldCategory(models.Model):
     def __unicode__(self):
         return self.name
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
         permissions = (
             ("can_view", "Can view"),
         )
-    
- 
+
+
 
 class ReportType(models.Model):
     name = models.CharField(max_length=30, unique=True)
@@ -40,14 +40,14 @@ class ReportType(models.Model):
     def __unicode__(self):
         return self.name
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
         permissions = (
             ("can_view", "Can view"),
-        ) 
-    
+        )
+
 
 class FieldType(models.Model):
     key = models.CharField(max_length=32, unique=True)
@@ -59,15 +59,15 @@ class FieldType(models.Model):
     def __unicode__(self):
         return self.key
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
         permissions = (
             ("can_view", "Can view"),
         )
-    
-    
+
+
 class Patient(models.Model):
     location = models.ForeignKey(HealthCentre, related_name = "patienthc")
     national_id = models.CharField(max_length = 20, unique = True)
@@ -82,18 +82,18 @@ class Patient(models.Model):
     def __unicode__(self):
         return "%s" % self.national_id
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
         permissions = (
             ("can_view", "Can view"),
         )
-        
-    
-    
+
+
+
 class Report(models.Model):
-    # Constants for our reminders.  Each reminder will be triggered this many days 
+    # Constants for our reminders.  Each reminder will be triggered this many days
     # before the mother's EDD
     DAYS_ANC2 = 150
     DAYS_ANC3 = 60
@@ -139,22 +139,22 @@ class Report(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
         permissions = (
             ("can_view", "Can view"),
         )
-    
-    
+
+
     def __unicode__(self):
         return "Report id: %d type: %s patient: %s date: %s" % (self.pk, self.type.name, self.patient.national_id, self.date_string)
 
     def edd(self):
         try:	return Report.calculate_edd(self.date)
-        except:	return None 
-    
+        except:	return None
+
     def summary(self):
         summary = ""
         if self.date_string:
@@ -183,7 +183,7 @@ class Report(models.Model):
         for fld in flds:
             types.append(fld.type)
         return types
-    		
+
 
     def rep_has_field_type(self, fldt):
         with_fldt=False
@@ -205,14 +205,14 @@ class Report(models.Model):
         for x in self.fields.all():
             for vtp in FieldType.objects.filter(category=FieldCategory.objects.get(name='Vaccination')):
                 if x.type==vtp:
-                    return x.type 
+                    return x.type
 
     def was_vaccinated_with(self,vac):
         if self.get_vaccine() == vac:
             return True
         return False
 
-    
+
     def is_home(self):
     	yes=False
     	ftp=FieldType.objects.get(key='ho')
@@ -282,7 +282,7 @@ class Report(models.Model):
         # try to parse the date.. dd/mm/yyyy
         try:
             self.date = datetime.datetime.strptime(date_string, "%d.%m.%Y").date()
-    	    
+
         except ValueError,e:
             # no-op, just keep the date_string value
             pass
@@ -315,13 +315,13 @@ class Report(models.Model):
                 reports[report.patient.national_id] = report
 
         return reports.values()
-    
+
     @classmethod
     def calculate_edd(cls, last_menses):
         """
         Given the date of the last menses, figures out the expected delivery date
         """
-            
+
         # first add seven days
         edd = last_menses + datetime.timedelta(7)
 
@@ -331,7 +331,7 @@ class Report(models.Model):
         #	    edd = edd.replace(year=edd.year+1, month=edd.month+9-12)
         #	else:
         #	    edd = edd.replace(month=edd.month+9)
-        
+
         #	return edd
 
         neufmois = datetime.timedelta(days = 270)
@@ -352,7 +352,7 @@ class Report(models.Model):
 
         # now subtract 7 days
         #   last_menses = last_menses - datetime.timedelta(7)
-        
+
         #   return last_menses
         return edd - datetime.timedelta(days = 277)
 
@@ -362,7 +362,7 @@ class Report(models.Model):
         Passed in a day (of today), figures out the range for the menses dates for
         our reminder.  The ``days`` variable is the number of days before delivery
         we want to figure out the date for.  (bracketed by 2 days each way)
-        
+
         """
         # figure out the expected delivery date
         edd = date + datetime.timedelta(days)
@@ -373,7 +373,7 @@ class Report(models.Model):
         # bracket in either direction
         start = last_menses - datetime.timedelta(2)
         end = last_menses + datetime.timedelta(2)
-    
+
         return (start, end)
 
     def is_risky(self):
@@ -405,11 +405,11 @@ class Report(models.Model):
     	except:	return None
     def get_sex(self):
     	try:	return self.fields.filter(type__key__in = ['bo','gi'])[0]
-    	except:	return None	
+    	except:	return None
 
     def get_child(self):
     	try:
-            
+
     		chino, dob, mother = self.get_child_id()['chino'], self.get_child_id()['dob'], self.get_child_id()['mother']
     		chihe = Report.objects.filter( type__name = "Child Health", date = dob , patient = mother , fields__in = Field.objects.filter(type__key = 'child_number',   value = Decimal(chino))).order_by('created')
 
@@ -430,7 +430,7 @@ class Report(models.Model):
     	    	self.edd_anc2_date =  self.edd_date - datetime.timedelta(self.DAYS_ANC2)
     	    	self.edd_anc3_date =  self.edd_date - datetime.timedelta(self.DAYS_ANC3)
     	    	self.edd_anc4_date =  self.edd_date - datetime.timedelta(self.DAYS_ANC4)
-    	    	
+
     	except:	return None
     def set_pnc_edd_dates(self, given_date):
     	try:
@@ -438,11 +438,11 @@ class Report(models.Model):
     	    	self.edd_pnc2_date =  given_date + datetime.timedelta(self.DAYS_PNC2)
     	    	self.edd_pnc3_date =  given_date + datetime.timedelta(self.DAYS_PNC3)
     	except:	return None
-    
-    	
-    	    
+
+
+
 class TriggeredText(models.Model):
-    """ Represents an automated text response that is returned to the CHW, SUP or district SUP based 
+    """ Represents an automated text response that is returned to the CHW, SUP or district SUP based
         on a set of matching action codes. """
 
     DESTINATION_CHW = 'CHW'
@@ -454,13 +454,13 @@ class TriggeredText(models.Model):
                             (DESTINATION_SUP, "Clinic Supervisor"),
                             (DESTINATION_DIS, "District Supervisor"),
                             (DESTINATION_AMB, "Ambulance"))
-    
+
     name = models.CharField(max_length=128)
     destination = models.CharField(max_length=3, choices=DESTINATION_CHOICES,
                                    help_text="Where this text will be sent to when reports match all triggers.")
 
     description = models.TextField()
-    
+
     message_kw = models.CharField(max_length=160)
     message_fr = models.CharField(max_length=160)
     message_en = models.CharField(max_length=160)
@@ -469,9 +469,9 @@ class TriggeredText(models.Model):
                                       help_text="This trigger will take effect when ALL triggers match the report.")
 
     active = models.BooleanField(default=True)
-    
+
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
@@ -481,8 +481,8 @@ class TriggeredText(models.Model):
 
     def trigger_summary(self):
         return ", ".join(map(lambda t: t.description, self.triggers.all()))
-    
-    
+
+
     def __unicode__(self):
         return self.name
 
@@ -495,17 +495,17 @@ class TriggeredText(models.Model):
         types = []
         for field in report.fields.all():
             types.append(field.type.pk)
-               
+
         # these are the texts which may get activated
         texts = TriggeredText.objects.filter(triggers__in=types).distinct().order_by('id')
 
         # triggers that should be sent back, one per destination
         matching_texts = []
-            
+
         # for each trigger text, see whether we should be triggered by it
         for text in texts:
             matching = True
-            
+
             for trigger in text.triggers.all():
                 found = False
 
@@ -513,11 +513,11 @@ class TriggeredText(models.Model):
                     if trigger.pk == field.type.pk:
                         found = True
                         break
-                    
+
                 # not found?  this won't trigger
                 if not found:
                     matching = False
-            
+
             if matching:
                 matching_texts.append(text)
 
@@ -531,7 +531,7 @@ class TriggeredText(models.Model):
         for tt in matching_texts:
             if not tt.destination in per_destination:
                 per_destination[tt.destination] = tt
-                
+
         # return our trigger texts
         matching_list = per_destination.values()
         matching_list.sort(key=lambda tt: tt.pk)
@@ -549,7 +549,7 @@ class ReminderType(models.Model):
     message_en = models.CharField(max_length=160)
 
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
@@ -559,7 +559,7 @@ class ReminderType(models.Model):
 
     def __unicode__(self):
         return self.name
-    
+
 
 class Field(models.Model):
     location = models.ForeignKey(HealthCentre, related_name = "fieldhc", null =True)
@@ -575,14 +575,14 @@ class Field(models.Model):
     creation = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
         permissions = (
             ("can_view", "Can view"),
         )
-    
+
     def __unicode__(self):
         if self.value:
             return "%s=%.2f" % (_(self.type.description), self.value)
@@ -620,14 +620,14 @@ class Reminder(models.Model):
     date = models.DateTimeField()
 
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
         permissions = (
             ("can_view", "Can view"),
         )
-    
+
     def __unicode__(self):
 			return "Reminder Type:%s   Sent:(%s)   Patient:%s   Location:%s   Reporter:%s" % (self.type, self.date,self.report.patient if self.report else None,self.reporter.health_centre, self.reporter.connection().identity)
 
@@ -681,13 +681,13 @@ class Refusal(models.Model):
         return self.reporter.telephone_moh
 
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
         permissions = (
             ("can_view", "Can view"),
-        )   
+        )
 
 class Departure(models.Model):
     'This represents departure to give a health agent information. We keep instead a reference to the reporter, in order to follow up, if necessary.'
@@ -709,7 +709,7 @@ class Departure(models.Model):
         return self.reporter.telephone_moh
 
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
@@ -717,23 +717,23 @@ class Departure(models.Model):
             ("can_view", "Can view"),
         )
 
-    
+
 
 class ErrorType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     def __unicode__(self):
         return self.description
-    
+
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
         permissions = (
             ("can_view", "Can view"),
         )
-    
+
 
 class ErrorNote(models.Model):
     '''This model is used to record errors made by people sending messages into the system, to facilitate things like studying which format structures are error-prone, and which reporters make the most errors, and other things like that.'''
@@ -758,14 +758,14 @@ class ErrorNote(models.Model):
         return self.id
 
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
         permissions = (
             ("can_view", "Can view"),
         )
-    
+
 
 class UserLocation(models.Model):
     """This model is used to help the system to know where the user who is trying to access this information is from"""
@@ -780,7 +780,7 @@ class UserLocation(models.Model):
     nation = models.ForeignKey(Nation, related_name = 'usernation', null=True, blank = True)
 
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
@@ -793,7 +793,7 @@ class UserLocation(models.Model):
 
     def __int__(self):
         return self.id
-	
+
 
 class TriggeredAlert(models.Model):
     """
@@ -822,7 +822,7 @@ class TriggeredAlert(models.Model):
                                    help_text="These choices will be used only where applicable, otherwise choice is initialized to Not Required.")
 
     class Meta:
-        
+
         # define a permission for this app to use the @permission_required
         # in the admin's auth section, we have a group called 'manager' whose
         # users have this permission -- and are able to see this section
@@ -835,7 +835,7 @@ class TriggeredAlert(models.Model):
 
     def __int__(self):
     	return self.id
-    
+
 
 
 def ensure_report_correct(sender, **kwargs):
@@ -861,7 +861,7 @@ def ensure_report_correct(sender, **kwargs):
         report.nation = report.reporter.nation
         report.save()
 
-        
+
         if report:    return True
         else:   return False
 
@@ -884,7 +884,7 @@ def ensure_refusal_correct(sender, **kwargs):
         refusal = kwargs.get('instance')
         ##Field details correct
         reporter = refusal.reporter
-        
+
         refusal.village = reporter.village
         refusal.cell = reporter.cell
         refusal.sector = reporter.sector
@@ -898,7 +898,7 @@ def ensure_departure_correct(sender, **kwargs):
         dep = kwargs.get('instance')
         ##Field details correct
         reporter = dep.reporter
-        
+
         dep.village = reporter.village
         dep.cell = reporter.cell
         dep.sector = reporter.sector
