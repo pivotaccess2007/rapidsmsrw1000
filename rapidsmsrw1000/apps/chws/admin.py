@@ -70,17 +70,17 @@ def export_model_as_excel(modeladmin, request, queryset):
         col = 0
         for field in field_list:
             field_obj, attr, value = admin_util.lookup_field(field, obj, modeladmin)
-            
+
             try:
-                if field in has_name_fields:  sheet.write(row, col, value.name)    
+                if field in has_name_fields:  sheet.write(row, col, value.name)
                 elif field in is_date_fields: sheet.write(row, col, "%d/%d/%d" % (value.day, value.month, value.year))
                 else:   sheet.write(row, col, value)
             except Exception, e:
                 try:    sheet.write(row, col, value)
-                except: sheet.write(row, col, "NULL")                
+                except: sheet.write(row, col, "NULL")
             col = col + 1
         row = row + 1
- 
+
     workbook.save(response)
     return response
 
@@ -118,15 +118,15 @@ class VillageAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-
 class CHWAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
     exportable_fields = ('surname', 'given_name', 'role', 'sex', 'education_level', 'date_of_birth', 'join_date', 'national_id', 'telephone_moh', 'village', 'cell', 'sector', 'health_centre', 'referral_hospital', 'district', 'province')
     list_display = ('surname', 'given_name', 'national_id', 'telephone_moh', 'village', 'health_centre')
+    list_filter = ('is_active', 'role__name',)
     search_fields = ('national_id','telephone_moh',)
 
 class RegistrationConfirmationAdmin(admin.ModelAdmin):
-    
+
     list_display = ('reporter', 'responded', 'answer')
     search_fields = ('responded',)
 

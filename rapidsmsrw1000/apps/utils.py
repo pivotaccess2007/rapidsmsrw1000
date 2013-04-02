@@ -318,6 +318,7 @@ def default_period(req):
     return {'start':date.today()-timedelta(days = datetime.datetime.today().day - 1), 'end':date.today()}#In production
     #return {'start':date.today() - timedelta(date.today().day), 'end':date.today()}#locally
 
+
 def get_level(req):
     try:
         uloc = req.user.hcuser.all()[0]
@@ -331,19 +332,26 @@ def get_level(req):
         elif uloc.health_centre:
             level = "HealthCentre"
         return {'level': level, 'uloc': uloc}
-    except: return None
+    except:
+        return None
+
 
 def reporter_fresher(req):
-    pst={}
+    pst = {}
     try:
         level = get_level(req)
-        if level['level'] == 'Nation':  pst['nation__id'] = level['uloc'].nation.id
-        elif level['level'] == 'Province':  pst['province__id'] = level['uloc'].province.id
-        elif level['level'] == 'District':  pst['district__id'] = level['uloc'].district.id
-        elif level['level'] == 'HealthCentre':  pst['health_centre__id'] = level['uloc'].health_centre.id
+        if level['level'] == 'Nation':
+            pst['nation__id'] = level['uloc'].nation.id
+        elif level['level'] == 'Province':
+            pst['province__id'] = level['uloc'].province.id
+        elif level['level'] == 'District':
+            pst['district__id'] = level['uloc'].district.id
+        elif level['level'] == 'HealthCentre':
+            pst['health_centre__id'] = level['uloc'].health_centre.id
     except:
         pass
     return pst
+
 
 def default_location(req):
     try:

@@ -56,7 +56,7 @@ class Province(models.Model):
         # users have this permission -- and are able to see this section
         permissions = (
         ("can_view", "Can view"),
-        ) 
+        )
 
     def __unicode__(self):  return self.name
 
@@ -65,7 +65,7 @@ class District(models.Model):
     name 	 = models.CharField(max_length=160)
     code 	 = models.CharField(max_length=10, unique = True,  blank=True, null=True,\
 				    help_text="District Own code in  ISO Coding SYSTEM .....")
-    nation 	 = models.ForeignKey(Nation, related_name="district_nation", null=True, blank=True, help_text=" The country the district is from") 
+    nation 	 = models.ForeignKey(Nation, related_name="district_nation", null=True, blank=True, help_text=" The country the district is from")
     province = models.ForeignKey(Province, related_name="ditrict_province", null=True, blank=True, help_text=" The province the district is from")
 
     class Meta:
@@ -74,7 +74,7 @@ class District(models.Model):
         # users have this permission -- and are able to see this section
         permissions = (
         ("can_view", "Can view"),
-        )    
+        )
 
     def __unicode__(self):  return self.name
 
@@ -83,7 +83,7 @@ class Sector(models.Model):
     name 	 = models.CharField(max_length=160)
     code 	 = models.CharField(max_length=10, unique = True,  blank=True, null=True,\
 				    help_text="Sector Own code in  ISO Coding SYSTEM .....")
-    nation 	 = models.ForeignKey(Nation, related_name="sector_nation", null=True, blank=True, help_text=" The country the sector is from") 
+    nation 	 = models.ForeignKey(Nation, related_name="sector_nation", null=True, blank=True, help_text=" The country the sector is from")
     province = models.ForeignKey(Province, related_name="sector_province", null=True, blank=True, help_text=" The province the sector is from")
     district		= models.ForeignKey(District, related_name="sector_district", null=True, blank=True, help_text=" The district the sector is from")
 
@@ -102,7 +102,7 @@ class Cell(models.Model):
     name 	 = models.CharField(max_length=160)
     code 	 = models.CharField(max_length=10, unique = True,  blank=True, null=True,\
 				    help_text="Cell Own code in  ISO Coding SYSTEM .....")
-    nation 	 = models.ForeignKey(Nation, related_name="cell_nation", null=True, blank=True, help_text=" The country the cell is from") 
+    nation 	 = models.ForeignKey(Nation, related_name="cell_nation", null=True, blank=True, help_text=" The country the cell is from")
     province = models.ForeignKey(Province, related_name="cell_province", null=True, blank=True, help_text=" The province the cell is from")
     district		= models.ForeignKey(District, related_name="cell_district", null=True, blank=True, help_text=" The cell the cell is from")
     sector			= models.ForeignKey(Sector, related_name="cell_sector", null=True, blank=True, help_text=" The sector the cell is from")
@@ -122,7 +122,7 @@ class Village(models.Model):
     name 	 = models.CharField(max_length=160)
     code 	 = models.CharField(max_length=10, unique = True,  blank=True, null=True,\
 				    help_text="Village Own code in  ISO Coding SYSTEM .....")
-    nation 	 = models.ForeignKey(Nation, related_name="village_nation", null=True, blank=True, help_text=" The country the village is from") 
+    nation 	 = models.ForeignKey(Nation, related_name="village_nation", null=True, blank=True, help_text=" The country the village is from")
     province = models.ForeignKey(Province, related_name="village_province", null=True, blank=True, help_text=" The province the village is from")
     district		= models.ForeignKey(District, related_name="village_district", null=True, blank=True, help_text=" The cell the village is from")
     sector			= models.ForeignKey(Sector, related_name="village_sector", null=True, blank=True, help_text=" The sector the village is from")
@@ -150,7 +150,7 @@ class Village(models.Model):
             elif district:
                 village = Village.objects.filter(name__icontains = name, district = district)
                 return village[0]
-            else:   return None         
+            else:   return None
         except:
             return None
 
@@ -160,7 +160,7 @@ class Hospital(models.Model):
     name 	 = models.CharField(max_length=160)
     code 	 = models.CharField(max_length=10, unique = True,  blank=True, null=True,\
 				    help_text="Hospital Own code in  FOSA Coding SYSTEM .....")
-    nation 	 = models.ForeignKey(Nation, related_name="hospital_nation", null=True, blank=True, help_text=" The country the hospital is from") 
+    nation 	 = models.ForeignKey(Nation, related_name="hospital_nation", null=True, blank=True, help_text=" The country the hospital is from")
     province = models.ForeignKey(Province, related_name="hospital_province", null=True, blank=True, help_text=" The province the hospital is from")
     district		= models.ForeignKey(District, related_name="hospital_district", null=True, blank=True, help_text=" The district the hospital is from")
     sector			= models.ForeignKey(Sector, related_name="hospital_sector", null=True, blank=True, help_text=" The sector the hospital is from")
@@ -180,7 +180,7 @@ class HealthCentre(models.Model):
     name 	 = models.CharField(max_length=160)
     code 	 = models.CharField(max_length=10, unique = True,  blank=True, null=True,\
 				    help_text="Health Centre Own code in  FOSA Coding SYSTEM .....")
-    nation 	 = models.ForeignKey(Nation, related_name="hc_nation", null=True, blank=True, help_text=" The country the health centre is from") 
+    nation 	 = models.ForeignKey(Nation, related_name="hc_nation", null=True, blank=True, help_text=" The country the health centre is from")
     province = models.ForeignKey(Province, related_name="hc_province", null=True, blank=True, help_text=" The province the health centre is from")
     district		= models.ForeignKey(District, related_name="hc_district", null=True, blank=True, help_text=" The district the health centre is from")
     sector			= models.ForeignKey(Sector, related_name="hc_sector", null=True, blank=True, help_text=" The sector the health centre is from")
@@ -194,7 +194,7 @@ class HealthCentre(models.Model):
         )
 
     def __unicode__(self):  return self.name
-	
+
 
 
 class Reporter(models.Model):
@@ -242,7 +242,7 @@ class Reporter(models.Model):
     cell			= models.ForeignKey(Cell, related_name="chw_cell", null=True, blank=True, help_text=" The cell you live in")
     sector			= models.ForeignKey(Sector, related_name="chw_sector", null=True, blank=True, help_text=" The sector you live in")
     health_centre		= models.ForeignKey(HealthCentre, related_name="chw_hc", null=True, blank=True, help_text=" The health centre you report to ")
-    referral_hospital	= models.ForeignKey(Hospital, related_name="chw_hospital", null=True, blank=True, 
+    referral_hospital	= models.ForeignKey(Hospital, related_name="chw_hospital", null=True, blank=True,
 						        help_text=" The referral hospital of the health centre you report to")
     district		= models.ForeignKey(District, related_name="chw_district", null=True, blank=True, help_text=" The district you live in")
     province		= models.ForeignKey(Province, related_name="chw_province", null=True, blank=True, help_text=" The province you live in")
@@ -252,6 +252,7 @@ class Reporter(models.Model):
 
     language = models.CharField(max_length = 2, blank=True, null = True, choices= LANGUAGE_CHOICES, help_text="Select the preferred language to receive SMS")
     deactivated = models.BooleanField(default=False, help_text="Deactivate Reporter Telephone Number when is no longer used.")
+    is_active = models.BooleanField(default=False)
 
     class Meta:
         # define a permission for this app to use the @permission_required
@@ -271,7 +272,7 @@ class Reporter(models.Model):
 
     def get_connections(self):
         connections = None
-        
+
         try:
             contact, created = Contact.objects.get_or_create(name = self.national_id)
             if self.language:    contact.language = self.language.lower()
@@ -285,27 +286,22 @@ class Reporter(models.Model):
                     connection.save()
                 except Exception,e:
                     continue
-            
+
             contact.save()
             connections = Connection.objects.filter(contact = contact)
         except Exception, e:
             pass
-            
+
         return connections
 
     def last_seen(self):
         """Returns the Python datetime that this Reporter was last seen,
             on any Connection. Before displaying in the WebUI, the output
            should be run through the XXX  filter, to make it prettier."""
-        
-        # comprehend a list of datetimes that this
-        # reporter was last seen on each connection,
-        # excluding those that have never seen them
-        timedates = [
-                        c.date
-                        for c in Message.objects.filter( connection__in = Connection.objects.filter(contact__name = self.national_id))
-                        if c.date is not None]
-        
+
+        cnx = Connection.objects.filter(contact__name=self.national_id)
+        messages = Message.objects.filter(connection__in=cnx)
+        timedates = messages.values_list('date', flat=True)
         # return the latest, or none, if they've
         # has never been seen on ANY connection
         return max(timedates) if timedates else None
@@ -314,12 +310,12 @@ class Reporter(models.Model):
         """Returns the connection object last used by this Reporter.
         The field is (probably) updated by app.py when receiving
         a message, so depends on _incoming_ messages only."""
-        
+
         # TODO: add a "preferred" flag to connection, which then
         # overrides the last_seen connection as the default, here
         try:
             return Connection.objects.get(contact__name = self.national_id, contact = self.contact())#Connection.objects.get(contact__name = self.national_id, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
-        
+
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
         except Connection.DoesNotExist:
@@ -329,12 +325,12 @@ class Reporter(models.Model):
         """Returns the connection object last used by this Reporter.
         The field is (probably) updated by app.py when receiving
         a message, so depends on _incoming_ messages only."""
-        
+
         # TODO: add a "preferred" flag to connection, which then
         # overrides the last_seen connection as the default, here
         try:
             return Contact.objects.get(name = self.national_id)
-        
+
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
         except Contact.DoesNotExist:
@@ -347,11 +343,11 @@ class Reporter(models.Model):
 
     def reporter_district_sups(self):
         sups = Supervisor.objects.filter(referral_hospital = self.referral_hospital)
-        return sups 
+        return sups
     #End of Supervisors!
 
-    
-    #Expired reporter 
+
+    #Expired reporter
     def is_expired(self):
         if not self.last_seen() or self.last_seen().date() < datetime.date.today()-datetime.timedelta(30):
             return True
@@ -392,7 +388,7 @@ class Error(models.Model):
     sheet = models.CharField(max_length = 50)
     upload_ref = models.CharField(max_length = 50)
     district = models.ForeignKey(District)
-    when	 = models.DateTimeField()	
+    when	 = models.DateTimeField()
     by	 = models.ForeignKey(User)
     error_message = models.CharField(max_length = 300)
 
@@ -412,7 +408,7 @@ class Warn(models.Model):
     sheet = models.CharField(max_length = 50)
     upload_ref = models.CharField(max_length = 50)
     district = models.ForeignKey(District)
-    when	 = models.DateTimeField()	
+    when	 = models.DateTimeField()
     by	 = models.ForeignKey(User)
     warning_message = models.CharField(max_length = 300)
 
@@ -468,7 +464,7 @@ class Supervisor(models.Model):
 
     def get_connections(self):
         connections = None
-        
+
         try:
             contact, created = Contact.objects.get_or_create(name = self.email)
             if self.language:    contact.language = self.language.lower()
@@ -482,19 +478,19 @@ class Supervisor(models.Model):
                     connection.save()
                 except Exception,e:
                     continue
-            
+
             contact.save()
             connections = Connection.objects.filter(contact = contact)
         except Exception, e:
             pass
-            
+
         return connections
 
     def last_seen(self):
         """Returns the Python datetime that this Reporter was last seen,
             on any Connection. Before displaying in the WebUI, the output
            should be run through the XXX  filter, to make it prettier."""
-        
+
         # comprehend a list of datetimes that this
         # reporter was last seen on each connection,
         # excluding those that have never seen them
@@ -502,7 +498,7 @@ class Supervisor(models.Model):
                         c.date
                         for c in Message.objects.filter( connection__in = Connection.objects.filter(contact__name = self.email))
                         if c.date is not None]
-        
+
         # return the latest, or none, if they've
         # has never been seen on ANY connection
         return max(timedates) if timedates else None
@@ -511,12 +507,12 @@ class Supervisor(models.Model):
         """Returns the connection object last used by this Reporter.
         The field is (probably) updated by app.py when receiving
         a message, so depends on _incoming_ messages only."""
-        
+
         # TODO: add a "preferred" flag to connection, which then
         # overrides the last_seen connection as the default, here
         try:
             return Connection.objects.get(contact__name = self.email, contact = self.contact())#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
-        
+
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
         except Connection.DoesNotExist:
@@ -526,12 +522,12 @@ class Supervisor(models.Model):
         """Returns the connection object last used by this Reporter.
         The field is (probably) updated by app.py when receiving
         a message, so depends on _incoming_ messages only."""
-        
+
         # TODO: add a "preferred" flag to connection, which then
         # overrides the last_seen connection as the default, here
         try:
             return Contact.objects.get(name = self.email)
-        
+
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
         except Contact.DoesNotExist:
@@ -551,4 +547,4 @@ def ensure_connections_exists(sender, **kwargs):
 post_save.connect(ensure_connections_exists, sender = Reporter)
 post_save.connect(ensure_connections_exists, sender = Supervisor)
 
-    
+
