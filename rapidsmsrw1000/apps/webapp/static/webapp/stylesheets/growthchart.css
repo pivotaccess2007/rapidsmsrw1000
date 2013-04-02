@@ -1,0 +1,65 @@
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.line {
+  fill: none;
+  stroke: #FFFFFF;
+}
+
+.pLine {
+  fill: none;
+  stroke: black;
+  stroke-width: 1.5px;
+  cursor: pointer;
+}
+
+.dot {
+  fill: black;
+  stroke: black;
+  stroke-width: 1.5px;
+  cursor: pointer;
+}
+
+.dotSelected {
+	fill: #FFFFFF;
+	stroke: #FFFFFF;
+  stroke-width: 1.5px;
+  cursor: pointer;
+}
+
+.rect-to-axis {
+  fill: rgba(0,0,0,0);
+  stroke: rgba(20,20,20, .8);
+}
+
+.hidden {
+  display: none;
+}
+
+.backgroundRect {
+  fill: rgba(255,255,255,1);
+}
+
+.button-change-graph {
+  cursor: pointer;
+}
+.axis path,
+.axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+
+text {
+	font: 11px "Helvetica Neue", "Helvetica", sans-serif;
+}
+
+.tooltipTextBackground {
+	fill: #FFFFFF;
+	stroke: grey;
+}
+

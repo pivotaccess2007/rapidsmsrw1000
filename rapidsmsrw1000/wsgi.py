@@ -16,15 +16,17 @@ framework.
 import os
 import sys
 
-# set up python path and virtualenv
-activate_this = '/home/zigama/projects/python/virtualenvs/django_1.4_projects/bin/activate_this.py'
-execfile(activate_this, dict(__file__=activate_this))
+try:
+    # set up python path and virtualenv
+    activate_this = '/home/zigama/projects/python/virtualenvs/django_1.4_projects/bin/activate_this.py'
+    execfile(activate_this, dict(__file__=activate_this))
 
-filedir = os.path.dirname(__file__)
+    filedir = os.path.dirname(__file__)
 
-rootpath = os.path.join(filedir, "..")
-sys.path.append(os.path.join(rootpath))
-
+    rootpath = os.path.join(filedir, "..")
+    sys.path.append(os.path.join(rootpath))
+except:
+    pass
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rapidsmsrw1000.settings")
 
