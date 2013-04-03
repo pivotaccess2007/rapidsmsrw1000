@@ -34,6 +34,7 @@ from django.views.generic import ListView
 from pygrowup import Calculator
 from pygrowup import helpers
 from decimal import *
+from rapidsmsrw1000.apps.ubuzima.get_data import get_red_alert_data
 
 ### START OF HELPERS
 def paginated(req, data):
@@ -107,8 +108,10 @@ def index(req,**flts):
         return reports_to_excel(reports.order_by("-id"))
     else:
 
-        return render_to_response("ubuzima/index.html", {"reports": paginated(req, reports),'usrloc':UserLocation.objects.get(user=req.user),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
-             'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
+        # TODO start date and end date
+        red_alerts = json.dumps(get_red_alert_data())
+        return render_to_response("ubuzima/index.html", {"reports": paginated(req, reports),'usrloc':UserLocation.objects.get(user=req.user),'start_date': date.strftime(filters['period']['start'], '%d.%m.%Y'),
+            'end_date': date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1], 'red_alerts': red_alerts,
         }, context_instance=RequestContext(req))
 
 
