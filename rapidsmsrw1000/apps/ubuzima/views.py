@@ -1102,7 +1102,7 @@ def death_report(req):
 
     resp = pull_req_with_filters(req)
     reports = matching_reports(req,resp['filters'])
-    qryset = reports.filter(fields__in = Field.objects.filter(type__key__in = ["md","cd","nd"]))
+    qryset = reports.filter(type__name = "Death")
     births = reports.filter(type__name='Birth', created__gte = resp['filters']['period']['start'], created__lte = resp['filters']['period']['end'])
     end = resp['filters']['period']['end']
     start = resp['filters']['period']['start']
