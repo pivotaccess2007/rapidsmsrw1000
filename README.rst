@@ -1,4 +1,3 @@
-
 Rapidsmsrw1000
 ========================
 
@@ -26,6 +25,10 @@ necessary requirements::
     source rapidsmsrw1000-env/bin/activate
     cd rapidsmsrw1000
     pip install -r requirements/base.txt
+
+=====In the situation it fails to install distribute, you need to run the following command to rebuild python(Identified in python-2.7.3):
+=====sudo apt-get install build-essential
+
 
 Update your settings file::
 
