@@ -1,0 +1,371 @@
+<link rel="stylesheet" type="text/css" href="/static/webapp/stylesheets/dc.css" ></link>
+<script type="text/javascript" src="/static/webapp/javascripts/d3.min.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/crossfilter.min.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/queue.min.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/dc.min.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/colorbrewer.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/underscore-min.js"></script>
+
+<div class="container">
+    <div id="rw-chart">
+        <a class="reset" href="javascript:rwChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        <span class="reset" style="display: none;"> | Current filter: <span class="filter"></span></span>
+
+        <div class="clearfix"></div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div id="totals-chart">
+        <strong>Red alerts by district</strong> (y: total red alerts, x: types of red alerts, r: types of red alerts)
+        <a class="reset" href="javascript:totalsChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+
+        <div class="clearfix"></div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div id="totals-bar-chart">
+        <strong>Red alerts by districts</strong> (y: total red alerts, x: total red alerts)
+        <a class="reset" href="javascript:totalsBarChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+
+        <div class="clearfix"></div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div id="province-pie-chart">
+        <a class="reset" href="javascript:provincePieChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+
+        <div class="clearfix"></div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div id="risks-pie-chart">
+        <a class="reset" href="javascript:risksPieChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+
+        <div class="clearfix"></div>
+    </div>
+
+    <div>
+        <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+if(typeof console === undefined) {
+	console = {
+		log:function() {}
+	}
+}
+
+    var numberFormat = d3.format(".2f");
+
+    var rwChart = dc.geoChoroplethChart("#rw-chart");
+		var totalsChart = dc.bubbleChart("#totals-chart");
+		var totalsBarChart = dc.barChart("#totals-bar-chart");
+		var provincePieChart = dc.pieChart("#province-pie-chart");
+		var risksPieChart = dc.pieChart("#risks-pie-chart");
+
+		// TODO use this for coloring totalsChart by province
+		// TODO customize colors of risks too
+		var provinceNumber = {"NORTHERN": 1, "KIGALI CITY": 2, "SOUTHERN": 3, "EASTERN": 4, "WESTERN": 5};
+		var provinceColors = d3.scale.ordinal()
+			.domain(["NORTHERN", "KIGALI CITY", "SOUTHERN", "EASTERN", "WESTERN"])
+			.range(["#f7fcf0", "#ccebc5", "#7bccc4", "#2b8cbe", "#084081"]);
+
+		var golden = ((1 + Math.sqrt(5)) / 2); // golden ratio FTW
+		var height = 400,
+				width = height * golden;
+
+		var projection = d3.geo.albers()
+				.center([33, 0])
+				// rw is slanted on albers projection,
+				// so adjust pitch and roll
+				// such that bottom of rw straight
+				// (its straigt on mercator projections,
+				// which is what most people are used to)
+				// [yaw, pitch, roll] AKA [lat, long, roll]
+				.rotate([1.5, 12.7, -16.4])
+				.parallels([25, 35])
+				.scale(13000)
+				.translate([width / 2, height / 2]);
+
+		// declare some vars here so they are available
+		// in the browser console for debugging
+		var data;
+		var districts;
+		var shapes;
+
+		var pollDistricts = [];
+		var mapDistricts = [];
+
+		var pollData;
+
+		queue()
+			.defer(d3.json, "/static/webapp/javascripts/wb_rw_districts.json")
+			.await(ready);
+
+		function ready(error, rw) {
+				poll = {{ red_alerts|safe }};
+				pollData = poll;
+				// TODO handle error!
+
+				// TODO uppercase district names in the geojson file instead of in the browser
+				rw.features = _.map(rw.features, function(d) {d.properties.name = d.properties.distr_name.toUpperCase(); return d; });
+				shapes = rw;
+
+				// debug info for comparing districts from map and from poll results
+				pollDistricts = _.unique(_.map(poll, function(d) { return d.district; }));
+				mapDistricts = _.map(rw.features, function(d) { return d.properties.name; });
+				// mapping between french and english province names
+				fr2en = {Nord: "NORTHERN", "Ville De Kigali": "KIGALI CITY", Ouest: "WESTERN", Est: "EASTERN", Sud: "SOUTHERN"};
+				mapProvinces = _.map(rw.features, function(d) { return fr2en[d.properties.province]; });
+				provincesMap = _.object(mapDistricts, mapProvinces);
+
+				console.log('have results, no map', _.difference(pollDistricts, mapDistricts));
+				console.log(_.difference(pollDistricts, mapDistricts).length)
+				console.log('on map, not results', _.difference(mapDistricts, pollDistricts));
+				console.log(_.difference(mapDistricts, pollDistricts).length)
+
+				// add english name of province to each record
+				data = crossfilter(_.map(poll, function(p) {return _.defaults(p, {'province': provincesMap[p.district]});}));
+
+				// crossfilter dimension for districts
+        districts = data.dimension(function (d) {
+            return d["district"];
+        });
+				districtsGroup = districts.group().reduceSum(function(d) { return d.total; });
+
+        provinces = data.dimension(function (d) {
+            return d["province"];
+        });
+				provincesGroup = provinces.group().reduceSum(function(d) { return d.total; });
+				provinceColors = d3.scale.category20();
+				
+
+        risks = data.dimension(function (d) {
+            return d["type"];
+        });
+
+				pollRisks = _.unique(_.pluck(risks.top(1000), 'type'));
+				risksGroup = risks.group().reduceSum(function(d) { return d.total; });
+				riskColors = d3.scale.category20();
+
+				// crossfilter group (map-reduce) for poll result counts and stats by district
+				// see https://github.com/square/crossfilter/wiki/API-Reference#wiki-group_reduce
+        totalAnswersByDistrict = districts.group().reduce(
+                function(p, v) {
+										// add function
+										// reduce by sum (...although at the moment there is only one record per district)
+										p.totalRisks += +v.total;
+										p[v.type] += +v.total;
+
+										p.province = v.province;
+										if (v.total !== 0){
+											p.risk = v.type;
+											if (_.indexOf(p.riskTypes, v.type) < 0){
+												p.riskTypes.push(v.type);
+											}
+										}
+										p.totalTypes = p.riskTypes.length;
+                    return p;
+                },
+                function(p, v) {
+										// remove function (used for incremental updates as records are filtered)
+										p.totalRisks -= +v.total;
+										p[v.type] -= +v.total;
+										if (v.total !== 0){
+											p.riskTypes.pop(v.type);
+										}
+										p.totalTypes = p.riskTypes.length;
+
+										p.province = v.province;
+                    return p;
+                },
+                function() {
+										// initial function
+                    return {
+												totalRisks: 0, risk: '', riskTypes: [], totalTypes: 0, province: '', "Abnormal Fontinel": 0, "Chronic Disease": 0,
+												"Congenital Malformation": 0, Convulsions: 0, "Cord Infection": 0,
+												Coughing: 0, Diarrhea: 0, Edema: 0, Fever: 0, "Flaccid Paralysis": 0,
+												"Hemorrhaging/Bleeding": 0, Hypothermia: 0, Jaundice: 0,
+												"Labor with Previous C-Section": 0, Malaria: 0, "Miscarriage": 0,
+												"Mother in Labor at Home": 0, "Neck Stiffness": 0, Pneumonia: 0,
+												"Premature Contraction": 0, "Rapid Breathing": 0,
+												"Serious condition, but unknown": 0, "Severe Anemia": 0,
+												"Stroke during Labor": 0, Unconscious: 0, Vomiting: 0
+                    };
+                }
+        );
+
+				rwChart.width(width)
+								.height(height)
+								.dimension(districts)
+								.projection(projection)
+                .group(totalAnswersByDistrict)
+								.valueAccessor(function (p) {
+										return p.value.totalRisks;
+								})
+								// TODO look into patching dc.js so we can
+								// use topojson instead of geojson (topojson files are much smaller)
+								.overlayGeoJson(rw.features, "district", function (d) {
+										if (_.find(pollDistricts, function(x){ return x == d.properties.name; })){
+											// if district name from map is the same
+											// as district name in results, use it
+											return d.properties.name;
+										}
+										// print debug info if district cannont be reconciled with map
+										console.log('no district named ', d.properties.name);
+										return d.properties.name;
+								})
+								// color across yellow-green-blue range
+								// with a domain of 0% yes to 100% yes
+								.colors(colorbrewer.Blues[9])
+								// TODO domain of 0-150 gives some differentiate
+								// in color for stuff in the 70%-80% range, which
+								// on a 0-100 domain are all basically the same color
+								.colorDomain([0, 10])
+								.title(function (d) {
+										return d.key + "\n Red alerts: " + (d.value ? d.value : 0);
+								});
+
+            totalsChart.width((width* 1.5))
+                    .height(height)
+                    .margins({top: 10, right: 50, bottom: 30, left: 60})
+                    .dimension(districts)
+                    .group(totalAnswersByDistrict)
+                    .keyAccessor(function (p) {
+                        return p.value.totalTypes;
+                    })
+                    .valueAccessor(function (p) {
+                        return p.value.totalRisks;
+                    })
+                    .radiusValueAccessor(function (p) {
+                        return p.value.totalTypes;
+                    })
+										.colors(provinceColors)
+										.colorAccessor(function(d, i){ return provinceNumber[d.value.province]; })
+										// TODO calculate these domains
+                    .x(d3.scale.linear().domain([0, 10]))
+                    .r(d3.scale.linear().domain([0, 10]))
+                    .minRadiusWithLabel(5)
+                    .elasticY(true)
+                    .yAxisPadding(5)
+                    //.elasticX(true)
+                    .xAxisPadding(200)
+                    .maxBubbleRelativeSize(0.07)
+                    .renderHorizontalGridLines(true)
+                    .renderVerticalGridLines(true)
+                    .renderLabel(true)
+                    .renderTitle(true)
+                    .title(function (p) {
+                        return p.key + ' (' + p.value.province + ')'
+                                + "\n"
+                                + "Red alerts: " + p.value.totalRisks + '\n'
+                                + "Types: " + p.value.totalTypes + '\n'
+                                + p.value.riskTypes;
+                    });
+            totalsChart.yAxis().tickFormat(function (s) {
+                return s;
+            });
+            totalsChart.xAxis().tickFormat(function (s) {
+                return s;
+            });
+
+					totalsBarChart
+									.width((width* 1.5))
+									.height((height/2))
+									.margins({top: 10, right: 50, bottom: 30, left: 60})
+                  .dimension(districts)
+                  .group(totalAnswersByDistrict)
+                  .keyAccessor(function (p) {
+												// x axis positioning
+                        return p.value.totalRisks;
+                    })
+                   .valueAccessor(function (p) {
+												// bar segment colors are defined in css
+												// y height of Vomiting
+                        return p.value["Vomiting"];
+                    })
+									// stack y height of other risks
+									.stack(totalAnswersByDistrict, function(d){return d.value["Abnormal Fontinel"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Chronic Disease"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Congenital Malformation"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Convulsions"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Cord Infection"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Coughing"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Diarrhea"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Edema"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Fever"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Flacid Paralysis"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Hemorrhaging/Bleeding"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Hypothermia"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Jaundice"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Labor with Previous C-Section"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Malaria"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Miscarriage"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Mother in Labor at Home"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Neck Stiffness"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Pneumonia"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Premature Contraction"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Rapid Breathing"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Serious condition, but unknown"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Severe Anemia"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Stroke during Labor"];})
+									.stack(totalAnswersByDistrict, function(d){return d.value["Unconscious"];})
+									.x(d3.scale.linear().domain([0, 100]))
+									.renderHorizontalGridLines(true)
+									.centerBar(false)
+									.elasticY(true)
+                  //.elasticX(true)
+									.brushOn(false)
+									.title(function(d){
+                      return d.key + ' (' + d.value.province + ')'
+                                + "\n"
+                                + "Red alerts: " + d.value.totalRisks + '\n'
+                                + "Types: " + d.value.totalTypes + '\n'
+                                + d.value.riskTypes;
+									})
+									.xAxis().ticks(5);
+
+
+					provincePieChart
+							.width(300)
+							.height(200)
+							.transitionDuration(500)
+							.colors(provinceColors)
+							.colorAccessor(function(d, i){ return provinceNumber[d.data.key]; })
+							.radius(90)
+							.innerRadius(40)
+							.dimension(provinces)
+							.group(provincesGroup)
+							.renderLabel(true)
+							.renderTitle(true);
+
+					risksPieChart
+							.width(300)
+							.height(200)
+							.transitionDuration(500)
+							.colors(riskColors)
+							.colorAccessor(function(d, i){return _.indexOf(pollRisks, d.data.key); })
+							.radius(90)
+							.innerRadius(40)
+							.dimension(risks)
+							.group(risksGroup)
+							.renderLabel(true)
+							.renderTitle(true);
+
+            dc.renderAll();
+
+					function addRiskColor(d, i) {
+							return this.setAttribute('style', 'fill: ' + riskColors(_.indexOf(pollRisks, d.value.risk)) + ';' );
+					}
+
+					d3.selectAll('rect.bar')
+						.each(addRiskColor);
+
+    };
+</script>

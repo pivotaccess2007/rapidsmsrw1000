@@ -1,0 +1,58 @@
+  <script src="/static/webapp/javascripts/d3.min.js"></script>
+  <script src="/static/webapp/javascripts/underscore-min.js"></script>
+  <script src="/static/webapp/javascripts/growthchart.js"></script>
+  <link rel="stylesheet" type="text/css" href="/static/webapp/stylesheets/growthchart.css" ></link>
+  <div id="boyGirlContainer">
+    <div style="float: left;">
+      <h3>Weight for Age, Boys</h3>
+      <div id="boys"></div>
+    </div>
+    <div style="float: right;">
+      <h3>Weight for Age, Girls</h3>
+      <div id="girls"></div>
+    </div>
+  </div>
+    <div class="clear-hack"></div>
+
+  <div>
+  <div style="float: left;">
+    <h3>Weight for Age, Sex Unknown (shown on WHO boys curves)</h3>
+    <div id="unknown"></div>
+  </div>
+  </div>
+  <script>
+	var myConfig = {
+		height: 275,
+		titles: false,
+		wfa_all_0_to_5_meta: {
+			"lines": [{
+				"tag":"SD0",
+				"name":""
+			}, {
+				"tag":"SD1neg",
+				"name":"-1 SD"
+			}, {
+				"tag":"SD2neg",
+				"name":"-2 SD"
+			}, {
+				"tag":"SD2",
+				"name":" 2 SD"
+			}, {
+				"tag":"SD1",
+				"name":" 1 SD"
+			}, {
+				"tag":"SD3",
+				"name":" 3 SD"
+			}, {
+				"tag":"SD3neg",
+				"name":"-3 SD"
+			}],}
+	};
+	var boysData = {{ chart_data.boys|safe }};
+	var girlsData = {{ chart_data.girls|safe }};
+	var unknownData = {{ chart_data.unknown|safe }};
+	var boysChart = display_growth_chart(boysData, "#boys", "wfa_boys_0_to_5", myConfig);
+	var girlsChart = display_growth_chart(girlsData, "#girls", "wfa_girls_0_to_5", myConfig);
+	var unknownChart = display_growth_chart(unknownData, "#unknown", "wfa_boys_0_to_5", myConfig);
+  </script>
+    
