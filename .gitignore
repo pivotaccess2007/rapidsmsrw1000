@@ -17,3 +17,5 @@ settings.py
 local.py
 rem.json
 *.old
+public/static/
+public/media/
