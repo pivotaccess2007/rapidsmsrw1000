@@ -103,6 +103,12 @@ class PreHandler (KeywordHandler):
                                          % { 'key': f.type.key,'red' : f.type.kw})
                 return True
 
+        for f in fields:
+            if f.type in FieldType.objects.filter(category__name = 'Death Codes'):
+                message.respond(_("%(key)s:%(dth)s is a death, please see how to report a death and try again.")\
+                                         % { 'key': f.type.key,'dth' : f.type.kw})
+                return True
+
     	if not report.has_dups():
             ##Remember for Pregnancy to adjust next appointment if given while scheduling the mother as follow
             report.set_preg_edd_dates(report.date)

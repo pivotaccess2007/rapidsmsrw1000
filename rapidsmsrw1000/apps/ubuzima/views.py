@@ -31,8 +31,8 @@ from rapidsmsrw1000.apps.ubuzima.enum import *
 from django.contrib.auth.models import *
 ##working with generic view
 from django.views.generic import ListView
-from pygrowup import Calculator
-from pygrowup import helpers
+from pygrowup import helpers, Calculator
+#from pygrowup import helpers
 from decimal import *
 
 ### START OF HELPERS
