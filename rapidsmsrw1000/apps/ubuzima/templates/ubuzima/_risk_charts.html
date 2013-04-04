@@ -217,12 +217,8 @@
 										};
 										return d.properties.name;
 								})
-								// color across yellow-green-blue range
-								// with a domain of 0% yes to 100% yes
-								.colors(colorbrewer.Blues[9])
-								// TODO domain of 0-150 gives some differentiate
-								// in color for stuff in the 70%-80% range, which
-								// on a 0-100 domain are all basically the same color
+								// color across yellow-orange-red range
+								.colors(colorbrewer.YlOrRd[9])
 								.colorDomain([0, 10])
 								.title(function (d) {
 										return d.key + "\n Risks: " + (d.value ? d.value : 0);
