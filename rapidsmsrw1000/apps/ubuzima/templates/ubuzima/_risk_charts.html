@@ -55,12 +55,11 @@
 </div>
 
 <script type="text/javascript">
-if(typeof console === undefined) {
-	console = {
-		log:function() {}
-	}
-}
-
+		if(typeof console === undefined) {
+			console = {
+				log:function() {}
+			}
+		}
     var numberFormat = d3.format(".2f");
 
     var rwChart = dc.geoChoroplethChart("#rw-chart");
@@ -99,45 +98,89 @@ if(typeof console === undefined) {
 		var districts;
 		var shapes;
 
-		var pollDistricts = [];
+		var caseDistricts = [];
 		var mapDistricts = [];
 
-		var pollData;
+		var caseData;
+		var debug = false;
 
 		queue()
 			.defer(d3.json, "/static/webapp/javascripts/wb_rw_districts.json")
 			.await(ready);
 
 		function ready(error, rw) {
-				poll = {{ red_alerts|safe }};
-				pollData = poll;
+				cases = {{ red_alerts|safe }};
+				caseData = cases;
 				// TODO handle error!
 
 				// TODO uppercase district names in the geojson file instead of in the browser
 				rw.features = _.map(rw.features, function(d) {d.properties.name = d.properties.distr_name.toUpperCase(); return d; });
 				shapes = rw;
 
-				// debug info for comparing districts from map and from poll results
-				pollDistricts = _.unique(_.map(poll, function(d) { return d.district; }));
+				// debug info for comparing districts from map and from cases
+				caseDistricts = _.unique(_.map(cases, function(d) { return d.district; }));
 				mapDistricts = _.map(rw.features, function(d) { return d.properties.name; });
 				// mapping between french and english province names
 				fr2en = {Nord: "NORTHERN", "Ville De Kigali": "KIGALI CITY", Ouest: "WESTERN", Est: "EASTERN", Sud: "SOUTHERN"};
 				mapProvinces = _.map(rw.features, function(d) { return fr2en[d.properties.province]; });
 				provincesMap = _.object(mapDistricts, mapProvinces);
 
-				console.log('have results, no map', _.difference(pollDistricts, mapDistricts));
-				console.log(_.difference(pollDistricts, mapDistricts).length)
-				console.log('on map, not results', _.difference(mapDistricts, pollDistricts));
-				console.log(_.difference(mapDistricts, pollDistricts).length)
+				if (debug){
+				  console.log('have cases, no map', _.difference(caseDistricts, mapDistricts));
+				  console.log(_.difference(caseDistricts, mapDistricts).length)
+				  console.log('on map, not cases', _.difference(mapDistricts, caseDistricts));
+				  console.log(_.difference(mapDistricts, caseDistricts).length)
+				};
 
 				// add english name of province to each record
-				data = crossfilter(_.map(poll, function(p) {return _.defaults(p, {'province': provincesMap[p.district]});}));
+				data = crossfilter(_.map(cases, function(p) {return _.defaults(p, {'province': provincesMap[p.district]});}));
 
 				// crossfilter dimension for districts
         districts = data.dimension(function (d) {
             return d["district"];
         });
-				districtsGroup = districts.group().reduceSum(function(d) { return d.total; });
+
+				// crossfilter group (map-reduce) for case counts and stats by district
+				// see https://github.com/square/crossfilter/wiki/API-Reference#wiki-group_reduce
+				districtsGroup = districts.group().reduce(
+						function(p, v) {
+							p.total += +v.total;
+							// push non-zero risk types into list
+							if (v.total !== 0){
+								p.risks.push(v.type);
+							};
+							p.province = v.province;
+							// count how many times each risk appears
+							// and create object mapping {risk: n}
+							p.counts = _.chain(p.risks).reduce(function(counts, risk) {
+														counts[risk] = (counts[risk] || 0) + 1;
+														return counts;
+													}, {})
+													.value();
+													_.each(_.pairs(p.counts), function(d) {if (typeof d !== 'undefined') {p[d[0]] = d[1];}});
+							// create a sorted list of lists in decreasing order
+							// with [[risk, n],...]
+							p.countsList = _.sortBy(_.pairs(p.counts), function(d){ return d[1];});
+							return p;
+						 },
+						function(p, v) {
+							p.total -= +v.total
+							if (v.total !== 0){
+								p.risks.pop(v.type);
+							};
+							p.province = v.province;
+							p.counts = _.chain(p.risks).reduce(function(counts, risk) {
+														counts[risk] = (counts[risk] || 0) + 1;
+														return counts;
+													}, {})
+													.value();
+							p.countsList = _.sortBy(_.pairs(p.counts), function(d){ return d[1];});
+							return p;
+						 },
+						function() {
+							return {total: 0, province: '', counts: {}, countsList: [], risks: []};
+						 }
+						);
 
         provinces = data.dimension(function (d) {
             return d["province"];
@@ -150,75 +193,30 @@ if(typeof console === undefined) {
             return d["type"];
         });
 
-				pollRisks = _.unique(_.pluck(risks.top(1000), 'type'));
+				caseTypes = _.unique(_.pluck(risks.top(1000), 'type'));
 				risksGroup = risks.group().reduceSum(function(d) { return d.total; });
 				riskColors = d3.scale.category20();
-
-				// crossfilter group (map-reduce) for poll result counts and stats by district
-				// see https://github.com/square/crossfilter/wiki/API-Reference#wiki-group_reduce
-        totalAnswersByDistrict = districts.group().reduce(
-                function(p, v) {
-										// add function
-										// reduce by sum (...although at the moment there is only one record per district)
-										p.totalRisks += +v.total;
-										p[v.type] += +v.total;
-
-										p.province = v.province;
-										if (v.total !== 0){
-											p.risk = v.type;
-											if (_.indexOf(p.riskTypes, v.type) < 0){
-												p.riskTypes.push(v.type);
-											}
-										}
-										p.totalTypes = p.riskTypes.length;
-                    return p;
-                },
-                function(p, v) {
-										// remove function (used for incremental updates as records are filtered)
-										p.totalRisks -= +v.total;
-										p[v.type] -= +v.total;
-										if (v.total !== 0){
-											p.riskTypes.pop(v.type);
-										}
-										p.totalTypes = p.riskTypes.length;
-
-										p.province = v.province;
-                    return p;
-                },
-                function() {
-										// initial function
-                    return {
-												totalRisks: 0, risk: '', riskTypes: [], totalTypes: 0, province: '', "Abnormal Fontinel": 0, "Chronic Disease": 0,
-												"Congenital Malformation": 0, Convulsions: 0, "Cord Infection": 0,
-												Coughing: 0, Diarrhea: 0, Edema: 0, Fever: 0, "Flaccid Paralysis": 0,
-												"Hemorrhaging/Bleeding": 0, Hypothermia: 0, Jaundice: 0,
-												"Labor with Previous C-Section": 0, Malaria: 0, "Miscarriage": 0,
-												"Mother in Labor at Home": 0, "Neck Stiffness": 0, Pneumonia: 0,
-												"Premature Contraction": 0, "Rapid Breathing": 0,
-												"Serious condition, but unknown": 0, "Severe Anemia": 0,
-												"Stroke during Labor": 0, Unconscious: 0, Vomiting: 0
-                    };
-                }
-        );
 
 				rwChart.width(width)
 								.height(height)
 								.dimension(districts)
 								.projection(projection)
-                .group(totalAnswersByDistrict)
+                .group(districtsGroup)
 								.valueAccessor(function (p) {
-										return p.value.totalRisks;
+										return p.value.total;
 								})
 								// TODO look into patching dc.js so we can
 								// use topojson instead of geojson (topojson files are much smaller)
 								.overlayGeoJson(rw.features, "district", function (d) {
-										if (_.find(pollDistricts, function(x){ return x == d.properties.name; })){
+										if (_.find(caseDistricts, function(x){ return x == d.properties.name; })){
 											// if district name from map is the same
-											// as district name in results, use it
+											// as district name in cases, use it
 											return d.properties.name;
 										}
 										// print debug info if district cannont be reconciled with map
-										console.log('no district named ', d.properties.name);
+										if (debug) {
+										  console.log('no district named ', d.properties.name);
+										};
 										return d.properties.name;
 								})
 								// color across yellow-green-blue range
@@ -229,22 +227,22 @@ if(typeof console === undefined) {
 								// on a 0-100 domain are all basically the same color
 								.colorDomain([0, 10])
 								.title(function (d) {
-										return d.key + "\n Red alerts: " + (d.value ? d.value : 0);
+										return d.key + "\n Risks: " + (d.value ? d.value : 0);
 								});
 
             totalsChart.width((width* 1.5))
                     .height(height)
                     .margins({top: 10, right: 50, bottom: 30, left: 60})
                     .dimension(districts)
-                    .group(totalAnswersByDistrict)
+                    .group(districtsGroup)
                     .keyAccessor(function (p) {
-                        return p.value.totalTypes;
+                        return p.value.total;
                     })
                     .valueAccessor(function (p) {
-                        return p.value.totalRisks;
+                        return _.unique(p.value.risks).length;
                     })
                     .radiusValueAccessor(function (p) {
-                        return p.value.totalTypes;
+                        return p.value.total;
                     })
 										.colors(provinceColors)
 										.colorAccessor(function(d, i){ return provinceNumber[d.value.province]; })
@@ -262,11 +260,10 @@ if(typeof console === undefined) {
                     .renderLabel(true)
                     .renderTitle(true)
                     .title(function (p) {
+												var countsText = _.map(p.value.countsList, function(x) {return x[1] + ":\t " + x[0] + "\n";}).join('');
                         return p.key + ' (' + p.value.province + ')'
                                 + "\n"
-                                + "Red alerts: " + p.value.totalRisks + '\n'
-                                + "Types: " + p.value.totalTypes + '\n'
-                                + p.value.riskTypes;
+                                + "Risks: \n" + countsText;
                     });
             totalsChart.yAxis().tickFormat(function (s) {
                 return s;
@@ -280,54 +277,38 @@ if(typeof console === undefined) {
 									.height((height/2))
 									.margins({top: 10, right: 50, bottom: 30, left: 60})
                   .dimension(districts)
-                  .group(totalAnswersByDistrict)
+                  .group(districtsGroup)
                   .keyAccessor(function (p) {
 												// x axis positioning
-                        return p.value.totalRisks;
+                        return p.value.total;
                     })
                    .valueAccessor(function (p) {
-												// bar segment colors are defined in css
-												// y height of Vomiting
-                        return p.value["Vomiting"];
+												if (p.value.countsList[0]) {
+													return p.value.countsList[0][1];
+												};
                     })
 									// stack y height of other risks
-									.stack(totalAnswersByDistrict, function(d){return d.value["Abnormal Fontinel"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Chronic Disease"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Congenital Malformation"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Convulsions"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Cord Infection"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Coughing"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Diarrhea"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Edema"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Fever"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Flacid Paralysis"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Hemorrhaging/Bleeding"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Hypothermia"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Jaundice"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Labor with Previous C-Section"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Malaria"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Miscarriage"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Mother in Labor at Home"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Neck Stiffness"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Pneumonia"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Premature Contraction"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Rapid Breathing"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Serious condition, but unknown"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Severe Anemia"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Stroke during Labor"];})
-									.stack(totalAnswersByDistrict, function(d){return d.value["Unconscious"];})
+									// TODO do this differently! its conceivable that a district could have
+									 // more than 10 red alert types...
+									 .stack(districtsGroup, function(d){if (d.value.countsList[1]) {return d.value.countsList[1][1];}})
+									 .stack(districtsGroup, function(d){if (d.value.countsList[2]) {return d.value.countsList[2][1];}})
+									 .stack(districtsGroup, function(d){if (d.value.countsList[3]) {return d.value.countsList[3][1];}})
+									 .stack(districtsGroup, function(d){if (d.value.countsList[4]) {return d.value.countsList[4][1];}})
+									 .stack(districtsGroup, function(d){if (d.value.countsList[5]) {return d.value.countsList[5][1];}})
+									 .stack(districtsGroup, function(d){if (d.value.countsList[6]) {return d.value.countsList[6][1];}})
+									 .stack(districtsGroup, function(d){if (d.value.countsList[7]) {return d.value.countsList[7][1];}})
+									 .stack(districtsGroup, function(d){if (d.value.countsList[8]) {return d.value.countsList[8][1];}})
+									 .stack(districtsGroup, function(d){if (d.value.countsList[9]) {return d.value.countsList[9][1];}})
 									.x(d3.scale.linear().domain([0, 100]))
 									.renderHorizontalGridLines(true)
 									.centerBar(false)
 									.elasticY(true)
-                  //.elasticX(true)
 									.brushOn(false)
-									.title(function(d){
-                      return d.key + ' (' + d.value.province + ')'
+									.title(function(p){
+												var countsText = _.map(p.value.countsList, function(x) {return x[1] + ":\t " + x[0] + "\n";}).join('');
+                        return p.key + ' (' + p.value.province + ')'
                                 + "\n"
-                                + "Red alerts: " + d.value.totalRisks + '\n'
-                                + "Types: " + d.value.totalTypes + '\n'
-                                + d.value.riskTypes;
+                                + "Risks: \n" + countsText;
 									})
 									.xAxis().ticks(5);
 
@@ -350,7 +331,7 @@ if(typeof console === undefined) {
 							.height(200)
 							.transitionDuration(500)
 							.colors(riskColors)
-							.colorAccessor(function(d, i){return _.indexOf(pollRisks, d.data.key); })
+							.colorAccessor(function(d, i){return _.indexOf(caseTypes, d.data.key); })
 							.radius(90)
 							.innerRadius(40)
 							.dimension(risks)
@@ -361,7 +342,11 @@ if(typeof console === undefined) {
             dc.renderAll();
 
 					function addRiskColor(d, i) {
-							return this.setAttribute('style', 'fill: ' + riskColors(_.indexOf(pollRisks, d.value.risk)) + ';' );
+						// FIXME stacked bar chart segments are not colored properly
+						//console.log(this);
+						//console.log(this.classList[1], d.value.risk, d.value[d.value.risk]);
+						//console.log(d);
+							return this.setAttribute('style', 'fill: ' + riskColors(_.indexOf(caseTypes, d.value.risk)) + ';' );
 					}
 
 					d3.selectAll('rect.bar')
