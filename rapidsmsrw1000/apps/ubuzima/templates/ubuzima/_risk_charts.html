@@ -17,7 +17,7 @@
     <div class="clearfix"></div>
 
     <div id="totals-chart">
-        <strong>Red alerts by district</strong> (y: total red alerts, x: types of red alerts, r: types of red alerts)
+        <strong>Red alerts by district</strong> (y: total red alerts, x: total unique types of red alerts, r: total red alerts, color: province)
         <a class="reset" href="javascript:totalsChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 
         <div class="clearfix"></div>
@@ -26,7 +26,7 @@
     <div class="clearfix"></div>
 
     <div id="totals-bar-chart">
-        <strong>Red alerts by districts</strong> (y: total red alerts, x: total red alerts)
+        <strong>Red alerts by district</strong> (y: total red alerts, x: district)
         <a class="reset" href="javascript:totalsBarChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 
         <div class="clearfix"></div>
@@ -34,21 +34,18 @@
 
     <div class="clearfix"></div>
 
-    <div id="province-pie-chart">
+    <div id="province-pie-chart" class="donut control">
         <a class="reset" href="javascript:provincePieChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 
-        <div class="clearfix"></div>
     </div>
 
-    <div class="clearfix"></div>
 
-    <div id="risks-pie-chart">
+    <div id="risks-pie-chart" class="donut control">
         <a class="reset" href="javascript:risksPieChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 
-        <div class="clearfix"></div>
     </div>
 
-    <div>
+    <div class="control">
         <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
     </div>
 
@@ -102,7 +99,7 @@
 		var mapDistricts = [];
 
 		var caseData;
-		var debug = false;
+		var debug = true;
 
 		queue()
 			.defer(d3.json, "/static/webapp/javascripts/wb_rw_districts.json")
@@ -132,6 +129,7 @@
 				  console.log(_.difference(mapDistricts, caseDistricts).length)
 				};
 
+
 				// add english name of province to each record
 				data = crossfilter(_.map(cases, function(p) {return _.defaults(p, {'province': provincesMap[p.district]});}));
 
@@ -157,7 +155,6 @@
 														return counts;
 													}, {})
 													.value();
-													_.each(_.pairs(p.counts), function(d) {if (typeof d !== 'undefined') {p[d[0]] = d[1];}});
 							// create a sorted list of lists in decreasing order
 							// with [[risk, n],...]
 							p.countsList = _.sortBy(_.pairs(p.counts), function(d){ return d[1];});
@@ -166,7 +163,8 @@
 						function(p, v) {
 							p.total -= +v.total
 							if (v.total !== 0){
-								p.risks.pop(v.type);
+								// remove all of the type that is being filtered
+								p.risks = _.without(p.risks, v.type);
 							};
 							p.province = v.province;
 							p.counts = _.chain(p.risks).reduce(function(counts, risk) {
@@ -280,7 +278,7 @@
                   .group(districtsGroup)
                   .keyAccessor(function (p) {
 												// x axis positioning
-                        return p.value.total;
+                        return _.indexOf(caseDistricts, p.key);
                     })
                    .valueAccessor(function (p) {
 												if (p.value.countsList[0]) {
@@ -299,7 +297,10 @@
 									 .stack(districtsGroup, function(d){if (d.value.countsList[7]) {return d.value.countsList[7][1];}})
 									 .stack(districtsGroup, function(d){if (d.value.countsList[8]) {return d.value.countsList[8][1];}})
 									 .stack(districtsGroup, function(d){if (d.value.countsList[9]) {return d.value.countsList[9][1];}})
-									.x(d3.scale.linear().domain([0, 100]))
+									.x(d3.scale.linear().domain([0, caseDistricts.length]))
+									.label(function(d) { return d.key; })
+                  .renderLabel(true)
+									.gap(50)
 									.renderHorizontalGridLines(true)
 									.centerBar(false)
 									.elasticY(true)
@@ -310,7 +311,7 @@
                                 + "\n"
                                 + "Risks: \n" + countsText;
 									})
-									.xAxis().ticks(5);
+									.xAxis().ticks(0);
 
 
 					provincePieChart

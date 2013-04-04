@@ -11,16 +11,6 @@
     fill-opacity: .5;
 }
 
-.dc-chart rect.stack1 {
-    stroke: none;
-    fill: red;
-}
-
-.dc-chart rect.stack2 {
-    stroke: none;
-    fill: green;
-}
-
 .dc-chart rect.deselected {
     stroke: none;
     fill: #ccc;
@@ -94,22 +84,6 @@
     fill: steelblue;
 }
 
-.dc-chart g.stack1 path.line {
-    stroke: green;
-}
-
-.dc-chart g.stack1 circle.dot{
-    fill: green;
-}
-
-.dc-chart g.stack2 path.line {
-    stroke: red;
-}
-
-.dc-chart g.stack2 circle.dot{
-    fill: red;
-}
-
 .dc-chart g.dc-tooltip path{
     fill: none;
     stroke: grey;
@@ -120,14 +94,6 @@
     fill: steelblue;
     fill-opacity: .3;
     stroke: none;
-}
-
-.dc-chart g.stack1 path.area {
-    fill: green;
-}
-
-.dc-chart g.stack2 path.area {
-    fill: red;
 }
 
 .dc-chart .node {
