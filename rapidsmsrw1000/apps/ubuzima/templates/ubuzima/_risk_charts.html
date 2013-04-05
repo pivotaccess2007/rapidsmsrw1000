@@ -274,7 +274,7 @@
                   .group(districtsGroup)
                   .keyAccessor(function (p) {
 												// x axis positioning
-                        return _.indexOf(caseDistricts, p.key);
+                        return p.key;
                     })
                    .valueAccessor(function (p) {
 												if (p.value.countsList[0]) {
@@ -293,9 +293,9 @@
 									 .stack(districtsGroup, function(d){if (d.value.countsList[7]) {return d.value.countsList[7][1];}})
 									 .stack(districtsGroup, function(d){if (d.value.countsList[8]) {return d.value.countsList[8][1];}})
 									 .stack(districtsGroup, function(d){if (d.value.countsList[9]) {return d.value.countsList[9][1];}})
-									.x(d3.scale.linear().domain([0, caseDistricts.length]))
-									.label(function(d) { return d.key; })
-                  .renderLabel(true)
+									.xUnits(dc.units.ordinal)
+									.x(d3.scale.ordinal().domain(caseDistricts))
+									.gap(50)
 									.gap(50)
 									.renderHorizontalGridLines(true)
 									.centerBar(false)
@@ -307,7 +307,7 @@
                                 + "\n"
                                 + "Risks: \n" + countsText;
 									})
-									.xAxis().ticks(0);
+									.xAxis().ticks(caseDistricts.length);
 
 
 					provincePieChart
