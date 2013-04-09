@@ -89,7 +89,7 @@ def parse_date(dob_string):
 	    # print "%s = '%s' '%s' '%s'" % (dob_string, dd, mm, yyyy)
 	    
 	    # make sure we are in the right format
-	    if len(dd) > 2 or len(mm) > 2 or len(yyyy) > 4: 
+	    if len(dd) > 2 or len(mm) > 2 or len(yyyy) != 4 or int(yyyy) < 2009: 
 		raise Exception(_("Invalid date format, must be in the form: DD.MM.YYYY"))
 
 	    # invalid month
@@ -358,7 +358,7 @@ def parse_dob(dob_string):
 	    # print "%s = '%s' '%s' '%s'" % (dob_string, dd, mm, yyyy)
 	    
 	    # make sure we are in the right format
-	    if len(dd) > 2 or len(mm) > 2 or len(yyyy) > 4: 
+	    if len(dd) > 2 or len(mm) > 2 or len(yyyy) != 4  or int(yyyy) < 2009: 
 		raise Exception(_("Invalid date format, must be in the form: DD.MM.YYYY"))
 
 	    # invalid month
@@ -469,7 +469,7 @@ def message_reporter(message):
         return Reporter.objects.filter(national_id = message.connection.contact.name )[0]
     except :
         if settings.TRAINING_ENV == True:   return anonymous_reporter(message.connection.identity)
-        else:   raise Exception(_("You need to be registered first, use the REG keyword"))
+        else:   raise Exception(_("You need to be registered first"))
 
 def anonymous_reporter(identity):
     reporter = None
