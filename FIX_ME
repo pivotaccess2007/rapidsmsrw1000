@@ -12,3 +12,7 @@
 	Need to create a folder in in the project root named "static" and run the following command:
 
 	./manage collectstatic
+
+3.Sometimes to set git to your preferred editor, run the following command in case you need vim:
+
+	git config --global core.editor "vim"
