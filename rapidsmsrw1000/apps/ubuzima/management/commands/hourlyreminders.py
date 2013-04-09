@@ -29,10 +29,10 @@ class Command(BaseCommand):
     def check_unresponded_red_alerts(self):
         try:
             today = timezone.localtime(timezone.now())#today = datetime.date.today()#test datetime.date(2012, 4, 12)
-            sent = Report.objects.filter( type__name = "Red Alert", created__year = today.year, created__month = today.month ,\
-                                        created__lte = timezone.localtime(timezone.now()) - datetime.timedelta(hours = 24))
-            responded = Report.objects.filter( type__name = "Red Alert Result", created__year = today.year, created__month = today.month ,\
-                         created__gte = timezone.localtime(timezone.now()) - datetime.timedelta(hours = 24))
+            sent = Report.objects.filter( type__name = "Red Alert", created__gte = today - datetime.timedelta(hours = 24))#sent = Report.objects.filter( type__name = "Red Alert", created__year = today.year, created__month = today.month ,\
+                                        #created__lte = timezone.localtime(timezone.now()) - datetime.timedelta(hours = 24))
+            responded = Report.objects.filter( type__name = "Red Alert Result",created__gte = today - datetime.timedelta(hours = 24))#responded = Report.objects.filter( type__name = "Red Alert Result", created__year = today.year, created__month = today.month ,\
+                         #created__gte = timezone.localtime(timezone.now()) - datetime.timedelta(hours = 24))
             
             pending = sent.exclude(reporter__in = responded.values('reporter'), patient__in = responded.values('patient'), \
                             fields__type__key__in = responded.filter(fields__type__category__name__icontains = 'red').values('fields__type__key'))
@@ -56,7 +56,7 @@ class Command(BaseCommand):
                 except Exception, e:
                     print e
                     continue
-                if not self.dry:	Reminder.objects.create(type=reminder_type, location = alert.location,  date=timezone.localtime(timezone.now()), reporter=alert.reporter)
+                if not self.dry:	alert.reminders.create(type=reminder_type, location = alert.location,  date=timezone.localtime(timezone.now()), reporter=alert.reporter)
         except Exception, e:
             print e
             pass
