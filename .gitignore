@@ -15,6 +15,7 @@ dist/*
 *.mo
 settings.py
 local.py
+wsgi.py
 rem.json
 *.old
 public/static/
