@@ -157,6 +157,12 @@ text-decoration:none;
 
 {% block content %}
 {% load reporters-tags %}
+<div class="clear-hack"></div>
+{% include 'ubuzima/_risk_charts.html' %}
+<div class="clear-hack"></div>
+
+<div style="clear:both;">
+
 <div>
     <form class="topstrip">
         <h2>Filtering</h2>
@@ -196,10 +202,7 @@ text-decoration:none;
     </form>
     <div class="clear-hack"></div>
 </div>
-<div class="clear-hack"></div>
-{% include 'ubuzima/_risk_charts.html' %}
-<div class="clear-hack"></div>
-<div style="clear:both;">
+
 <h2>LoGS {%if not locationname %}<p style=" text-align:center; ">Nation Wide, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%else%}<p style=" text-align:center; ">{{locationname}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%endif%}</h2> 
 {% include 'ubuzima/report_table.html' %}
 </div>
