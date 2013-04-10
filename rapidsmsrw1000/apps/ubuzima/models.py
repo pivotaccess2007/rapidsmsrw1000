@@ -159,6 +159,8 @@ class Report(models.Model):
         summary = ""
         if self.date_string:
             summary += "Date=" + self.date_string
+        if self.edd_date:
+            summary += ", EDDate=%02d.%02d.%04d" % (self.edd_date.day, self.edd_date.month, self.edd_date.year)
 
         if self.fields.all():
             if self.date_string: summary += ", "
@@ -389,7 +391,7 @@ class Report(models.Model):
         return risk.exists()
 
     def is_high_risky_preg(self):
-    	risk = Report.objects.filter( patient = self.patient, fields__in = Field.objects.filter( type__in = FieldType.objects.filter(key__in =['ps','ds','sl','ja','fp','un','sa','co','he','pa','ma','sc','la'])))
+    	risk = self.fields.filter(type__key__in = ['gs','rm','ol','yg','mu'])
     	return risk.exists()
 
     def show_edd(self):

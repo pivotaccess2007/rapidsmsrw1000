@@ -69,9 +69,9 @@ def create_content(sheet, row, content_list):
 	return sheet
 
 def heading_report(report):
-	heads = ['ReportID','Date','Facility', 'District', 'Province','Type','Reporter','Patient', 'LMP', 'DOB', 'VisitDate',' ANCVisit','NBCVisit','PNCVisit','MotherWeight','MotherHeight','ChildWeight','ChildHeight','MUAC', 'ChilNumber','Gender', 'Gravidity','Parity', 'VaccinationReceived' , 'VaccinationCompletion','Breastfeeding', 'Intevention', 'Status','Toilet','Handwash' , 'Located','Symptoms']
+	heads = ['ReportID','Date','Facility', 'District', 'Province','Type','Reporter','Patient', 'LMP','EDD', 'DOB', 'VisitDate',' ANCVisit','NBCVisit','PNCVisit','MotherWeight','MotherHeight','ChildWeight','ChildHeight','MUAC', 'ChilNumber','Gender', 'Gravidity','Parity', 'VaccinationReceived' , 'VaccinationCompletion','Breastfeeding', 'Intevention', 'Status','Toilet','Handwash' , 'Located','Symptoms']
 
-	dob = lmp = visit = anc = nbc = pnc = mother_w = child_w = mother_h = child_h = muac = chino = gender = gr = pr = vr = vc = bf = interv = st = toi = hw = loc = sym = ""
+	dob = lmp = edd = visit = anc = nbc = pnc = mother_w = child_w = mother_h = child_h = muac = chino = gender = gr = pr = vr = vc = bf = interv = st = toi = hw = loc = sym = ""
 	
 	try:
 		mother_wf = report.fields.filter(type__key = 'mother_weight')
@@ -181,15 +181,15 @@ def heading_report(report):
 		for s in symf:
 			sym = sym+s.type.description+", "
 	except:	pass
-	print 'id:%s'%report.id, 'date:%s'%read_date(report.created), 'fac:%s'%report.location.name, 'dist:%s'%report.district.name, 'prv:%s'%report.province.name, 'rty:%s'%report.type.name , 'rnid:%s'%report.reporter.telephone_moh, 'pnid:%s'%report.patient.national_id , 'lmp:%s'%lmp, 'dob:%s'%dob, 'visit:%s'%visit, 'anc:%s'%anc, 'nbc:%s'%nbc, 'pnc:%s'%pnc, 'm_w:%s'%mother_w, 'm_h:%s'%mother_h, 'c_w:%s'%child_w, 'c_w:%s'%child_h, 'muac:%s'%muac, 'chino:%s'%chino, 'gender:%s'%gender, 'gr:%s'%gr, 'pr:%s'%pr, 'vr:%s'%vr, 'vc:%s'%vc, 'bf:%s'%bf, 'interv:%s'%interv, 'st:%s'%st, 'toi:%s'%toi, 'hw:%s'%hw, 'loc:%s'%loc, 'sym:%s'%sym
+	#print 'id:%s'%report.id, 'date:%s'%read_date(report.created), 'fac:%s'%report.location.name, 'dist:%s'%report.district.name, 'prv:%s'%report.province.name, 'rty:%s'%report.type.name , 'rnid:%s'%report.reporter.telephone_moh, 'pnid:%s'%report.patient.national_id , 'lmp:%s'%lmp, 'dob:%s'%dob, 'visit:%s'%visit, 'anc:%s'%anc, 'nbc:%s'%nbc, 'pnc:%s'%pnc, 'm_w:%s'%mother_w, 'm_h:%s'%mother_h, 'c_w:%s'%child_w, 'c_w:%s'%child_h, 'muac:%s'%muac, 'chino:%s'%chino, 'gender:%s'%gender, 'gr:%s'%gr, 'pr:%s'%pr, 'vr:%s'%vr, 'vc:%s'%vc, 'bf:%s'%bf, 'interv:%s'%interv, 'st:%s'%st, 'toi:%s'%toi, 'hw:%s'%hw, 'loc:%s'%loc, 'sym:%s'%sym
 	
 
 	if report.type.name == 'Birth': dob = read_date(report.date)
-	elif report.type.name == 'Pregnancy': lmp = read_date(report.date)
+	elif report.type.name == 'Pregnancy': lmp, edd =  read_date(report.date), read_date(report.edd_date)
 	elif report.type.name == 'ANC': visit = read_date(report.date)
 	else:	dob = read_date(report.date)  
 
-	content = [report.id, read_date(report.created), report.location.name, report.district.name, report.province.name, report.type.name , report.reporter.national_id, report.patient.national_id , lmp, dob, visit, anc,nbc, pnc, mother_w, mother_h, child_w, child_h, muac, chino, gender, gr, pr, vr, vc, bf, interv, st, toi, hw, loc, sym ]
+	content = [report.id, read_date(report.created), report.location.name, report.district.name, report.province.name, report.type.name , report.reporter.national_id, report.patient.national_id , lmp, edd, dob, visit, anc,nbc, pnc, mother_w, mother_h, child_w, child_h, muac, chino, gender, gr, pr, vr, vc, bf, interv, st, toi, hw, loc, sym ]
 
 	return {'heads' : heads, 'content' : content}
 

@@ -92,7 +92,7 @@ def index(req,**flts):
         lxn = HealthCentre.objects.get(id = lox)
         lxn=lxn.name+' '+"Health Centre"+', '+lxn.district.name+' '+"District"+', '+lxn.province.name+' '
     if req.REQUEST.has_key('csv'):
-        heads = ['ReportID','Date','Facility', 'District', 'Province','Type','Reporter','Patient', 'LMP', 'DOB', 'VisitDate',' ANCVisit','NBCVisit','PNCVisit','MotherWeight','MotherHeight','ChildWeight','ChildHeight','MUAC', 'ChilNumber','Gender', 'Gravidity','Parity', 'VaccinationReceived' , 'VaccinationCompletion','Breastfeeding', 'Intevention', 'Status','Toilet','Handwash' , 'Located','Symptoms']
+        heads = ['ReportID','Date','Facility', 'District', 'Province','Type','Reporter','Patient', 'LMP', 'EDD', 'DOB', 'VisitDate',' ANCVisit','NBCVisit','PNCVisit','MotherWeight','MotherHeight','ChildWeight','ChildHeight','MUAC', 'ChilNumber','Gender', 'Gravidity','Parity', 'VaccinationReceived' , 'VaccinationCompletion','Breastfeeding', 'Intevention', 'Status','Toilet','Handwash' , 'Located','Symptoms']
         htp = HttpResponse()
         htp['Content-Type'] = 'text/csv; encoding=%s' % (getdefaultencoding(),)
         wrt = csv.writer(htp, dialect = 'excel-tab')
@@ -199,6 +199,31 @@ def by_type(req, pk, **flts):
              'district':default_district(req)}
     reports = matching_reports(req,filters).filter(type=report_type).order_by("-created")
     lox, lxn = 0, location_name(req)
+
+    if req.REQUEST.has_key('cat') and req.REQUEST['cat'] == 'hrisk':
+        reports = fetch_high_risky_preg(reports)
+    elif req.REQUEST.has_key('cat') and req.REQUEST['cat'] == 'edd':
+        resp=pull_req_with_filters(req)
+        end = resp['filters']['period']['end']
+        start = resp['filters']['period']['start']
+        annot = resp['annot_l']
+        locs = resp['locs']
+        rez = {}
+        rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
+        
+        reports = fetch_edd( start, end).filter(** rez)
+
+    elif req.REQUEST.has_key('cat') and req.REQUEST['cat'] == 'hedd':
+        resp=pull_req_with_filters(req)
+        end = resp['filters']['period']['end']
+        start = resp['filters']['period']['start']
+        annot = resp['annot_l']
+        locs = resp['locs']
+        rez = {}
+        rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
+        
+        reports = fetch_high_risky_preg(fetch_edd( start, end).filter(** rez))
+
     if req.REQUEST.has_key('location') and req.REQUEST['location'] != '0':
         lox = int(req.REQUEST['location'])
         lxn = HealthCentre.objects.get(id = lox)
@@ -363,9 +388,10 @@ def fetch_edd_info(qryset, start, end):
             edd_start, date__lte = edd_end,location__in=qryset.values('location')).select_related('patient')
     return dem
 def fetch_edd(start, end):
-    edd_start,edd_end=Report.calculate_last_menses(start),Report.calculate_last_menses(end)
-    dem  = Report.objects.filter(type = ReportType.objects.get(name = 'Pregnancy'), date__gte =
-            edd_start, date__lte = edd_end).select_related('patient')
+    #edd_start,edd_end=Report.calculate_last_menses(start),Report.calculate_last_menses(end)
+    #dem  = Report.objects.filter(type = ReportType.objects.get(name = 'Pregnancy'), date__gte =
+            #edd_start, date__lte = edd_end).select_related('patient')
+    dem  = Report.objects.filter(type = ReportType.objects.get(name = 'Pregnancy'), edd_date__gte =start, edd_date__lte = end).select_related('patient')
     return dem
 
 def fetch_underweight_kids(qryset):
@@ -471,8 +497,8 @@ def fetch_vaccinated_stats(reps):
     for r in FieldType.objects.filter(category=FieldCategory.objects.get(name='Vaccination')): track[r.key]=reps.filter(fields__in = Field.objects.filter(type=FieldType.objects.get(key=r.key))).distinct()
     return track
 
-def fetch_high_risky_preg(qryset):
-    return qryset.filter(fields__in = Field.objects.filter(type__in = FieldType.objects.filter(key__in =['ps','ds','sl','ja','fp','un','sa','co','he','pa','ma','sc','la'])))
+def fetch_high_risky_preg(qryset):    
+    return qryset.filter(fields__type__key__in = ['gs','rm','ol','yg','mu'])
 
 def fetch_without_toilet(qryset):
     return qryset.filter(fields__in = Field.objects.filter(type = FieldType.objects.get(key ='nt')))
@@ -513,7 +539,7 @@ def get_important_stats(req, flts):
 ##START OF PREGNANCY TABLES, CHARTS, MAP
 @permission_required('ubuzima.can_view')
 def preg_report(req):
-
+    
     resp=pull_req_with_filters(req)
     resp['reports']=matching_reports(req,resp['filters'])
     end = resp['filters']['period']['end']
@@ -525,16 +551,17 @@ def preg_report(req):
     rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
     edd = fetch_edd( start, end).filter(** rez)
     resp['reports'] = paginated(req, preg)
-    if preg.exists() or edd.exists():
-        preg_l, preg_risk_l, edd_l, edd_risk_l = preg.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(preg).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), edd.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(edd).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
+    if preg.exists() or edd.exists(): 
+        preg_l, preg_risk_l, edd_l, edd_risk_l = preg.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(preg).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), edd.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(edd).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) 
 
         ans_l = {'pre' : preg_l, 'prehr' : preg_risk_l, 'edd': edd_l, 'eddhr': edd_risk_l}
 
-        preg_m, preg_risk_m, edd_m, edd_risk_m = preg.extra(select={'year': 'EXTRACT(year FROM date)','month': 'EXTRACT(month FROM date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), fetch_high_risky_preg(preg).extra(select={'year': 'EXTRACT(year FROM date)','month': 'EXTRACT(month FROM date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), edd.extra(select={'year': 'EXTRACT(year FROM date)','month': 'EXTRACT(month FROM date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'),fetch_high_risky_preg(edd).extra(select={'year': 'EXTRACT(year FROM date)','month': 'EXTRACT(month FROM date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
+        preg_m, preg_risk_m, edd_m, edd_risk_m = preg.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), fetch_high_risky_preg(preg).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), edd.extra(select={'year': 'EXTRACT(year FROM edd_date)','month': 'EXTRACT(month FROM edd_date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'),fetch_high_risky_preg(edd).extra(select={'year': 'EXTRACT(year FROM edd_date)','month': 'EXTRACT(month FROM edd_date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
 
         ans_m = {'pre' : preg_m, 'prehr' : preg_risk_m, 'edd': edd_m, 'eddhr': edd_risk_m}
-
-    resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'months_edd' : months_between(Report.calculate_last_menses(start),Report.calculate_last_menses(end))}
+        
+    resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'months_edd' : months_between(start,end)}
+    resp['report_type'] = ReportType.objects.get(name = 'Pregnancy')
     return render_to_response('ubuzima/preg_report.html',
            resp, context_instance=RequestContext(req))
 ##END OF PREGNANCY TABLES, CHARTS, MAP

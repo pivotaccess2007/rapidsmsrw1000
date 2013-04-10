@@ -377,7 +377,7 @@ var pre_l_c =[] , prehr_l_c = [], ticks_l  = [], edd_l_c = [], eddhr_l_c = [], p
 var pre_m_c =[] , prehr_m_c = [], ticks_m  = [], edd_m_c = [], eddhr_m_c = [], pre_m_tot=0, prehr_m_tot=0, edd_m_tot=0, eddhr_m_tot=0;
 	
 	
-	var str_l = "<h2 >Pregnancy Report Statistics in {{sel.name}}-{{sel|to_class_name}} By "+locs[0].split("-")[2]+"</h2><table class = 'table-design' id = 'table_l'>";	
+	var str_l = "<h2 >Pregnancy Report Statistics in {{sel.name}}-{{sel|to_class_name}} By "+locs[0].split("-")[2]+" from {{filters.period.start|date:'d/M/Y'}} to  {{filters.period.end|date:'d/M/Y'}}</h2><table class = 'table-design' id = 'table_l'>";	
 	var theader_l = "<thead> <tr><th>"+locs[0].split("-")[2]+"</th><th>Registered Pregnancy</th><th>High Risk Registered Pregnancy</th><th>Expected Delivery</th><th>High Risk Expected Delivery</th></tr></thead>";
 	var tdata_l = "<tbody>";
 	for ( var l in locs) {
@@ -405,7 +405,7 @@ var pre_m_c =[] , prehr_m_c = [], ticks_m  = [], edd_m_c = [], eddhr_m_c = [], p
 			ticks_l.push([l, loc_n]);
 			pre_l_tot += pre_l_n, prehr_l_tot += prehr_l_n, edd_l_tot += edd_l_n , eddhr_l_tot += eddhr_l_n ;
 			//if (l%2 == 0){trc="even";} else {trc="odd";}	
-	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td>"+pre_l_n+"</td>"+"<td>"+prehr_l_n+"</td>"+"<td>"+edd_l_n+"</td>"+"<td>"+eddhr_l_n+"</td></tr>";
+	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+pre_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=hrisk&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+prehr_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=edd&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+edd_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=hedd&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+eddhr_l_n+"</a></td></tr>";
 	
 	
 			
@@ -418,7 +418,7 @@ var pre_m_c =[] , prehr_m_c = [], ticks_m  = [], edd_m_c = [], eddhr_m_c = [], p
 
 	
 	
-	var str_m = "<h2 >Monthly Pregnancy Report Statistics in {{sel.name}}-{{sel|to_class_name}}</h2><table class = 'table-design' id = 'table_m'>";
+	var str_m = "<h2 >Monthly Pregnancy Report Statistics in {{sel.name}}-{{sel|to_class_name}} from {{filters.period.start|date:'d/M/Y'}} to  {{filters.period.end|date:'d/M/Y'}}</h2><table class = 'table-design' id = 'table_m'>";
 	var theader_m = "<thead> <tr><th>Month</th><th>Registered Pregnancy</th><th>High Risk Registered Pregnancy</th><th>Expected Delivery</th><th>High Risk Expected Delivery</th></tr></thead>";
 	var tdata_m = "";	
 	for ( var m in months_b) {
