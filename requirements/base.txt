@@ -5,3 +5,5 @@ pygrowup==0.7.6b0
 unicodecsv==0.9.4
 xlrd==0.9.0
 xlwt==0.7.4
+hl7
+pycurl

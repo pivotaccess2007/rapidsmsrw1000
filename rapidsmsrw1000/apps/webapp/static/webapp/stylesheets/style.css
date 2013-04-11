@@ -1,6 +1,21 @@
 html
 { height: 100%;}
 
+#header_image {
+	background-color: #266e99;
+    color: #CC3300;
+    height: 100px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    text-align: center;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    top: 20;
+    z-index: 10;
+	margin-top:-20px;
+	box-shadow: 0 0 8px #8d9d9e;
+}
+
 *
 { margin: 0;
   padding: 0;}
@@ -93,7 +108,9 @@ ol li
 #header
 { background: #ffffff;
   background:#ffffff url(/static/webapp/images_new/nav-bg.png) repeat-x;
-  height: 52px;}
+  height: 52px;
+  margin-top: 72px;
+}
 
 #new-header
 { width: 1200px;

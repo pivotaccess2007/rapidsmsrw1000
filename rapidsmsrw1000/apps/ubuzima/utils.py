@@ -177,7 +177,8 @@ def heading_report(report):
 	except:	pass
 
 	try:
-		symf = report.fields.filter(type__category__name__in = ['Risk Codes' , 'Red Alert Codes'])
+		symf = report.fields.filter(type__category__name__in = ['Risk Codes' , 'Red Alert Codes', 'PRE Codes']).exclude(type__key__in = \
+						['nh', 'nt', 'to', 'hw', 'gravity', 'parity'])
 		for s in symf:
 			sym = sym+s.type.description+", "
 	except:	pass
