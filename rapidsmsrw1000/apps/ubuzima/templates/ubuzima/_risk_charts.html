@@ -180,6 +180,9 @@
 						 }
 						);
 
+			  maxRisks = _.max(districtsGroup.top(1000), function(p) {return p.value.total;}).value.total;
+				maxRiskTypes = _.unique(_.max(districtsGroup.top(1000), function(p) {return _.unique(p.value.risks).length;}).value.risks).length;
+
         provinces = data.dimension(function (d) {
             return d["province"];
         });
@@ -217,14 +220,13 @@
 										};
 										return d.properties.name;
 								})
-								// color across yellow-orange-red range
 								.colors(colorbrewer.YlOrRd[9])
-								.colorDomain([0, 10])
+									.colorDomain([0, maxRisks])
 								.title(function (d) {
 										return d.key + "\n Risks: " + (d.value ? d.value : 0);
 								});
 
-            totalsChart.width((width* 1.5))
+            totalsChart.width((width * .95))
                     .height(height)
                     .margins({top: 10, right: 50, bottom: 30, left: 60})
                     .dimension(districts)
@@ -240,9 +242,8 @@
                     })
 										.colors(provinceColors)
 										.colorAccessor(function(d, i){ return provinceNumber[d.value.province]; })
-										// TODO calculate these domains
-                    .x(d3.scale.linear().domain([0, 10]))
-                    .r(d3.scale.linear().domain([0, 10]))
+										.x(d3.scale.linear().domain([0, (2 + maxRisks)]))
+										.r(d3.scale.linear().domain([0, maxRisks]))
                     .minRadiusWithLabel(5)
                     .elasticY(true)
                     .yAxisPadding(5)
@@ -267,8 +268,8 @@
             });
 
 					totalsBarChart
-									.width((width* 1.5))
-									.height((height/2))
+									.width((width * .95))
+									.height(height)
 									.margins({top: 10, right: 50, bottom: 30, left: 60})
                   .dimension(districts)
                   .group(districtsGroup)
@@ -295,8 +296,7 @@
 									 .stack(districtsGroup, function(d){if (d.value.countsList[9]) {return d.value.countsList[9][1];}})
 									.xUnits(dc.units.ordinal)
 									.x(d3.scale.ordinal().domain(caseDistricts))
-									.gap(50)
-									.gap(50)
+									.gap(30)
 									.renderHorizontalGridLines(true)
 									.centerBar(false)
 									.elasticY(true)
