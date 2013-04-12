@@ -1,4 +1,24 @@
 <link rel="stylesheet" type="text/css" href="/static/webapp/stylesheets/dc.css" ></link>
+<style>
+	.control {
+		float: right;
+		clear: right;
+		right: -25px;
+	}
+	.fixed-control {
+		/* TODO these styles mostly work for typical laptop/desktop 
+		screen sizes, but don't work well for smaller screens.
+	  there is also a small jump when this class is addded/removed
+	  -- and i don't see a good way to avoid it without overhauling 
+		all of the styles for the site layout to be more responsive	*/
+		position: fixed;
+		float: none;
+		margin-right: 25px;
+  }
+	#risks-pie-chart {
+		top: 350px;
+	}
+</style>
 <script type="text/javascript" src="/static/webapp/javascripts/d3.min.js"></script>
 <script type="text/javascript" src="/static/webapp/javascripts/crossfilter.min.js"></script>
 <script type="text/javascript" src="/static/webapp/javascripts/queue.min.js"></script>
@@ -34,19 +54,19 @@
 
     <div class="clearfix"></div>
 
-    <div id="province-pie-chart" class="donut control">
+    <div class="control fixed-control">
+        <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
+    </div>
+
+    <div id="province-pie-chart" class="donut control fixed-control">
         <a class="reset" href="javascript:provincePieChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 
     </div>
 
 
-    <div id="risks-pie-chart" class="donut control">
+    <div id="risks-pie-chart" class="donut control fixed-control">
         <a class="reset" href="javascript:risksPieChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 
-    </div>
-
-    <div class="control">
-        <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
     </div>
 
 </div>
@@ -57,6 +77,23 @@
 				log:function() {}
 			}
 		}
+
+		function findPosY(obj){
+				var top = 0;
+				if(obj.offsetParent){
+						while(1){
+							top += obj.offsetTop;
+							if(!obj.offsetParent)
+								break;
+							obj = obj.offsetParent;
+						}
+				}
+				else if(obj.y){
+						top += obj.y;
+				}
+				return top;
+			}
+
     var numberFormat = d3.format(".2f");
 
     var rwChart = dc.geoChoroplethChart("#rw-chart");
@@ -350,4 +387,40 @@
 						.each(addRiskColor);
 
     };
+
+
+  // add onload function to enable fixed positioning
+  // of the chart controls when the charts are visible
+	window.onload = function(){
+		// the div containing the svg elements does not have a height,
+		// so lets find out where the bottom of the charts are by looking
+		// at the element immediately below the charts
+		var filteringElement = document.getElementsByClassName('topstrip')[0];
+
+		// find the Y position of the filtering bar and subtract
+		// the approximate height of the two donut charts
+		var chartsBottom = findPosY(filteringElement) - 550;
+
+		// find all elements with the `control` class
+		// (donut charts, 'reset all', etc)
+		var controls = document.getElementsByClassName('control');
+
+		updateControls = function (e){
+			if (window.pageYOffset > chartsBottom){
+				// if we have scrolled below the bottom of the charts,
+				// remove class that includes the fixed positioning
+				// so that the controls will now be inline
+				_.map(controls, function(e) { return e.classList.remove('fixed-control');});
+			}
+			if (window.pageYOffset < chartsBottom){
+				// if we have scrolled above the bottom of the charts,
+				// add the class that includes the fixed positioning
+				// so that the controls will now be fixed in place
+				_.map(controls, function(e) { return e.classList.add('fixed-control');});
+			}
+		};
+		// add listener for onscroll
+		window.onscroll = updateControls;
+};
 </script>
+
