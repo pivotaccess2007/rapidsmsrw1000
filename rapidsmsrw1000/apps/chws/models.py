@@ -648,13 +648,15 @@ class FacilityStaff(models.Model):
     language_english	= 'en'
     language_french		= 'fr'
     language_kinyarwanda	= 'rw'
+    health_centre = 'hc'
+    district_hospital = 'hd'
 
     LANGUAGE_CHOICES = ( (language_english, "English"),
                 (language_french, "French"),
                 (language_kinyarwanda, "Kinyarwanda"))
 
-    SERVICE_CHOICES = ( (health_centre, "HC"),
-                        (district_hospital, "HD"))
+    SERVICE_CHOICES = ( (health_centre, "Health Centre"),
+                        (district_hospital, "District Hospital"))
 
 
     names = models.EmailField(max_length=150, null=True)
