@@ -20,3 +20,4 @@ rem.json
 *.old
 public/static/
 public/media/
+*.xls*
