@@ -2,7 +2,7 @@
 # vim: ai ts=4 sts=4 et sw=4
 
 
-from rapidsmsrw1000.apps.chws.models import *
+from rapidsmsrw1000.apps.chws.dbmodule import *
 from rapidsms.models import Contact, Connection, Backend
 from django.core.management.base import BaseCommand
 from optparse import make_option
@@ -27,13 +27,7 @@ class Command(BaseCommand):
             print "DRY RUN -- No messages will be sent, no database commits made."
 
         try:
-            reps = Reporter.objects.all().order_by('id')
-            for rep in reps:
-                rep.get_connections()
-            sups = Supervisor.objects.all().order_by('id')
-            for sup in sups:
-                sup.get_connections()
-                
+            update_empty_contact_connections()                
             
         except Exception, e:
             print e
