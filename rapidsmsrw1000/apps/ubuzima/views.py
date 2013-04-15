@@ -202,6 +202,17 @@ def by_type(req, pk, **flts):
 
     if req.REQUEST.has_key('cat') and req.REQUEST['cat'] == 'hrisk':
         reports = fetch_high_risky_preg(reports)
+
+    elif req.REQUEST.has_key('cat') and req.REQUEST['cat'] == 'pre_w':
+        resp=pull_req_with_filters(req)
+        end = resp['filters']['period']['end']
+        start = resp['filters']['period']['start']
+        annot = resp['annot_l']
+        locs = resp['locs']
+        rez = {}
+        rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
+        
+        reports = Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = end).filter(** rez)
     elif req.REQUEST.has_key('cat') and req.REQUEST['cat'] == 'edd':
         resp=pull_req_with_filters(req)
         end = resp['filters']['period']['end']
@@ -545,6 +556,7 @@ def preg_report(req):
     end = resp['filters']['period']['end']
     start = resp['filters']['period']['start']
     preg = resp['reports'].filter(type__name = 'Pregnancy', created__gte = start, created__lte = end )
+    pregnant_women = Report.objects.filter( type__name = 'Pregnancy' , edd_date__gte = end )
     annot = resp['annot_l']
     locs = resp['locs']
     ans_l, ans_m, rez = {}, {}, {}
@@ -552,9 +564,9 @@ def preg_report(req):
     edd = fetch_edd( start, end).filter(** rez)
     resp['reports'] = paginated(req, preg)
     if preg.exists() or edd.exists(): 
-        preg_l, preg_risk_l, edd_l, edd_risk_l = preg.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(preg).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), edd.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(edd).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) 
+        preg_l, preg_risk_l, edd_l, edd_risk_l, pre_w = preg.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(preg).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), edd.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(edd).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) ,pregnant_women.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) 
 
-        ans_l = {'pre' : preg_l, 'prehr' : preg_risk_l, 'edd': edd_l, 'eddhr': edd_risk_l}
+        ans_l = {'pre' : preg_l, 'prehr' : preg_risk_l, 'edd': edd_l, 'eddhr': edd_risk_l, 'pre_w' : pre_w}
 
         preg_m, preg_risk_m, edd_m, edd_risk_m = preg.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), fetch_high_risky_preg(preg).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), edd.extra(select={'year': 'EXTRACT(year FROM edd_date)','month': 'EXTRACT(month FROM edd_date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'),fetch_high_risky_preg(edd).extra(select={'year': 'EXTRACT(year FROM edd_date)','month': 'EXTRACT(month FROM edd_date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
 
