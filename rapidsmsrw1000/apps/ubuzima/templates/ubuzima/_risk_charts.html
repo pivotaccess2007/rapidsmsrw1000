@@ -1,4 +1,24 @@
 <link rel="stylesheet" type="text/css" href="/static/webapp/stylesheets/dc.css" ></link>
+<style>
+  .control {
+    float: right;
+    clear: right;
+    right: -25px;
+  }
+  .fixed-control {
+    /* TODO these styles mostly work for typical laptop/desktop 
+    screen sizes, but don't work well for smaller screens.
+    there is also a small jump when this class is addded/removed
+    -- and i don't see a good way to avoid it without overhauling 
+    all of the styles for the site layout to be more responsive  */
+    position: fixed;
+    float: none;
+    margin-right: 25px;
+  }
+  #risks-pie-chart {
+    top: 350px;
+  }
+</style>
 <script type="text/javascript" src="/static/webapp/javascripts/d3.min.js"></script>
 <script type="text/javascript" src="/static/webapp/javascripts/crossfilter.min.js"></script>
 <script type="text/javascript" src="/static/webapp/javascripts/queue.min.js"></script>
@@ -34,197 +54,216 @@
 
     <div class="clearfix"></div>
 
-    <div id="province-pie-chart" class="donut control">
+    <div class="control fixed-control">
+        <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
+    </div>
+
+    <div id="province-pie-chart" class="donut control fixed-control">
         <a class="reset" href="javascript:provincePieChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 
     </div>
 
 
-    <div id="risks-pie-chart" class="donut control">
+    <div id="risks-pie-chart" class="donut control fixed-control">
         <a class="reset" href="javascript:risksPieChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
 
-    </div>
-
-    <div class="control">
-        <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a>
     </div>
 
 </div>
 
 <script type="text/javascript">
-		if(typeof console === undefined) {
-			console = {
-				log:function() {}
-			}
-		}
+    if(typeof console === undefined) {
+      console = {
+        log:function() {}
+      }
+    }
+
+    function findPosY(obj){
+        var top = 0;
+        if(obj.offsetParent){
+            while(1){
+              top += obj.offsetTop;
+              if(!obj.offsetParent)
+                break;
+              obj = obj.offsetParent;
+            }
+        }
+        else if(obj.y){
+            top += obj.y;
+        }
+        return top;
+      }
+
     var numberFormat = d3.format(".2f");
 
     var rwChart = dc.geoChoroplethChart("#rw-chart");
-		var totalsChart = dc.bubbleChart("#totals-chart");
-		var totalsBarChart = dc.barChart("#totals-bar-chart");
-		var provincePieChart = dc.pieChart("#province-pie-chart");
-		var risksPieChart = dc.pieChart("#risks-pie-chart");
+    var totalsChart = dc.bubbleChart("#totals-chart");
+    var totalsBarChart = dc.barChart("#totals-bar-chart");
+    var provincePieChart = dc.pieChart("#province-pie-chart");
+    var risksPieChart = dc.pieChart("#risks-pie-chart");
 
-		// TODO use this for coloring totalsChart by province
-		// TODO customize colors of risks too
-		var provinceNumber = {"NORTHERN": 1, "KIGALI CITY": 2, "SOUTHERN": 3, "EASTERN": 4, "WESTERN": 5};
-		var provinceColors = d3.scale.ordinal()
-			.domain(["NORTHERN", "KIGALI CITY", "SOUTHERN", "EASTERN", "WESTERN"])
-			.range(["#f7fcf0", "#ccebc5", "#7bccc4", "#2b8cbe", "#084081"]);
+    // TODO use this for coloring totalsChart by province
+    // TODO customize colors of risks too
+    var provinceNumber = {"NORTHERN": 1, "KIGALI CITY": 2, "SOUTHERN": 3, "EASTERN": 4, "WESTERN": 5};
+    var provinceColors = d3.scale.ordinal()
+      .domain(["NORTHERN", "KIGALI CITY", "SOUTHERN", "EASTERN", "WESTERN"])
+      .range(["#f7fcf0", "#ccebc5", "#7bccc4", "#2b8cbe", "#084081"]);
 
-		var golden = ((1 + Math.sqrt(5)) / 2); // golden ratio FTW
-		var height = 400,
-				width = height * golden;
+    var golden = ((1 + Math.sqrt(5)) / 2); // golden ratio FTW
+    var height = 400,
+        width = height * golden;
 
-		var projection = d3.geo.albers()
-				.center([33, 0])
-				// rw is slanted on albers projection,
-				// so adjust pitch and roll
-				// such that bottom of rw straight
-				// (its straigt on mercator projections,
-				// which is what most people are used to)
-				// [yaw, pitch, roll] AKA [lat, long, roll]
-				.rotate([1.5, 12.7, -16.4])
-				.parallels([25, 35])
-				.scale(13000)
-				.translate([width / 2, height / 2]);
+    var projection = d3.geo.albers()
+        .center([33, 0])
+        // rw is slanted on albers projection,
+        // so adjust pitch and roll
+        // such that bottom of rw straight
+        // (its straigt on mercator projections,
+        // which is what most people are used to)
+        // [yaw, pitch, roll] AKA [lat, long, roll]
+        .rotate([1.5, 12.7, -16.4])
+        .parallels([25, 35])
+        .scale(13000)
+        .translate([width / 2, height / 2]);
 
-		// declare some vars here so they are available
-		// in the browser console for debugging
-		var data;
-		var districts;
-		var shapes;
+    // declare some vars here so they are available
+    // in the browser console for debugging
+    var data;
+    var districts;
+    var shapes;
 
-		var caseDistricts = [];
-		var mapDistricts = [];
+    var caseDistricts = [];
+    var mapDistricts = [];
 
-		var caseData;
-		var debug = true;
+    var caseData;
+    var debug = true;
 
-		queue()
-			.defer(d3.json, "/static/webapp/javascripts/wb_rw_districts.json")
-			.await(ready);
+    queue()
+      .defer(d3.json, "/static/webapp/javascripts/wb_rw_districts.json")
+      .await(ready);
 
-		function ready(error, rw) {
-				cases = {{ red_alerts|safe }};
-				caseData = cases;
-				// TODO handle error!
+    function ready(error, rw) {
+        cases = {{ red_alerts|safe }};
+        caseData = cases;
+        // TODO handle error!
 
-				// TODO uppercase district names in the geojson file instead of in the browser
-				rw.features = _.map(rw.features, function(d) {d.properties.name = d.properties.distr_name.toUpperCase(); return d; });
-				shapes = rw;
+        // TODO uppercase district names in the geojson file instead of in the browser
+        rw.features = _.map(rw.features, function(d) {d.properties.name = d.properties.distr_name.toUpperCase(); return d; });
+        shapes = rw;
 
-				// debug info for comparing districts from map and from cases
-				caseDistricts = _.unique(_.map(cases, function(d) { return d.district; }));
-				mapDistricts = _.map(rw.features, function(d) { return d.properties.name; });
-				// mapping between french and english province names
-				fr2en = {Nord: "NORTHERN", "Ville De Kigali": "KIGALI CITY", Ouest: "WESTERN", Est: "EASTERN", Sud: "SOUTHERN"};
-				mapProvinces = _.map(rw.features, function(d) { return fr2en[d.properties.province]; });
-				provincesMap = _.object(mapDistricts, mapProvinces);
+        // debug info for comparing districts from map and from cases
+        caseDistricts = _.unique(_.map(cases, function(d) { return d.district; }));
+        mapDistricts = _.map(rw.features, function(d) { return d.properties.name; });
+        // mapping between french and english province names
+        fr2en = {Nord: "NORTHERN", "Ville De Kigali": "KIGALI CITY", Ouest: "WESTERN", Est: "EASTERN", Sud: "SOUTHERN"};
+        mapProvinces = _.map(rw.features, function(d) { return fr2en[d.properties.province]; });
+        provincesMap = _.object(mapDistricts, mapProvinces);
 
-				if (debug){
-				  console.log('have cases, no map', _.difference(caseDistricts, mapDistricts));
-				  console.log(_.difference(caseDistricts, mapDistricts).length)
-				  console.log('on map, not cases', _.difference(mapDistricts, caseDistricts));
-				  console.log(_.difference(mapDistricts, caseDistricts).length)
-				};
+        if (debug){
+          console.log('have cases, no map', _.difference(caseDistricts, mapDistricts));
+          console.log(_.difference(caseDistricts, mapDistricts).length)
+          console.log('on map, not cases', _.difference(mapDistricts, caseDistricts));
+          console.log(_.difference(mapDistricts, caseDistricts).length)
+        };
 
 
-				// add english name of province to each record
-				data = crossfilter(_.map(cases, function(p) {return _.defaults(p, {'province': provincesMap[p.district]});}));
+        // add english name of province to each record
+        data = crossfilter(_.map(cases, function(p) {return _.defaults(p, {'province': provincesMap[p.district]});}));
 
-				// crossfilter dimension for districts
+        // crossfilter dimension for districts
         districts = data.dimension(function (d) {
             return d["district"];
         });
 
-				// crossfilter group (map-reduce) for case counts and stats by district
-				// see https://github.com/square/crossfilter/wiki/API-Reference#wiki-group_reduce
-				districtsGroup = districts.group().reduce(
-						function(p, v) {
-							p.total += +v.total;
-							// push non-zero risk types into list
-							if (v.total !== 0){
-								p.risks.push(v.type);
-							};
-							p.province = v.province;
-							// count how many times each risk appears
-							// and create object mapping {risk: n}
-							p.counts = _.chain(p.risks).reduce(function(counts, risk) {
-														counts[risk] = (counts[risk] || 0) + 1;
-														return counts;
-													}, {})
-													.value();
-							// create a sorted list of lists in decreasing order
-							// with [[risk, n],...]
-							p.countsList = _.sortBy(_.pairs(p.counts), function(d){ return d[1];});
-							return p;
-						 },
-						function(p, v) {
-							p.total -= +v.total
-							if (v.total !== 0){
-								// remove all of the type that is being filtered
-								p.risks = _.without(p.risks, v.type);
-							};
-							p.province = v.province;
-							p.counts = _.chain(p.risks).reduce(function(counts, risk) {
-														counts[risk] = (counts[risk] || 0) + 1;
-														return counts;
-													}, {})
-													.value();
-							p.countsList = _.sortBy(_.pairs(p.counts), function(d){ return d[1];});
-							return p;
-						 },
-						function() {
-							return {total: 0, province: '', counts: {}, countsList: [], risks: []};
-						 }
-						);
+        // crossfilter group (map-reduce) for case counts and stats by district
+        // see https://github.com/square/crossfilter/wiki/API-Reference#wiki-group_reduce
+        districtsGroup = districts.group().reduce(
+            function(p, v) {
+              p.total += +v.total;
+              // push non-zero risk types into list
+              if (v.total !== 0){
+                p.risks.push(v.type);
+              };
+              p.province = v.province;
+              // count how many times each risk appears
+              // and create object mapping {risk: n}
+              p.counts = _.chain(p.risks).reduce(function(counts, risk) {
+                            counts[risk] = (counts[risk] || 0) + 1;
+                            return counts;
+                          }, {})
+                          .value();
+              // create a sorted list of lists in decreasing order
+              // with [[risk, n],...]
+              p.countsList = _.sortBy(_.pairs(p.counts), function(d){ return d[1];});
+              return p;
+             },
+            function(p, v) {
+              p.total -= +v.total
+              if (v.total !== 0){
+                // remove all of the type that is being filtered
+                p.risks = _.without(p.risks, v.type);
+              };
+              p.province = v.province;
+              p.counts = _.chain(p.risks).reduce(function(counts, risk) {
+                            counts[risk] = (counts[risk] || 0) + 1;
+                            return counts;
+                          }, {})
+                          .value();
+              p.countsList = _.sortBy(_.pairs(p.counts), function(d){ return d[1];});
+              return p;
+             },
+            function() {
+              return {total: 0, province: '', counts: {}, countsList: [], risks: []};
+             }
+            );
+
+        maxRisks = _.max(districtsGroup.top(1000), function(p) {return p.value.total;}).value.total;
+        maxRiskTypes = _.unique(_.max(districtsGroup.top(1000), function(p) {return _.unique(p.value.risks).length;}).value.risks).length;
 
         provinces = data.dimension(function (d) {
             return d["province"];
         });
-				provincesGroup = provinces.group().reduceSum(function(d) { return d.total; });
-				provinceColors = d3.scale.category20();
-				
+        provincesGroup = provinces.group().reduceSum(function(d) { return d.total; });
+        provinceColors = d3.scale.category20();
+        
 
         risks = data.dimension(function (d) {
             return d["type"];
         });
 
-				caseTypes = _.unique(_.pluck(risks.top(1000), 'type'));
-				risksGroup = risks.group().reduceSum(function(d) { return d.total; });
-				riskColors = d3.scale.category20();
+        caseTypes = _.unique(_.pluck(risks.top(1000), 'type'));
+        risksGroup = risks.group().reduceSum(function(d) { return d.total; });
+        riskColors = d3.scale.category20();
 
-				rwChart.width(width)
-								.height(height)
-								.dimension(districts)
-								.projection(projection)
+        rwChart.width(width)
+                .height(height)
+                .dimension(districts)
+                .projection(projection)
                 .group(districtsGroup)
-								.valueAccessor(function (p) {
-										return p.value.total;
-								})
-								// TODO look into patching dc.js so we can
-								// use topojson instead of geojson (topojson files are much smaller)
-								.overlayGeoJson(rw.features, "district", function (d) {
-										if (_.find(caseDistricts, function(x){ return x == d.properties.name; })){
-											// if district name from map is the same
-											// as district name in cases, use it
-											return d.properties.name;
-										}
-										// print debug info if district cannont be reconciled with map
-										if (debug) {
-										  console.log('no district named ', d.properties.name);
-										};
-										return d.properties.name;
-								})
-								// color across yellow-orange-red range
-								.colors(colorbrewer.YlOrRd[9])
-								.colorDomain([0, 10])
-								.title(function (d) {
-										return d.key + "\n Risks: " + (d.value ? d.value : 0);
-								});
+                .valueAccessor(function (p) {
+                    return p.value.total;
+                })
+                // TODO look into patching dc.js so we can
+                // use topojson instead of geojson (topojson files are much smaller)
+                .overlayGeoJson(rw.features, "district", function (d) {
+                    if (_.find(caseDistricts, function(x){ return x == d.properties.name; })){
+                      // if district name from map is the same
+                      // as district name in cases, use it
+                      return d.properties.name;
+                    }
+                    // print debug info if district cannont be reconciled with map
+                    if (debug) {
+                      console.log('no district named ', d.properties.name);
+                    };
+                    return d.properties.name;
+                })
+                .colors(colorbrewer.YlOrRd[9])
+                  .colorDomain([0, maxRisks])
+                .title(function (d) {
+                    return d.key + "\n Risks: " + (d.value ? d.value : 0);
+                });
 
-            totalsChart.width((width* 1.5))
+            totalsChart.width((width * .95))
                     .height(height)
                     .margins({top: 10, right: 50, bottom: 30, left: 60})
                     .dimension(districts)
@@ -238,11 +277,10 @@
                     .radiusValueAccessor(function (p) {
                         return p.value.total;
                     })
-										.colors(provinceColors)
-										.colorAccessor(function(d, i){ return provinceNumber[d.value.province]; })
-										// TODO calculate these domains
-                    .x(d3.scale.linear().domain([0, 10]))
-                    .r(d3.scale.linear().domain([0, 10]))
+                    .colors(provinceColors)
+                    .colorAccessor(function(d, i){ return provinceNumber[d.value.province]; })
+                    .x(d3.scale.linear().domain([0, (2 + maxRisks)]))
+                    .r(d3.scale.linear().domain([0, maxRisks]))
                     .minRadiusWithLabel(5)
                     .elasticY(true)
                     .yAxisPadding(5)
@@ -254,7 +292,7 @@
                     .renderLabel(true)
                     .renderTitle(true)
                     .title(function (p) {
-												var countsText = _.map(p.value.countsList, function(x) {return x[1] + ":\t " + x[0] + "\n";}).join('');
+                        var countsText = _.map(p.value.countsList, function(x) {return x[1] + ":\t " + x[0] + "\n";}).join('');
                         return p.key + ' (' + p.value.province + ')'
                                 + "\n"
                                 + "Risks: \n" + countsText;
@@ -266,88 +304,123 @@
                 return s;
             });
 
-					totalsBarChart
-									.width((width* 1.5))
-									.height((height/2))
-									.margins({top: 10, right: 50, bottom: 30, left: 60})
+          totalsBarChart
+                  .width((width * .95))
+                  .height(height)
+                  .margins({top: 10, right: 50, bottom: 30, left: 60})
                   .dimension(districts)
                   .group(districtsGroup)
                   .keyAccessor(function (p) {
-												// x axis positioning
+                        // x axis positioning
                         return p.key;
                     })
                    .valueAccessor(function (p) {
-												if (p.value.countsList[0]) {
-													return p.value.countsList[0][1];
-												};
+                        if (p.value.countsList[0]) {
+                          return p.value.countsList[0][1];
+                        };
                     })
-									// stack y height of other risks
-									// TODO do this differently! its conceivable that a district could have
-									 // more than 10 red alert types...
-									 .stack(districtsGroup, function(d){if (d.value.countsList[1]) {return d.value.countsList[1][1];}})
-									 .stack(districtsGroup, function(d){if (d.value.countsList[2]) {return d.value.countsList[2][1];}})
-									 .stack(districtsGroup, function(d){if (d.value.countsList[3]) {return d.value.countsList[3][1];}})
-									 .stack(districtsGroup, function(d){if (d.value.countsList[4]) {return d.value.countsList[4][1];}})
-									 .stack(districtsGroup, function(d){if (d.value.countsList[5]) {return d.value.countsList[5][1];}})
-									 .stack(districtsGroup, function(d){if (d.value.countsList[6]) {return d.value.countsList[6][1];}})
-									 .stack(districtsGroup, function(d){if (d.value.countsList[7]) {return d.value.countsList[7][1];}})
-									 .stack(districtsGroup, function(d){if (d.value.countsList[8]) {return d.value.countsList[8][1];}})
-									 .stack(districtsGroup, function(d){if (d.value.countsList[9]) {return d.value.countsList[9][1];}})
-									.xUnits(dc.units.ordinal)
-									.x(d3.scale.ordinal().domain(caseDistricts))
-									.gap(50)
-									.gap(50)
-									.renderHorizontalGridLines(true)
-									.centerBar(false)
-									.elasticY(true)
-									.brushOn(false)
-									.title(function(p){
-												var countsText = _.map(p.value.countsList, function(x) {return x[1] + ":\t " + x[0] + "\n";}).join('');
+                  // stack y height of other risks
+                  // TODO do this differently! its conceivable that a district could have
+                   // more than 10 red alert types...
+                   .stack(districtsGroup, function(d){if (d.value.countsList[1]) {return d.value.countsList[1][1];}})
+                   .stack(districtsGroup, function(d){if (d.value.countsList[2]) {return d.value.countsList[2][1];}})
+                   .stack(districtsGroup, function(d){if (d.value.countsList[3]) {return d.value.countsList[3][1];}})
+                   .stack(districtsGroup, function(d){if (d.value.countsList[4]) {return d.value.countsList[4][1];}})
+                   .stack(districtsGroup, function(d){if (d.value.countsList[5]) {return d.value.countsList[5][1];}})
+                   .stack(districtsGroup, function(d){if (d.value.countsList[6]) {return d.value.countsList[6][1];}})
+                   .stack(districtsGroup, function(d){if (d.value.countsList[7]) {return d.value.countsList[7][1];}})
+                   .stack(districtsGroup, function(d){if (d.value.countsList[8]) {return d.value.countsList[8][1];}})
+                   .stack(districtsGroup, function(d){if (d.value.countsList[9]) {return d.value.countsList[9][1];}})
+                  .xUnits(dc.units.ordinal)
+                  .x(d3.scale.ordinal().domain(caseDistricts))
+                  .gap(30)
+                  .renderHorizontalGridLines(true)
+                  .centerBar(false)
+                  .elasticY(true)
+                  .brushOn(false)
+                  .title(function(p){
+                        var countsText = _.map(p.value.countsList, function(x) {return x[1] + ":\t " + x[0] + "\n";}).join('');
                         return p.key + ' (' + p.value.province + ')'
                                 + "\n"
                                 + "Risks: \n" + countsText;
-									})
-									.xAxis().ticks(caseDistricts.length);
+                  })
+                  .xAxis().ticks(caseDistricts.length);
 
 
-					provincePieChart
-							.width(300)
-							.height(200)
-							.transitionDuration(500)
-							.colors(provinceColors)
-							.colorAccessor(function(d, i){ return provinceNumber[d.data.key]; })
-							.radius(90)
-							.innerRadius(40)
-							.dimension(provinces)
-							.group(provincesGroup)
-							.renderLabel(true)
-							.renderTitle(true);
+          provincePieChart
+              .width(300)
+              .height(200)
+              .transitionDuration(500)
+              .colors(provinceColors)
+              .colorAccessor(function(d, i){ return provinceNumber[d.data.key]; })
+              .radius(90)
+              .innerRadius(40)
+              .dimension(provinces)
+              .group(provincesGroup)
+              .renderLabel(true)
+              .renderTitle(true);
 
-					risksPieChart
-							.width(300)
-							.height(200)
-							.transitionDuration(500)
-							.colors(riskColors)
-							.colorAccessor(function(d, i){return _.indexOf(caseTypes, d.data.key); })
-							.radius(90)
-							.innerRadius(40)
-							.dimension(risks)
-							.group(risksGroup)
-							.renderLabel(true)
-							.renderTitle(true);
+          risksPieChart
+              .width(300)
+              .height(200)
+              .transitionDuration(500)
+              .colors(riskColors)
+              .colorAccessor(function(d, i){return _.indexOf(caseTypes, d.data.key); })
+              .radius(90)
+              .innerRadius(40)
+              .dimension(risks)
+              .group(risksGroup)
+              .renderLabel(true)
+              .renderTitle(true);
 
             dc.renderAll();
 
-					function addRiskColor(d, i) {
-						// FIXME stacked bar chart segments are not colored properly
-						//console.log(this);
-						//console.log(this.classList[1], d.value.risk, d.value[d.value.risk]);
-						//console.log(d);
-							return this.setAttribute('style', 'fill: ' + riskColors(_.indexOf(caseTypes, d.value.risk)) + ';' );
-					}
+          function addRiskColor(d, i) {
+            // FIXME stacked bar chart segments are not colored properly
+            //console.log(this);
+            //console.log(this.classList[1], d.value.risk, d.value[d.value.risk]);
+            //console.log(d);
+              return this.setAttribute('style', 'fill: ' + riskColors(_.indexOf(caseTypes, d.value.risk)) + ';' );
+          }
 
-					d3.selectAll('rect.bar')
-						.each(addRiskColor);
+          d3.selectAll('rect.bar')
+            .each(addRiskColor);
 
     };
+
+
+  // add onload function to enable fixed positioning
+  // of the chart controls when the charts are visible
+  window.onload = function(){
+    // the div containing the svg elements does not have a height,
+    // so lets find out where the bottom of the charts are by looking
+    // at the element immediately below the charts
+    var filteringElement = document.getElementsByClassName('topstrip')[0];
+
+    // find the Y position of the filtering bar and subtract
+    // the approximate height of the two donut charts
+    var chartsBottom = findPosY(filteringElement) - 550;
+
+    // find all elements with the `control` class
+    // (donut charts, 'reset all', etc)
+    var controls = document.getElementsByClassName('control');
+
+    updateControls = function (e){
+      if (window.pageYOffset > chartsBottom){
+        // if we have scrolled below the bottom of the charts,
+        // remove class that includes the fixed positioning
+        // so that the controls will now be inline
+        _.map(controls, function(e) { return e.classList.remove('fixed-control');});
+      }
+      if (window.pageYOffset < chartsBottom){
+        // if we have scrolled above the bottom of the charts,
+        // add the class that includes the fixed positioning
+        // so that the controls will now be fixed in place
+        _.map(controls, function(e) { return e.classList.add('fixed-control');});
+      }
+    };
+    // add listener for onscroll
+    window.onscroll = updateControls;
+};
 </script>
+
