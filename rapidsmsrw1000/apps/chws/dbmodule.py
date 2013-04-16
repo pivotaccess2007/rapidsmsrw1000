@@ -270,6 +270,107 @@ def import_supervisors(filepath = "rapidsmsrw1000/apps/chws/xls/supervisors.xls"
             #print e
             pass
 
+def import_datamanagers(filepath = "rapidsmsrw1000/apps/chws/xls/datamanagers.xls", sheetname = "datamanagers"):
+    book = open_workbook(filepath)
+    sheet = book.sheet_by_name(sheetname)
+    
+    for row_index in range(sheet.nrows):
+        if row_index < 1: continue   
+        try:
+            names = "%s %s" % (str(sheet.cell(row_index,0).value), str(sheet.cell(row_index,1).value))
+            email = sheet.cell(row_index,2).value
+            telephone = sheet.cell(row_index,3).value
+            district = sheet.cell(row_index,4).value
+            hosp = sheet.cell(row_index,5).value
+            hc = sheet.cell(row_index,6).value
+            area_level = sheet.cell(row_index,7).value
+            
+            try:
+                district = District.objects.filter(name = district.strip())
+                hospital = Hospital.objects.filter(name__icontains = hosp.strip(), district = district)[0]
+                loc = HealthCentre.objects.filter(name__icontains = hc.strip(), district = district)[0]
+                
+                dtm, created = DataManager.objects.get_or_create(telephone_moh = parse_phone_number(telephone), referral_hospital = hospital,\
+                                                         health_centre = loc,email = email.strip(), area_level = area_level.upper().strip())
+
+                if dtm.national_id is None:  dtm.national_id = "%s%s" % ( dtm.telephone_moh[3:] , str(random_with_N_digits(6)))
+                dtm.names = names
+                dtm.sector = loc.sector
+                dtm.district = loc.district
+                dtm.province = loc.province
+                dtm.nation = loc.nation
+                dtm.language = dtm.language_kinyarwanda
+                dtm.save()
+                    
+            except Exception, e:
+                print e, area
+                pass
+            #print "\nNames : %s\n DOB : %s\n Health Centre : %s\n Hospital : %s\n Telephone : %s\n Email: %s\n District : %s\n"\
+                 #% (dtm.names,dtm.dob,dtm.health_centre,dtm.referral_hospital,dtm.telephone_moh,dtm.email,dtm.district)
+        except Exception, e:
+            #print e
+            pass
+
+def import_facilitystaff(filepath = "rapidsmsrw1000/apps/chws/xls/facilitystaff.xls", sheetname = "facilitystaff"):
+    book = open_workbook(filepath)
+    sheet = book.sheet_by_name(sheetname)
+    
+    for row_index in range(sheet.nrows):
+        if row_index < 1: continue   
+        try:
+            names = sheet.cell(row_index,0).value
+            dob = sheet.cell(row_index,1).value
+            area = sheet.cell(row_index,2).value
+            area_level = sheet.cell(row_index,3).value
+            service = sheet.cell(row_index,4).value
+            telephone = sheet.cell(row_index,5).value
+            email = sheet.cell(row_index,6).value
+            district = sheet.cell(row_index,7).value
+
+            try:
+                district = District.objects.filter(name__icontains = district.strip())[0]
+                telephone = parse_phone_number(telephone)
+                national_id = "%s%s" % ( telephone[3:] , str(random_with_N_digits(6)))
+                if area_level.upper().strip() == 'HC':
+                    loc = HealthCentre.objects.filter(name__icontains = area.strip(), district = district)[0]
+                    if len(email.strip()) <= 0:
+                        stf, created = FacilityStaff.objects.get_or_create(telephone_moh = telephone , health_centre = loc,
+                                                    national_id = national_id)
+                    else:
+                        stf, created = FacilityStaff.objects.get_or_create(telephone_moh = telephone , health_centre = loc, \
+                                            email = email.strip(), area_level = 'hc', national_id = national_id)
+                    stf.area_level = stf.health_centre
+    
+                elif area_level.upper().strip() == 'HOSPITAL':
+                    loc = Hospital.objects.filter(name__icontains = area, district = district)[0]
+                    if len(email.strip()) <= 0:
+                        stf, created = FacilityStaff.objects.get_or_create(telephone_moh = telephone, referral_hospital = loc,\
+                                                national_id = national_id)
+                    else:
+                        stf, created = FacilityStaff.objects.get_or_create(telephone_moh = telephone, referral_hospital = loc,\
+                                 email = email.strip(), area_level = 'hd', national_id = national_id) 
+                    stf.area_level = stf.district_hospital
+
+                stf.names = names
+                stf.dob = get_date(dob)
+                stf.sector = loc.sector
+                stf.district = loc.district
+                stf.province = loc.province
+                stf.nation = loc.nation
+                stf.language = stf.language_kinyarwanda
+                stf.service = service.lower()
+                stf.email = email
+                stf.save()
+                    
+            except Exception, e:
+                print e, area, service, email,area_level, district, stf.service, stf.area_level
+                pass
+            #print "\nNames : %s\n DOB : %s\n Health Centre : %s\n Hospital : %s\n Telephone : %s\n Email: %s\n District : %s\n"\
+                 #% (stf.names,stf.dob,stf.health_centre,stf.referral_hospital,stf.telephone_moh,stf.email,stf.district)
+        except Exception, e:
+            #print e
+            pass
+
 def import_testers(filepath = "rapidsmsrw1000/apps/chws/xls/Testers.xls", sheetname = "testers"):
 
     book = open_workbook(filepath)
@@ -347,7 +448,7 @@ def parse_phone_number(number):
             return False
 
 def get_date(date_of_birth):
-    
+
     try:
         x       = date_of_birth.split("/")
         
@@ -357,7 +458,7 @@ def get_date(date_of_birth):
         try:
             x = int(float(date_of_birth))
             if x: date_of_birth = datetime.date(x,01,01)  
-        except:   date_of_birth = datetime.date.today() - datetime.timedelta(days = 7665)
+        except:   date_of_birth = datetime.date.today() - datetime.timedelta(days = 16200)
     return date_of_birth
 
 def random_with_N_digits(n):

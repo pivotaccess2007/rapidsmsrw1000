@@ -58,7 +58,6 @@ export_model_as_excel.short_description = _('Export to EXCEL')
 admin.site.register(ReportType)
 admin.site.register(Patient)
 admin.site.register(Reminder)
-admin.site.register(UserLocation)
 admin.site.register(TriggeredAlert)
 admin.site.register(ErrorType)
 admin.site.register(ErrorNote)
@@ -94,11 +93,17 @@ class FieldAdmin(admin.ModelAdmin):
     list_filter = ('type__category__name',)
     list_display = ('id', '__unicode__', 'report',)
 
+class UserLocationAdmin(admin.ModelAdmin):
+    list_filter = ('user',)
+    list_display = ('user', 'village', 'cell', 'sector', 'health_centre', 'referral_hospital', 'district', 'province', 'nation')
+    search_fields = ('user__username',)
+
 admin.site.register(TriggeredText, TriggerAdmin)
 admin.site.register(FieldType, FieldTypeAdmin)
 admin.site.register(ReminderType, ReminderAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(Field, FieldAdmin)
+admin.site.register(UserLocation, UserLocationAdmin)
 
 
 

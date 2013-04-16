@@ -26,15 +26,52 @@ def import_ambulances(filepath = "rapidsmsrw1000/apps/ambulances/xls/ambulances.
             area = sheet.cell(row_index,4).value
             
             try:
-                loc = HealthCentre.objects.filter(name__icontains = area)
+                loc = HealthCentre.objects.filter(name__icontains = area.strip())
                 if loc.exists():
-                    amb, created = AmbulanceDriver.objects.get_or_create(phonenumber = parse_phone_number(telephone), health_centre = loc[0],\
-                                                                             identity = nid, name = names, district = loc[0].district)
+                    amb, created = AmbulanceDriver.objects.get_or_create(phonenumber = telephone, health_centre = loc[0], district = loc[0].district)
+                    amb.identity, amb.name = nid, names
+                    amb.save()
                 else:
-                    loc = Hospital.objects.filter(name__icontains = area)
-                    amb, created = AmbulanceDriver.objects.get_or_create(phonenumber = parse_phone_number(telephone), \
-                                                                        referral_hospital = loc[0], identity = nid, name = names, district = loc[0].district)
+                    loc = Hospital.objects.filter(name__icontains = area.strip())
+                    amb, created = AmbulanceDriver.objects.get_or_create(phonenumber = telephone, referral_hospital = loc[0], district = loc[0].district)
+                    amb.identity, amb.name = nid, names
+                    amb.save()
                     
+            except Exception, e:
+                print e, area
+                pass
+            
+        except Exception, e:
+            print e
+            pass
+
+def import_drivers(filepath = "rapidsmsrw1000/apps/ambulances/xls/drivers.xls", sheetname = "drivers"):
+    book = open_workbook(filepath)
+    sheet = book.sheet_by_name(sheetname)
+    
+    for row_index in range(sheet.nrows):
+        if row_index < 1: continue   
+        try:
+            names = "%s %s" % (str(sheet.cell(row_index,1).value) , str(sheet.cell(row_index,2).value))
+            email = sheet.cell(row_index,3).value
+            telephone = parse_phone_number(sheet.cell(row_index,4).value)
+            nid = "%s%s" % ( telephone[3:] , str(random_with_N_digits(6)))
+            area = sheet.cell(row_index,6).value
+            area_level = sheet.cell(row_index,7).value            
+
+            try:
+                loc = HealthCentre.objects.filter(name__icontains = area.strip())
+                if loc.exists() and area_level.lower().strip() == 'hc':
+                    amb, created = AmbulanceDriver.objects.get_or_create(phonenumber = telephone, health_centre = loc[0], district = loc[0].district)
+                    amb.identity, amb.name = nid, names
+                    amb.save()
+                
+                else:
+                    loc = Hospital.objects.filter(name__icontains = area.strip())
+                    amb, created = AmbulanceDriver.objects.get_or_create(phonenumber = telephone, referral_hospital = loc[0], district = loc[0].district)
+                    amb.identity, amb.name = nid, names
+                    amb.save()
+                   
             except Exception, e:
                 print e, area
                 pass
@@ -71,3 +108,8 @@ def parse_phone_number(number):
         return number
     except: 
             return False
+
+def random_with_N_digits(n):
+    range_start = 10**(n-1)
+    range_end = (10**n)-1
+    return randint(range_start, range_end)

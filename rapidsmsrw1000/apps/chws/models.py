@@ -544,6 +544,7 @@ class DataManager(models.Model):
                 (language_kinyarwanda, "Kinyarwanda"))
 
 
+
     names = models.EmailField(max_length=150, null=True)
     dob = models.DateField(blank=True, null = True, help_text="Date Of Birth")
     area_level = models.CharField(max_length=13, null=True)
@@ -569,7 +570,7 @@ class DataManager(models.Model):
         )
 
     def __unicode__(self):
-        return "Supervisor: %s" % (self.names)
+        return "Data Manager: %s" % (self.names)
 
     def get_connections(self):
         connections = None
@@ -648,20 +649,36 @@ class FacilityStaff(models.Model):
     language_english	= 'en'
     language_french		= 'fr'
     language_kinyarwanda	= 'rw'
+
     health_centre = 'hc'
     district_hospital = 'hd'
+
+    chief_of_supervisors = 'csup'
+    chief_of_drivers = 'cdrv'
+    chief_of_emergency = 'cemg'
+    chief_of_maternity = 'cmat'
+    chief_of_nursing = 'cnur'
+    chief_of_medicalstaff = 'cmed'
 
     LANGUAGE_CHOICES = ( (language_english, "English"),
                 (language_french, "French"),
                 (language_kinyarwanda, "Kinyarwanda"))
 
-    SERVICE_CHOICES = ( (health_centre, "Health Centre"),
+    AREA_CHOICES = ( (health_centre, "Health Centre"),
                         (district_hospital, "District Hospital"))
+
+    SERVICE_CHOICES = ( (chief_of_supervisors, 'Chief of Supervisors'),
+                            (chief_of_drivers, 'Chief of Drivers'),
+                            (chief_of_emergency, 'Chief of Emergency'),
+                            (chief_of_maternity, 'Chief of Maternity'),
+                            (chief_of_nursing, 'Chief of Nursing'),
+                            (chief_of_medicalstaff, 'Chief of Medical Staff'),)
 
 
     names = models.EmailField(max_length=150, null=True)
     dob = models.DateField(blank=True, null = True, help_text="Date Of Birth")
-    area_level = models.CharField(max_length = 2, blank=True, null = True, choices= SERVICE_CHOICES, help_text="Select the level of service")
+    area_level = models.CharField(max_length = 2, blank=True, null = True, choices= AREA_CHOICES, help_text="Select the level of working")
+    service = models.CharField(max_length = 4, blank=True, null = True, choices= SERVICE_CHOICES, help_text="Select the level of service")
     village = models.ForeignKey(Village, null = True)
     cell = models.ForeignKey(Cell, null = True)
     sector = models.ForeignKey(Sector, null = True)
@@ -671,7 +688,7 @@ class FacilityStaff(models.Model):
     province = models.ForeignKey(Province, null = True)
     nation = models.ForeignKey(Nation, null = True)
     telephone_moh  = models.CharField(max_length=13, null=True, unique = True)
-    email = models.EmailField(max_length=50, unique = True)
+    email = models.EmailField(max_length=50, unique = True, null = True)
     national_id =  models.CharField(max_length=16, null=True, unique = True)
     language = models.CharField(max_length = 2, blank=True, null = True, choices= LANGUAGE_CHOICES, help_text="Select the preferred language to receive SMS")
 
@@ -684,13 +701,13 @@ class FacilityStaff(models.Model):
         )
 
     def __unicode__(self):
-        return "Supervisor: %s" % (self.names)
+        return "FacilityStaff: %s" % (self.names)
 
     def get_connections(self):
         connections = None
 
         try:
-            contact, created = Contact.objects.get_or_create(name = self.email)
+            contact, created = Contact.objects.get_or_create(name = self.national_id)
             if self.language:    contact.language = self.language.lower()
             else:   contact.language = 'rw'
 
@@ -706,6 +723,7 @@ class FacilityStaff(models.Model):
             contact.save()
             connections = Connection.objects.filter(contact = contact)
         except Exception, e:
+            #print e
             pass
 
         return connections
@@ -720,7 +738,7 @@ class FacilityStaff(models.Model):
         # excluding those that have never seen them
         timedates = [
                         c.date
-                        for c in Message.objects.filter( connection__in = Connection.objects.filter(contact__name = self.email))
+                        for c in Message.objects.filter( connection__in = Connection.objects.filter(contact__name = self.national_id))
                         if c.date is not None]
 
         # return the latest, or none, if they've
@@ -735,7 +753,7 @@ class FacilityStaff(models.Model):
         # TODO: add a "preferred" flag to connection, which then
         # overrides the last_seen connection as the default, here
         try:
-            return Connection.objects.get(contact__name = self.email, contact = self.contact())#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
+            return Connection.objects.get(contact__name = self.national_id, contact = self.contact())#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
 
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
@@ -750,7 +768,7 @@ class FacilityStaff(models.Model):
         # TODO: add a "preferred" flag to connection, which then
         # overrides the last_seen connection as the default, here
         try:
-            return Contact.objects.get(name = self.email)
+            return Contact.objects.get(name = self.national_id)
 
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
@@ -765,34 +783,39 @@ def assign_login(sender, **kwargs):
     from  django.contrib.auth.models import User, Permission, Group
     from rapidsmsrw1000.apps.ubuzima.models import UserLocation
 
+    
     if kwargs.get('created', False):
         person = kwargs.get('instance')
     
-    permissions = Permission.objects.filter(codename__icontains = 'view')
-    group, created = Group.objects.get_or_create(name = 'DataViewer')
-    group.permissions = permissions
-    group.save()
-    user, created = User.objects.get_or_create(username = person.email, email = person.email)
-    user.set_password("123")
-    user.groups.add(group)
-    user.save()
-    if person.area_level.lower() == 'hc':
-        user_location, created = UserLocation.objects.get_or_create(user = user, health_centre = person.health_centre)
-        loc = person.health_centre
-        user_location.save()
-    else:
-        user_location, created = UserLocation.objects.get_or_create(user = user, district = person.district)
-        loc = person.district
-        user_location.save()
+        permissions = Permission.objects.filter(codename__icontains = 'view')
+        group, created = Group.objects.get_or_create(name = 'DataViewer')
+        group.permissions = permissions
+        group.save()
+        user, created = User.objects.get_or_create(username = person.email, email = person.email)
+        user.set_password("123")
+        user.groups.add(group)
+        user.save()
+        try:    
+            if person.area_level.lower() == 'hc':
+                user_location, created = UserLocation.objects.get_or_create(user = user, health_centre = person.health_centre)
+                loc = person.health_centre
+                user_location.save()
+            else:
+                user_location, created = UserLocation.objects.get_or_create(user = user, district = person.district)
+                loc = person.district
+                user_location.save()
 
-    message = "Dear %s, you are registered in RapidSMS Rwanda to track the first 1000 days of life. \
-                Your username is %s and default password is %s, please feel free to change it at http://rapidsms.moh.gov.rw:5000/account/password_reset/ .\
-                Login in www.rapidsms.moh.gov.rw:5000 website to access data from %s %s, where you are registered now." % \
-                (person.names, user.username, user.password, loc, person.area_level)
+            message = "Dear %s, you are registered in RapidSMS Rwanda to track the first 1000 days of life. \
+                        Your username is %s and default password is %s, please feel free to change it at http://rapidsms.moh.gov.rw:5000/account/password_reset/ .\
+                        Login in www.rapidsms.moh.gov.rw:5000 website to access data from %s %s, where you are registered now." % \
+                        (person.names, user.username, user.password, loc, person.area_level)
 
-    print message
+            #print message
 
-    user.email_user(subject = "RapidSMS RWANDA - Registration Confirmation", message = message, from_email = "unicef@rapidsms.moh.gov.rw")
+            user.email_user(subject = "RapidSMS RWANDA - Registration Confirmation", message = message, from_email = "unicef@rapidsms.moh.gov.rw")
+        except Exception, e:
+            print e
+            pass
 
     return True
     
@@ -807,7 +830,11 @@ def ensure_connections_exists(sender, **kwargs):
         else:   return False
 
 post_save.connect(ensure_connections_exists, sender = Reporter)
-post_save.connect(ensure_connections_exists, sender = DataManager)
 post_save.connect(ensure_connections_exists, sender = Supervisor)
+post_save.connect(assign_login, sender = DataManager)
+post_save.connect(assign_login, sender = FacilityStaff)
+post_save.connect(ensure_connections_exists, sender = DataManager)
+post_save.connect(ensure_connections_exists, sender = FacilityStaff)
+
 
 

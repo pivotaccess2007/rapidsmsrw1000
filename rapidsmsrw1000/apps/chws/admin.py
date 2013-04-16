@@ -123,7 +123,7 @@ class CHWAdmin(admin.ModelAdmin):
     exportable_fields = ('surname', 'given_name', 'role', 'sex', 'education_level', 'date_of_birth', 'join_date', 'national_id', 'telephone_moh', 'village', 'cell', 'sector', 'health_centre', 'referral_hospital', 'district', 'province')
     list_display = ('surname', 'given_name', 'national_id', 'telephone_moh', 'village', 'health_centre')
     list_filter = ('is_active', 'role__name',)
-    search_fields = ('national_id','telephone_moh',)
+    search_fields = ('national_id','telephone_moh', 'village__name', 'cell__name', 'sector__name', 'health_centre__name', 'referral_hospital__name', 'district__name', 'province__name')
 
 class RegistrationConfirmationAdmin(admin.ModelAdmin):
 
@@ -133,7 +133,17 @@ class RegistrationConfirmationAdmin(admin.ModelAdmin):
 class SupervisorAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
     list_display = ('names', 'telephone_moh', 'dob', 'national_id', 'email', 'village', 'cell', 'sector', 'health_centre', 'referral_hospital', 'district', 'province')
-    search_fields = ('telephone', 'email', 'names')
+    search_fields = ('telephone', 'email', 'names', 'village__name', 'cell__name', 'sector__name', 'health_centre__name', 'referral_hospital__name', 'district__name', 'province__name')
+
+class DataManagerAdmin(admin.ModelAdmin):
+    actions = (export_model_as_csv,export_model_as_excel)
+    list_display = ('names', 'telephone_moh', 'dob', 'national_id', 'email', 'village', 'cell', 'sector', 'health_centre', 'referral_hospital', 'district', 'province')
+    search_fields = ('telephone_moh', 'email', 'names', 'village__name', 'cell__name', 'sector__name', 'health_centre__name', 'referral_hospital__name', 'district__name', 'province__name')
+
+class FacilityStaffAdmin(admin.ModelAdmin):
+    actions = (export_model_as_csv,export_model_as_excel)
+    list_display = ('names', 'telephone_moh', 'dob', 'national_id', 'email', 'service', 'village', 'cell', 'sector', 'health_centre', 'referral_hospital', 'district', 'province')
+    search_fields = ('telephone_moh', 'email', 'names', 'village__name', 'cell__name', 'sector__name', 'health_centre__name', 'referral_hospital__name', 'district__name', 'province__name')
 
 
 admin.site.register(Role)
@@ -148,3 +158,7 @@ admin.site.register(Hospital, HospitalAdmin)
 admin.site.register(HealthCentre, HealthCentreAdmin)
 admin.site.register(RegistrationConfirmation, RegistrationConfirmationAdmin)
 admin.site.register(Supervisor, SupervisorAdmin)
+admin.site.register(FacilityStaff, FacilityStaffAdmin)
+admin.site.register(DataManager, DataManagerAdmin)
+
+

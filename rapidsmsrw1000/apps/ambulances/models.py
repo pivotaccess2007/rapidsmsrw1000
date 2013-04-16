@@ -43,6 +43,8 @@ class AmbulanceDriver(models.Model):
         permissions = (
             ("can_view", "Can view"),
         ) 
+        unique_together = ("phonenumber", "health_centre")
+        unique_together = ("phonenumber", "referral_hospital")
 
     def __unicode__(self):
         return u'%s (%s): %s' % (str(self.name), str(self.identity), str(self.phonenumber))

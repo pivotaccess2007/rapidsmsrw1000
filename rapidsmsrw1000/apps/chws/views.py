@@ -958,7 +958,7 @@ def view_asm(request):
 @require_GET
 @require_http_methods(["GET"])
 def view_binome(request):
-    """asm listing."""
+    """Binome listing."""
     request.base_template = "webapp/layout.html"
     hc = dst = None
 
@@ -1017,7 +1017,7 @@ def view_binome(request):
 @require_GET
 @require_http_methods(["GET"])
 def view_supervisor(request):
-    """asm listing."""
+    """Supervisor listing."""
     request.base_template = "webapp/layout.html"
     hc = dst = None
 
@@ -1071,3 +1071,121 @@ def view_supervisor(request):
         except (InvalidPage, EmptyPage):
             supervisors = paginator.page(paginator.num_pages)
         return render_to_response("chws/supervisor.html", dict(supervisors = supervisors, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
+
+@permission_required('chws.can_view')
+@require_GET
+@require_http_methods(["GET"])
+def view_datamanager(request):
+    """Data Managers listing."""
+    request.base_template = "webapp/layout.html"
+    hc = dst = None
+
+    datamangers = DataManager.objects.all().order_by("-id")
+    prvs = Province.objects.all()
+
+    try:
+        province = int(request.GET['province'])
+
+        if not province:
+            pass
+        else:
+
+            datamangers = datamangers.filter( province__id = province).order_by("-id")
+            prvs = Province.objects.all().extra(select = {'selected':'id = %d' % (province,)}).order_by('name')
+            dst      =  District.objects.filter(province__id = province).order_by('name')
+
+            try:
+                district = int(request.GET['district'])
+                if district:
+                    datamangers =  datamangers.filter(district__id = district).order_by("-id")
+                    dst      =  District.objects.filter(province__id = province).extra(select = {'selected':'id = %d' % (district,)}).order_by('-id')
+                    hc      =  HealthCentre.objects.filter(district__id = district).order_by('name')
+                    try:
+                        health_centre = int(request.GET['facility'])
+                        if hc:
+                            datamangers = datamangers.filter(health_centre__id = health_centre).order_by("-id")
+                            hc      =  HealthCentre.objects.filter(district__id = \
+                                                             district).extra(select = {'selected':'id = %d' % (health_centre,)}).order_by('-id')
+                        else:
+                            pass
+                    except:
+                        pass
+                else:
+                    pass
+            except:
+                pass
+
+    except: pass
+
+    if request.REQUEST.has_key('excel'):
+        return excel_supervisors(datamangers)
+    else:
+        paginator = Paginator(datamangers, 20)
+
+        try: page = int(request.GET.get("page", '1'))
+        except ValueError: page = 1
+
+        try:
+            datamangers = paginator.page(page)
+        except (InvalidPage, EmptyPage):
+            datamangers = paginator.page(paginator.num_pages)
+        return render_to_response("chws/datamanager.html", dict(datamangers = datamangers, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
+
+@permission_required('chws.can_view')
+@require_GET
+@require_http_methods(["GET"])
+def view_facilitystaff(request):
+    """Facility Staff listing."""
+    request.base_template = "webapp/layout.html"
+    hc = dst = None
+
+    facilitystaff = FacilityStaff.objects.all().order_by("-id")
+    prvs = Province.objects.all()
+
+    try:
+        province = int(request.GET['province'])
+
+        if not province:
+            pass
+        else:
+
+            facilitystaff = facilitystaff.filter( province__id = province).order_by("-id")
+            prvs = Province.objects.all().extra(select = {'selected':'id = %d' % (province,)}).order_by('name')
+            dst      =  District.objects.filter(province__id = province).order_by('name')
+
+            try:
+                district = int(request.GET['district'])
+                if district:
+                    facilitystaff =  facilitystaff.filter(district__id = district).order_by("-id")
+                    dst      =  District.objects.filter(province__id = province).extra(select = {'selected':'id = %d' % (district,)}).order_by('-id')
+                    hc      =  HealthCentre.objects.filter(district__id = district).order_by('name')
+                    try:
+                        health_centre = int(request.GET['facility'])
+                        if hc:
+                            facilitystaff = facilitystaff.filter(health_centre__id = health_centre).order_by("-id")
+                            hc      =  HealthCentre.objects.filter(district__id = \
+                                                             district).extra(select = {'selected':'id = %d' % (health_centre,)}).order_by('-id')
+                        else:
+                            pass
+                    except:
+                        pass
+                else:
+                    pass
+            except:
+                pass
+
+    except: pass
+
+    if request.REQUEST.has_key('excel'):
+        return excel_supervisors(facilitystaff)
+    else:
+        paginator = Paginator(facilitystaff, 20)
+
+        try: page = int(request.GET.get("page", '1'))
+        except ValueError: page = 1
+
+        try:
+            facilitystaff = paginator.page(page)
+        except (InvalidPage, EmptyPage):
+            facilitystaff = paginator.page(paginator.num_pages)
+        return render_to_response("chws/facilitystaff.html", dict(facilitystaff = facilitystaff, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))

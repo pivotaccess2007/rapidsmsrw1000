@@ -22,6 +22,8 @@ urlpatterns = patterns('',
     url(r'^binome/active$',             views.view_active_reporters),
     url(r'^binome/inactive$',             views.view_inactive_reporters),
     url(r'^supervisor$',             views.view_supervisor),
+    url(r'^datamanager$',             views.view_datamanager),
+    url(r'^facilitystaff$',             views.view_facilitystaff),
     
     
 )
