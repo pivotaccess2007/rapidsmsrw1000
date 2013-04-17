@@ -25,7 +25,7 @@ from rapidsms.models import Connection
 def forward (message, identity, text):
     
     if message.connection:
-        conn = Connection(backend = message.connection.backend, identity = identity)        
+        conn, created = Connection.objects.get_or_create(backend = message.connection.backend, identity = identity)        
         send( text, conn)
         #print conn, text     
         return True
@@ -243,8 +243,7 @@ def run_triggers(message, report):
                 location = curloc
                 sups = Supervisor.objects.filter(health_centre = location).order_by("pk")
                 if trigger.destination == TriggeredText.DESTINATION_DIS:
-                    location = report.reporter.referral_hospital
-                    sups = Supervisor.objects.filter(health_centre = location).order_by("pk")
+                    cc_facilitystaff(message, report, trigger)
                 # couldn't find it?  oh well, we'll alert the normal supervisor
 		                    
                 #print [sup.connection() for sup in sups]
@@ -321,6 +320,45 @@ def cc_supervisor(message, report):
                 # and send this message to them
                 msg_forward = _("%(phone)s: %(report)s" % { 'phone': reporter_ident, 'report': report.as_verbose_string() })
                 forward(message, conn.identity, msg_forward)
+    except Exception, e:
+        #print e
+        pass
+
+def cc_facilitystaff(message, report, trigger):
+    """ CC's Facility Staff of the clinic for this CHW   """
+    try:       
+
+        fss = []
+        
+        for f in FacilityStaff.objects.filter(referral_hospital = report.reporter.referral_hospital):   fss.append(f)
+        
+        # for each facility staff
+        for fs in fss:
+            # load the connection for it
+            
+            try:    conn = fs.connection()
+            except:
+                try:
+                    conn, created = Connection.objects.get_or_create(identity = fs.telephone_moh, backend = message.connection.backend)
+                    conn.contact, created = Contact.objects.get_or_create(name = fs.national_id, language = 'rw')
+                    conn.save()
+                except: continue
+                
+            lang = fs.language
+
+            # get th appropriate message to send
+            text = trigger.message_kw
+            code_lang = trigger.triggers.all()[0].kw
+            if lang == 'en':
+                text = trigger.message_en
+                code_lang = trigger.triggers.all()[0].en
+            elif lang == 'fr':
+                text = trigger.message_fr
+                code_lang = trigger.triggers.all()[0].fr
+            
+            msg_forward = text % (message.connection.identity, report.patient.national_id, report.reporter.village, code_lang)
+            #print msg_forward, fs, conn
+            if conn:    forward(message, conn.identity, msg_forward)
     except Exception, e:
         #print e
         pass

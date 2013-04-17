@@ -96,7 +96,7 @@ function condDisableLocations()
             </select>
                     </td>
                     <td><a href="/chws/supervisor?excel{%if request.GET.province%}&province={{request.GET.province}}{%endif%}{%if request.GET.district%}&district={{request.GET.district}}{%endif%}{%if request.GET.facility%}&facility={{request.GET.facility}}{%endif%}">Export To Excel</a>
-                    </td><td></td><td></td><td></td><td></td><td></td>
+                    </td><td></td><td></td><td></td><td></td><td></td><td></td>
                 </tr>
 
         <tr>	
@@ -137,12 +137,12 @@ function condDisableLocations()
     
     <tfoot>
 			<tr>
-				<td colspan="9">
+				<td colspan="10">
 					{% paginator facilitystaff %}
 				</td>
 			</tr>
 			<tr>
-				<td colspan="9">
+				<td colspan="10">
 				Matching Reporters: {{ facilitystaff.paginator.count }}
 				</td>
 			</tr>
