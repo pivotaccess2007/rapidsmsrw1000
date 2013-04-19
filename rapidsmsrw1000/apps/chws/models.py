@@ -782,7 +782,7 @@ class FacilityStaff(models.Model):
 def assign_login(sender, **kwargs):
     from  django.contrib.auth.models import User, Permission, Group
     from rapidsmsrw1000.apps.ubuzima.models import UserLocation
-
+    from rapidsmsrw1000.apps.ubuzima.smser import Smser
     
     if kwargs.get('created', False):
         person = kwargs.get('instance')
@@ -791,17 +791,20 @@ def assign_login(sender, **kwargs):
         group, created = Group.objects.get_or_create(name = 'DataViewer')
         group.permissions = permissions
         group.save()
-        user, created = User.objects.get_or_create(username = person.email, email = person.email)
+        user, created = User.objects.get_or_create(username = person.email)
+        user.email = person.email
         user.set_password("123")
         user.groups.add(group)
         user.save()
         try:    
             if person.area_level.lower() == 'hc':
-                user_location, created = UserLocation.objects.get_or_create(user = user, health_centre = person.health_centre)
+                user_location, created = UserLocation.objects.get_or_create(user = user)
+                user_location.health_centre= person.health_centre
                 loc = person.health_centre
                 user_location.save()
-            else:
-                user_location, created = UserLocation.objects.get_or_create(user = user, district = person.district)
+            elif person.area_level.lower() == 'hd':
+                user_location, created = UserLocation.objects.get_or_create(user = user)
+                user_location.district = person.district
                 loc = person.district
                 user_location.save()
 
@@ -811,7 +814,7 @@ def assign_login(sender, **kwargs):
                         (person.names, user.username, user.password, loc, person.area_level)
 
             #print message
-
+            Smser().send_message_via_kannel(conns[0].identity, message)
             user.email_user(subject = "RapidSMS RWANDA - Registration Confirmation", message = message, from_email = "unicef@rapidsms.moh.gov.rw")
         except Exception, e:
             print e

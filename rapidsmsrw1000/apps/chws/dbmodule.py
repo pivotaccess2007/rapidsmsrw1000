@@ -512,3 +512,56 @@ def update_empty_contact_connections():
 		conn.contact = Contact.objects.get(name = r.national_id)
 		conn.save()
 	return True
+
+
+def update_login(reporter_chw_object):
+    from  django.contrib.auth.models import User, Permission, Group
+    from rapidsmsrw1000.apps.ubuzima.models import UserLocation    
+
+    person = reporter_chw_object
+
+    permissions = Permission.objects.filter(codename__icontains = 'view')
+    group, created = Group.objects.get_or_create(name = 'DataViewer')
+    group.permissions = permissions
+    group.save()
+    user, created = User.objects.get_or_create(username = person.email)
+    user.email = person.email
+    user.set_password("123")
+    user.groups.add(group)
+    user.save()
+    try:    
+        if person.area_level.lower() == 'hc':
+            user_location, created = UserLocation.objects.get_or_create(user = user)
+            user_location.health_centre = person.health_centre
+            loc = person.health_centre
+            user_location.save()
+        elif person.area_level.lower() == 'hd':
+            user_location, created = UserLocation.objects.get_or_create(user = user)
+            user_location.district = person.district
+            loc = person.district
+            user_location.save()
+
+        message = "Dear %s, you are registered in RapidSMS Rwanda to track the first 1000 days of life. \
+                    Your username is %s and default password is %s, please feel free to change it at http://rapidsms.moh.gov.rw:5000/account/password_reset/ .\
+                    Login in www.rapidsms.moh.gov.rw:5000 website to access data from %s %s, where you are registered now." % \
+                    (person.names, user.username, "123", loc, person.area_level)
+
+        #print message
+        ensure_connections_exists(person, message)
+        user.email_user(subject = "RapidSMS RWANDA - Registration Confirmation", message = message, from_email = "unicef@rapidsms.moh.gov.rw")
+    except Exception, e:
+        print e
+        pass
+
+    return True
+
+def ensure_connections_exists(reporter_chw_object, message):
+    reporter = reporter_chw_object
+    conns = reporter.get_connections()
+    if conns:
+            from rapidsmsrw1000.apps.ubuzima.smser import Smser
+            Smser().send_message_via_kannel(conns[0].identity, message)
+        
+    else:   return False
+    
+

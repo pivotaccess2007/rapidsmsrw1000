@@ -771,7 +771,7 @@ class ErrorNote(models.Model):
 
 class UserLocation(models.Model):
     """This model is used to help the system to know where the user who is trying to access this information is from"""
-    user=models.ForeignKey(User, related_name = "hcuser")
+    user=models.ForeignKey(User, related_name = "hcuser", unique = True)
     health_centre = models.ForeignKey(HealthCentre, related_name = "userhc", null=True, blank = True)
     referral_hospital = models.ForeignKey(Hospital, related_name = "userhospital", null=True, blank = True)
     village = models.ForeignKey(Village, related_name = 'uservillage', null=True, blank = True)
