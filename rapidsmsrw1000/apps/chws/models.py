@@ -814,7 +814,7 @@ def assign_login(sender, **kwargs):
                         (person.names, user.username, user.password, loc, person.area_level)
 
             #print message
-            Smser().send_message_via_kannel(conns[0].identity, message)
+            Smser().send_message_via_kannel(person.connection().identity, message)
             user.email_user(subject = "RapidSMS RWANDA - Registration Confirmation", message = message, from_email = "unicef@rapidsms.moh.gov.rw")
         except Exception, e:
             print e
