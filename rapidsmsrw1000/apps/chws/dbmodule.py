@@ -560,7 +560,7 @@ def ensure_connections_exists(reporter_chw_object, message):
     conns = reporter.get_connections()
     if conns:
             from rapidsmsrw1000.apps.ubuzima.smser import Smser
-            Smser().send_message_via_kannel(person.connection().identity, message)
+            Smser().send_message_via_kannel(reporter.connection().identity, message)
         
     else:   return False
     
