@@ -1675,7 +1675,7 @@ def nutrition(req):
 def emergency_room(req):
     resp=pull_req_with_filters(req)
     resp['filters']['period']['end'] = datetime.date.today()
-    resp['filters']['period']['start'] = datetime.date.today() - timedelta(days = 960)
+    resp['filters']['period']['start'] = datetime.date.today() - timedelta(days = 1)
     pst = my_report_filters(req, resp['filters'])
 
     red = Report.objects.filter(type__name = 'Red Alert', **pst).order_by('-id')
