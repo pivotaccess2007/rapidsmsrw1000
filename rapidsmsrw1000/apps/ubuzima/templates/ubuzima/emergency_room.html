@@ -7,9 +7,9 @@
 <html>
 
 <head src="style/irwanda.png">
-  <title>{% block title %}{% endblock %}{% block title_suffix %} - RapidSMS{% endblock %}</title>
+  <title>{% block title %}{% endblock %}{% block title_suffix %} Emergency Room - RapidSMS{% endblock %}</title>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-		
+		<meta http-equiv="refresh" content="10">
 		{% block stylesheets %}
 		<!-- stylesheets -->
 		<link href="/static/webapp/stylesheets/default.css" rel="stylesheet" type="text/css" media="screen" />
@@ -76,116 +76,28 @@
   <div id="main">
 
     <div id="new-header">
-      <div class="logonew">
-	<img  src="/static/webapp/images_new/rwandan_flag.jpg"/>
-      </div>
-      <div id="logonew2">
-	<img src="/static/webapp/images_new/unicef-logo.jpg"/>
+      <div id = "header_image"><img src="/static/webapp/images/header.png"> </div>
       </div>
     </div>
 
-<div id="header">
+	
+
+
+    <div id="header">
   
       <div id="menubar">
         <!-- start menu -->
       
-	
-	<div id="menu">
-	    <ul class="menu">
-
-		
-		<li><a href="/" class="parent"><span>Home</span></a>
-		    <div><ul>
-		        <li><a href="/messagelog" class="parent"><span>Message Logs</span></a>
-		            
-		        <li><a href="/httptester"><span>Message Tester</span></a></li>
-			
-		    </ul></div>
-		</li>
-
-		<li><a href="/chws" class="parent"><span>CHWs</span></a>
-			<div>
-				<ul>	
-					<li><a href="/chws/asm"><span>ASM</span></a>
-						<div><ul>
-		                
-							<li><a href="/chws/asm/active?group=asm"><span>Active</span></a></li>
-							<li><a href="/chws/asm/inactive?group=asm"><span>Inactive</span></a></li>
-		            			</ul></div>
-					</li>
-					<li><a href="/chws/binome"><span>Binome</span></a>
-						<div><ul>
-		                
-							<li><a href="/chws/binome/active?group=binome"><span>Active</span></a></li>
-							<li><a href="/chws/binome/inactive?group=binome"><span>Inactive</span></a></li>
-		            			</ul></div>
-					</li>
-		                	<li><a href="/chws/supervisor"><span>Supervisor</span></a></li>
-					<!--<li><a href="/chws/errors"><span>Error Log</span></a></li>-->
-					<li><a href="/chws/messaging"><span>Group Messages</span></a>	
-			    	</ul>
-			</div>	
-		</li>
-		
-		<li><a href="/ubuzima" class="parent"><span>Maternal HEalth</span></a>
-		    <div><ul>
-		            <li><a href="#" class="parent"><span>Statistics</span></a>
-		            <div><ul>
-		                <li><a href="/ubuzima/dash/pre"><span>Pregnancy Report</span></a></li>
-		                <li><a href="/ubuzima/dash/anc"><span>ANC Report</span></a></li>
-				<li><a href="/ubuzima/dash/ris"><span>Risk Report</span></a></li>
-				<li><a href="/ubuzima/dash/red"><span>Red Alert Report</span></a></li>
-				<li><a href="/ubuzima/dash/bir"><span>Delivery Report</span></a></li>
-				<li><a href="/ubuzima/dash/de"><span>Death Report</span></a></li>
-				<!--<li><a href="/ubuzima/dash/admin"><span>Administrative Report</span></a></li> -->
-		            </ul></div>
-		        </li>
-		        <li><a href="/ubuzima/reminders"><span>Reminders</span></a></li>
-			<li><a href="/ubuzima/deliverynots"><span>Delivery Notification</span></a></li>
-		        <li><a href="/ubuzima/alerts"><span>Alerts Log</span></a></li>
-			<li><a href="/ubuzima/emergency"><span>Emergency Room</span></a></li>
-		        
-		        
-						
-			</li>
-		    </ul></div>
-		</li>
-		<li><a href="/ubuzima/newborn"><span>New Born</span></a>
-			<div>
-				<ul>
-					<li><a href="/ubuzima/newborn"><span>Newborn Visits</span></a></li>
-					<li><a href="/ubuzima/dash/chi"><span>Child Health Report</span></a></li>
-				</ul>
-			</div>
-		</li>
-		<li><a href="/ubuzima/dash/pnc"><span>PNC</span></a></li>
-			<li><a href="/ubuzima/nutrition"><span>Nutrition</span></a></li>
-		<li ><a href="/ubuzima/ccm"><span>CCM</span></a></li>
-		<li ><a href="/ubuzima/ibibari"><span>Ibibari</span></a></li>
-		<li><a href="/ambulances"><span>Ambulances</span></a></li>
-		<li><a href="/ubuzima" class="parent"><span>Report Log</span></></li>
-		<li class="last">
-				{% if user.is_authenticated %}
-					<a href="/accounts/logout/"><span>{% trans "Log out" %}</span></a>
-				{% else %}
-					<a href="/accounts/login/"><span>{% trans "Log in" %}</span></a>
-				{% endif %}
-		</li>
-		
-	    </ul>
-	</div>
-
-
 	<!-- end menu -->
       </div>
    </div>
 <!-- site content -->
     <div id="site_content">
       {% block content %}
-
+      
 	<div>
     <form class="topstrip">
-        <h2>Filtering</h2>
+        <h2 class = "lagging"><span style = 'text-align:center;'>red alerts --- emergency room</span></h2>
         <table width="100%">
             <thead>
                 <tr><th colspan="2">Period</th><th>Location</th><th></th><th></th><th></th><th></th></tr>
@@ -195,8 +107,8 @@
             <tbody>
                 <tr>
                     <td>
-            <input style="background-color: white"  type="text" id="pickstartdate" value="{{ start_date }}"  name="start_date" 					readonly="readonly"  onFocus="displayCalendar(form.start_date,'dd.mm.yyyy',this)" size = "10"/></td>
-        <td><input style="background-color: white" type="text" id="pickenddate" value="{{ end_date }}"  name="end_date" 					readonly="readonly"  onFocus="displayCalendar(form.end_date,'dd.mm.yyyy',this)" size = "10" />
+            <input style="background-color: white"  type="text" id="pickstartdate" value="{{ filters.period.start|date:'d.m.Y' }}"  name="start_date" 					readonly="readonly"  onFocus="displayCalendar(form.start_date,'dd.mm.yyyy',this)" size = "10"/></td>
+        <td><input style="background-color: white" type="text" id="pickenddate" value="{{ filters.period.end|date:'d.m.Y' }}"  name="end_date" 					readonly="readonly"  onFocus="displayCalendar(form.end_date,'dd.mm.yyyy',this)" size = "10" />
                     </td>
                     <td>
             <select name="province" id="provchoose"><option></option>
@@ -221,6 +133,25 @@
         </table>
     </form>
     <div class="clear-hack"></div>
+	
+
+	<table width="100%">
+            <thead>
+                <tr>{%if last%}<th colspan="6" class = "lagging"><marquee style="font-size:8pt;color:black	
+;font-weight:bold;" behavior="alternate" direction="left" scrollamount="1" WIDTH=100%>RECENT RED ALERT  BY REPORTER {{last.reporter.telephone_moh}} PATIENT  {{last.patient.national_id}} -- <blink>{{last.red_signs}}</blink> FROM {{last.district.name}} - {{last.location.name}} - {{last.sector.name}} - {{last.cell.name}} - {{last.village.name}}</marquee>{%endif%}</tr>
+                <tr><th>LOCATION</th><th>REGISTERED RED ALERTS</th><th colspan = "3" style = 'text-align:center;'>RESPONDED RED ALERTS</th><th><font color = 'red'><blink>NON-RESPONDED RED ALERTS</blink></font></th></tr>
+		<tr><th></th><th></th><th style = 'text-align:center;'>RESPONDED RED ALERTS WITH POSITVE OUTCOME</th><th style = 'text-align:center;'>Vs</th><th style = 'text-align:center;'>RESPONDED RED ALERTS WITH NEGATIVE OUTCOME</th><th></th></tr>
+            </thead>
+            <tbody >
+		{% for dat in data %}
+                <tr >
+                    <td>{{dat.location__name}}</td><td>{{dat.total}}</td><td style = 'text-align:center;'><font color = 'green'>{{dat.red_res_po}}</font></td><td></td><td style = 'text-align:center;'>{{dat.red_res_ne}}</td><td ><font color = 'red'><blink>{{dat.red_unres}}</blink></font></td>
+                </tr>
+		{% endfor %}
+
+		<tr ><td colspan="6" class = "lagging"><marquee behavior="alternate" direction="up" width = "100%"scrollamount="1">{% for r in unres%} BY :{{r.reporter.telephone_moh}} -- FROM {{r.district.name}} - {{r.location.name}} - {{r.sector.name}} - {{last.report.cell.name}} - {{r.village.name}}, PATIENT: {{last.patient.national_id}}, PROBLEM(S): {{r.red_signs}}</br></br>{%endfor%}</marquee></td></tr>
+            </tbody>
+        </table>
 </div>
 
 

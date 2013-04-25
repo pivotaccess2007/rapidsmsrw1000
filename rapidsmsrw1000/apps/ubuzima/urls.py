@@ -15,6 +15,8 @@ urlpatterns = patterns('',
     url(r'^report/(?P<pk>\d+)$', views.view_report),
 
     url(r'^dash/pre$', views.preg_report),
+    url(r'^dash/pcalendar$', views.pregnancy_calendar),
+    url(r'^dash/pcalendar/data$', views.pregnancy_calendar_data),
     url(r'^dash/pnc$', views.pnc_report),
     url(r'^dash/anc$', views.anc_report),
     url(r'^dash/bir$', views.birth_report),
@@ -37,4 +39,5 @@ urlpatterns = patterns('',
     url(r'^nutrition/(?P<indic>\d+)/(?P<format>html|csv)$', views.view_nutrition),
     url(r'^charts$', views.view_nutrition_charts),
     url(r'^emergency$', views.emergency_room),
+    
 )

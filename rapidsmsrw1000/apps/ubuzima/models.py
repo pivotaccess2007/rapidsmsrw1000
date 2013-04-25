@@ -167,6 +167,11 @@ class Report(models.Model):
             summary += ", ".join(map(lambda f: unicode(f), self.fields.all()))
 
         return summary
+
+    def red_signs(self):
+        cp = ""
+        for s in self.fields.filter(type__category__name = 'Red Alert Codes'):  cp = cp + s.__str__() + ","
+        return cp
     def has_dups(self):
         if settings.TRAINING_ENV == False:
             return Report.objects.filter(type=self.type,patient=self.patient,date=self.date, reporter = self.reporter).exists()

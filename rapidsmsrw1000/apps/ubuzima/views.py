@@ -36,6 +36,7 @@ from pygrowup import helpers, Calculator
 from decimal import *
 from rapidsmsrw1000.apps.ubuzima.get_data import get_red_alert_data
 
+
 ### START OF HELPERS
 def paginated(req, data):
     req.base_template = "webapp/layout.html"
@@ -1673,9 +1674,113 @@ def nutrition(req):
 ###VIEW UBUZIMA EMERGENCY ROOM####
 def emergency_room(req):
     resp=pull_req_with_filters(req)
+    resp['filters']['period']['end'] = datetime.date.today()
+    resp['filters']['period']['start'] = datetime.date.today() - timedelta(days = 960)
+    pst = my_report_filters(req, resp['filters'])
+
+    red = Report.objects.filter(type__name = 'Red Alert', **pst).order_by('-id')
+    red_res = Report.objects.filter(type__name = 'Red Alert Result', patient__in = red.values('patient'), **pst)
+    red_res_po = red_res.exclude( fields__type__key__in = ['ms','cs'])
+    red_res_ne = red_res.exclude(  fields__type__key__in = ['mw','cw'])
+    red_unres = red.exclude( patient__in = red_res.values('patient'))
+
+    print red.values('pk'), "\n",red_res.values('pk'), "\n",red_res_po, "\n",red_res_ne, "\n",red_unres.values('pk')
+    
+    resp['data'] = red.values('location__name','location__pk').annotate(total = Count('id')).order_by('location__name')
+        
+    resp['unres'] = red_unres
+    if red_unres.exists():  resp['last'] = red_unres[0]
+    for d in resp['data']:
+        d['red_res_po'] = red_res_po.filter(location__pk = d['location__pk']).count()
+        d['red_res_ne'] = red_res_ne.filter(location__pk = d['location__pk']).count()
+        d['red_unres'] = red_unres.filter(location__pk = d['location__pk']).count()
+        d['red_unres_r'] = red_unres.filter(location__pk = d['location__pk'])
     return render_to_response("ubuzima/emergency_room.html", resp, context_instance=RequestContext(req))
 
 
 ### END OF EMERGENCY ROOM #######
 
 #### END OF IBIBARI DASHBOARD
+
+
+
+###PREGNANCY CALENDAR ####
+
+def json_response(func):
+    """
+    A decorator thats takes a view response and turns it
+    into json. If a callback is added through GET or POST
+    the response is JSONP.
+    """
+    
+    def decorator(request, *args, **kwargs):        
+        objects = func(request, *args, **kwargs)
+        
+        if isinstance(objects, HttpResponse):
+            
+            return objects
+        try:
+            if isinstance(objects, QuerySet):
+                data = serializers.serialize("json", objects)
+            else:
+                data = simplejson.dumps(objects, cls=DjangoJSONEncoder)
+            if 'callback' in request.REQUEST:
+                # a jsonp response!
+                data = '%s(%s);' % (request.REQUEST['callback'], data)
+                return HttpResponse(data, "text/javascript")
+        except:
+            data = simplejson.dumps(str(objects), cls=DjangoJSONEncoder)
+        return HttpResponse(data, "application/json")
+    try:    
+        return decorator
+    except Exception, e:    print e
+
+
+def pregnancy_calendar_data(request):
+    
+    showdate_str = request.POST['showdate']###in the form mm/dd/year    
+    showdate_array = showdate_str.split("/")
+    yyyy, mm, dd = showdate_array[2], showdate_array[0], showdate_array[1]
+    showdate = datetime.date(int(yyyy), int(mm), int(dd))
+
+    viewtype = request.POST['viewtype']
+    
+    st, et = None, None
+    if viewtype == 'month':
+        st = datetime.datetime(showdate.year, showdate.month, 1,0,0)
+        et = datetime.datetime(showdate.year, showdate.month + 1, 1,23,59) - timedelta(days = 1)
+
+    elif viewtype == 'week':
+        start_week = showdate - datetime.timedelta(showdate.weekday())
+        end_week = start_week + datetime.timedelta(7)
+        st = datetime.datetime(start_week.year, start_week.month, start_week.day,0,0)
+        et = datetime.datetime(end_week.year, end_week.month, end_week.day,23,59)
+
+    elif viewtype == 'day':
+        st = datetime.datetime(showdate.year, showdate.month, showdate.day,0,0)
+        et = datetime.datetime(showdate.year, showdate.month, showdate.day + 1,23,59)
+    
+    events = []
+    edd = Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = st , edd_date__lte = et ).order_by('edd_date').values('edd_date').annotate(total = Count('id'))
+    i = 1
+    for ed in edd:
+        try:
+            events.append(["%d" % i, "Expected Deliveries: %d" % ed['total'], ed['edd_date'].strftime('%m/%d/%Y %H:%M'), ed['edd_date'].strftime('%m/%d/%Y %H:%M'), "1", 0, 0, "9", 1, "Rwanda", "Didier" ])
+            i = i + 1
+        except Exception, e:    print e#continue 
+    
+    pdata = { 'events' : events, 'issort' : True, 'start' : st.strftime('%m/%d/%Y %H:%M'), 'end' : et.strftime('%m/%d/%Y %H:%M'), 'error' : None  }    
+
+    #data = {"events":[["1","Pregnancy","04/19/2013 00:00","04/30/2013 00:00","1",0,0,"Green",1,"Musanze",""],["2","Pregnancy","04/18/2013 00:00","04/18/2013 00:00","1",0,0,"Red",1,"Musanze",""],["3","Pregnancy","04/19/2013 00:00","04/19/2013 00:00","1",0,0,"Green",1,"Musanze",""],["4","Pregnancy","04/30/2013 00:00","04/30/2013 00:00","1",0,0,"Red",1,"Musanze",""],["5","Pregnancy","04/23/2013 00:00","04/23/2013 00:00","1",0,0,"Green",1,"Musanze",""],["6","Pregnancy","04/16/2013 00:00","04/16/2013 00:00","1",0,0,"13",1,"Musanze",""],["7","Birth","04/16/2013 00:00","04/16/2013 00:00","1",0,0,"9",1,"Kacyiru",""]],"issort":True,"start":"04/01/2013 00:00","end":"04/30/2013 23:59","error":None} 
+    
+    #print pdata, "\n\n", data, st, et
+    return HttpResponse(json.dumps(pdata), "application/json")
+
+def pregnancy_calendar(req):
+    resp=pull_req_with_filters(req)
+    if req.REQUEST.has_key('method'):
+        return pregnancy_calendar_data(req)
+    return render_to_response("ubuzima/pregnancy_calendar.html", resp,context_instance=RequestContext(req))
+    
+
+###END OF PREGNANCY CALENDAR ####
