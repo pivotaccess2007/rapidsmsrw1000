@@ -384,19 +384,19 @@ class Report(models.Model):
         return (start, end)
 
     def is_risky(self):
-        risk = self.fields.filter(type__category__name = 'Risk Codes').exclude(type__key = 'np')
-        return risk.exists()
+        if self.type.name == 'Risk':   return True
+        else:   return False
 
     def is_red(self):
         if self.type == ReportType.objects.get(name = 'Red Alert'):  return True
         return False
 
     def is_death(self):
-        risk = self.fields.filter(type__key__in = ['md','nd','cd'])
-        return risk.exists()
+        if self.type.name == 'Death':   return True
+        else:   return False
 
     def is_high_risky_preg(self):
-    	risk = self.fields.filter(type__key__in = ['gs','rm','ol','yg','mu'])
+    	risk = self.fields.filter(type__key__in = ['gs','rm','ol','yg','mu'], report__type__name = 'Pregnancy')
     	return risk.exists()
 
     def show_edd(self):

@@ -94,6 +94,6 @@ else {
     <div class="clear-hack"></div>
 </div>
 
-<h2>{{type.name}} Reports  {%if not request.GET.province and not request.GET.district and not request.GET.location %}<p style=" text-align:center; ">Nation Wide, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%else%}<p style=" text-align:center; ">{{locationname}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%endif%}</h2>
+<h2> Reports: {%if title%} {{title}}{%endif%} {%if not request.GET.province and not request.GET.district and not request.GET.location %}<p style=" text-align:center; ">Nation Wide, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%else%}<p style=" text-align:center; ">{{locationname}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%endif%}</h2>
 {% include 'ubuzima/report_table.html' %}  
 {% endblock %}

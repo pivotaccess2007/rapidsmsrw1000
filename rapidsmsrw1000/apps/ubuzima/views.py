@@ -199,42 +199,55 @@ def by_type(req, pk, **flts):
              'province':default_province(req),
              'district':default_district(req)}
     reports = matching_reports(req,filters).filter(type=report_type).order_by("-created")
-    lox, lxn = 0, location_name(req)
+    lox, lxn, title = 0, location_name(req), report_type
 
-    if req.REQUEST.has_key('cat') and req.REQUEST['cat'] == 'hrisk':
-        reports = fetch_high_risky_preg(reports)
+    if req.REQUEST.has_key('cat'):
 
-    elif req.REQUEST.has_key('cat') and req.REQUEST['cat'] == 'pre_w':
-        resp=pull_req_with_filters(req)
-        end = resp['filters']['period']['end']
-        start = resp['filters']['period']['start']
-        annot = resp['annot_l']
-        locs = resp['locs']
-        rez = {}
-        rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
-        
-        reports = Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = end).filter(** rez)
-    elif req.REQUEST.has_key('cat') and req.REQUEST['cat'] == 'edd':
-        resp=pull_req_with_filters(req)
-        end = resp['filters']['period']['end']
-        start = resp['filters']['period']['start']
-        annot = resp['annot_l']
-        locs = resp['locs']
-        rez = {}
-        rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
-        
-        reports = fetch_edd( start, end).filter(** rez)
+        try:
+            if req.REQUEST['cat'] == 'hrisk':
+                reports = fetch_high_risky_preg(reports)
+                title   = "High Risk Pregnant Women"
 
-    elif req.REQUEST.has_key('cat') and req.REQUEST['cat'] == 'hedd':
-        resp=pull_req_with_filters(req)
-        end = resp['filters']['period']['end']
-        start = resp['filters']['period']['start']
-        annot = resp['annot_l']
-        locs = resp['locs']
-        rez = {}
-        rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
-        
-        reports = fetch_high_risky_preg(fetch_edd( start, end).filter(** rez))
+            elif req.REQUEST['cat'] == 'pre_w' or req.REQUEST['cat'] == 'edd_2_w':
+                resp=pull_req_with_filters(req)
+                end = resp['filters']['period']['end']
+                start = resp['filters']['period']['start']
+                annot = resp['annot_l']
+                locs = resp['locs']
+                rez = {}
+                rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
+                
+                if req.REQUEST['cat'] == 'pre_w':
+                    reports = Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = end).filter(** rez)
+                    title   = "Pregnant Women on %d/%d/%d" % (end.day, end.month, end.year)
+                else:
+                    title   = "Pregnant Women Expected to deliver next two weeks from %d/%d/%d" % (end.day, end.month, end.year)
+                    reports = Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = end + timedelta(days = 14) , \
+                                                                                edd_date__lte = end + timedelta(days = 28)).filter(** rez)   
+            elif req.REQUEST['cat'] == 'edd':
+                resp=pull_req_with_filters(req)
+                end = resp['filters']['period']['end']
+                start = resp['filters']['period']['start']
+                annot = resp['annot_l']
+                locs = resp['locs']
+                rez = {}
+                rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
+                
+                reports = fetch_edd( start, end).filter(** rez)
+                title   = "Pregnant Women Expected to deliver from %d/%d/%d to %d/%d/%d" % (start.day, start.month, start.year,end.day, end.month, end.year)
+
+            elif req.REQUEST['cat'] == 'hedd':
+                resp=pull_req_with_filters(req)
+                end = resp['filters']['period']['end']
+                start = resp['filters']['period']['start']
+                annot = resp['annot_l']
+                locs = resp['locs']
+                rez = {}
+                rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
+                
+                reports = fetch_high_risky_preg(fetch_edd( start, end).filter(** rez))
+                title   = "High Risk Pregnant Women Expected to deliver from %d/%d/%d to %d/%d/%d" % (start.day, start.month, start.year,end.day, end.month, end.year)
+        except Exception, e: pass
 
     if req.REQUEST.has_key('location') and req.REQUEST['location'] != '0':
         lox = int(req.REQUEST['location'])
@@ -257,7 +270,7 @@ def by_type(req, pk, **flts):
     elif req.REQUEST.has_key('excel'):
         return reports_to_excel(reports.order_by("-id"))
     else:
-        return render_to_response("ubuzima/type.html", { "type":    report_type,
+        return render_to_response("ubuzima/type.html", { 'title': title, "type":    report_type,
                                                      "reports":    paginated(req, reports),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1] }, context_instance=RequestContext(req))
 
@@ -565,14 +578,14 @@ def preg_report(req):
     edd = fetch_edd( start, end).filter(** rez)
     resp['reports'] = paginated(req, preg)
     if preg.exists() or edd.exists(): 
-        preg_l, preg_risk_l, edd_l, edd_risk_l, pre_w = preg.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(preg).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), edd.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(edd).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) ,pregnant_women.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) 
-
-        ans_l = {'pre' : preg_l, 'prehr' : preg_risk_l, 'edd': edd_l, 'eddhr': edd_risk_l, 'pre_w' : pre_w}
-
+        preg_l, preg_risk_l, edd_l, edd_risk_l, pre_w, edd_2_w = preg.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(preg).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), edd.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(edd).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) ,pregnant_women.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), pregnant_women.filter(edd_date__gte = end + timedelta(days = 14) , edd_date__lte = end + timedelta(days = 28)).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
+    
+        ans_l = {'pre' : preg_l, 'prehr' : preg_risk_l, 'edd': edd_l, 'eddhr': edd_risk_l, 'pre_w' : pre_w, 'edd_2_w' : edd_2_w}
+        
         preg_m, preg_risk_m, edd_m, edd_risk_m = preg.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), fetch_high_risky_preg(preg).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), edd.extra(select={'year': 'EXTRACT(year FROM edd_date)','month': 'EXTRACT(month FROM edd_date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'),fetch_high_risky_preg(edd).extra(select={'year': 'EXTRACT(year FROM edd_date)','month': 'EXTRACT(month FROM edd_date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
 
         ans_m = {'pre' : preg_m, 'prehr' : preg_risk_m, 'edd': edd_m, 'eddhr': edd_risk_m}
-        
+        print preg_m
     resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'months_edd' : months_between(start,end)}
     resp['report_type'] = ReportType.objects.get(name = 'Pregnancy')
     return render_to_response('ubuzima/preg_report.html',
@@ -1057,15 +1070,14 @@ def anc_report(req):
 
     qryset=resp['reports'].filter(type__name__in =['ANC','Pregnancy'])
     ##qryset = resp['reports'].filter(fields__in = Field.objects.filter(type__key__in = ["anc2","anc3","anc4"]))
-    preg_reps=resp['reports'].filter(type__name='Pregnancy',created__gte = resp['filters']['period']['start'], created__lte = resp['filters']['period']['end'])
+    preg_reps=resp['reports'].filter(type__name='Pregnancy',created__gte = start, created__lte = end)
 
     annot=resp['annot_l']
     locs=resp['locs']
     ans_l, ans_m = {},{}
-    ans_t = qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
+    
 
-
-    new_qryset=resp['reports'].filter(type__name= 'Pregnancy',date__gte = start , date__lte = end )
+    #new_qryset=resp['reports'].filter(type__name= 'Pregnancy',date__gte = start , date__lte = end )
 
     resp['reports'] = paginated(req, qryset)
 
@@ -1074,32 +1086,37 @@ def anc_report(req):
     if qryset.exists():
 
 
-        anc1_c = preg_reps.extra(select={'year': 'EXTRACT(year FROM date)','month': 'EXTRACT(month FROM date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
+        anc1_c = preg_reps.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
 
         anc2_c = fetch_anc2_info(qryset).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
         anc3_c = fetch_anc3_info(qryset).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
         anc4_c = fetch_anc4_info(qryset).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
-        eddanc2_c = fetch_eddanc2_info(qryset,start,end).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
-        eddanc3_c = fetch_eddanc3_info(qryset,start,end).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
-        eddanc4_c = fetch_eddanc4_info(qryset,start,end).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
+        #eddanc2_c = fetch_eddanc2_info(qryset,start,end).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
+        #eddanc3_c = fetch_eddanc3_info(qryset,start,end).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
+        #eddanc4_c = fetch_eddanc4_info(qryset,start,end).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
 
 
-        ans_m = {'anc1_m' : anc1_c, 'anc2_m' : anc2_c, 'anc3_m': anc3_c, 'anc4_m': anc4_c, 'eddanc2_m': eddanc2_c, 'eddanc3_m': eddanc3_c, 'eddanc4_m': eddanc4_c,'tot_m': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
+        #ans_m = {'anc1_m' : anc1_c, 'anc2_m' : anc2_c, 'anc3_m': anc3_c, 'anc4_m': anc4_c, 'eddanc2_m': eddanc2_c, 'eddanc3_m': eddanc3_c, 'eddanc4_m': eddanc4_c,'tot_m': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
 
+
+        ans_m = {'anc1_m' : anc1_c, 'anc2_m' : anc2_c, 'anc3_m': anc3_c, 'anc4_m': anc4_c,'tot_m': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
+
+        print anc1_c
 
         anc1_l=preg_reps.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
         anc2_l=fetch_anc2_info(qryset).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
         anc3_l=fetch_anc3_info(qryset).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
         anc4_l=fetch_anc4_info(qryset).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
-        eddanc2_l=fetch_eddanc2_info(qryset,start,end).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
-        eddanc3_l=fetch_eddanc3_info(qryset,start,end).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
-        eddanc4_l = fetch_eddanc4_info(qryset,start,end).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
+        #eddanc2_l=fetch_eddanc2_info(qryset,start,end).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
+        #eddanc3_l=fetch_eddanc3_info(qryset,start,end).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
+        #eddanc4_l = fetch_eddanc4_info(qryset,start,end).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
 
-        ans_l = {'anc1' : anc1_l, 'anc2' : anc2_l, 'anc3': anc3_l, 'anc4': anc4_l, 'eddanc2': eddanc2_l, 'eddanc3': eddanc3_l, 'eddanc4': eddanc4_l, 'tot':qryset.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])}
+        #ans_l = {'anc1' : anc1_l, 'anc2' : anc2_l, 'anc3': anc3_l, 'anc4': anc4_l, 'eddanc2': eddanc2_l, 'eddanc3': eddanc3_l, 'eddanc4': eddanc4_l, 'tot':qryset.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])}
+
+        ans_l = {'anc1' : anc1_l, 'anc2' : anc2_l, 'anc3': anc3_l, 'anc4': anc4_l, 'tot':qryset.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])}
 
 
-
-    resp['track'] = {'items':ans_l, 'items_m':ans_m,'items_t':ans_t, 'months' : months_between(start,end)}
+    resp['track'] = {'items':ans_l, 'items_m':ans_m, 'months' : months_between(start,end)}
     return render_to_response('ubuzima/anc_report.html',
            resp, context_instance=RequestContext(req))
 
@@ -1176,6 +1193,7 @@ def risk_report(req):
     reports = matching_reports(req,resp['filters'])
     resp['reports'] = reports
     qryset = reports.filter(type__name = "Risk")#(fields__in = Field.objects.filter(type__in = Field.get_risk_fieldtypes()))
+    results = reports.filter(type__name = "Risk Result")
     allpatients = Patient.objects.filter( id__in = reports.values('patient'))
     end = resp['filters']['period']['end']
     start = resp['filters']['period']['start']
@@ -1185,22 +1203,54 @@ def risk_report(req):
     if qryset.exists():
 
         patients = allpatients.filter( id__in = qryset.values('patient'))
-        alerts = qryset.filter( id__in = TriggeredAlert.objects.filter( report__in = qryset).values('report'))
-        red_patients = patients.filter( id__in = alerts.values('patient'))
-        yes_alerts = qryset.filter( id__in = TriggeredAlert.objects.filter( report__in = qryset, trigger__destination = "AMB", response = 'YES').values('report'))
-        po_alerts = qryset.filter( id__in = TriggeredAlert.objects.filter( report__in = qryset, trigger__destination__in = ["SUP","DIS"], response = 'PO').values('report'))
+        patients_with_results = patients.filter( id__in = results.values('patient') )
+        patients_with_pr = patients.filter(id__in = qryset.filter(fields__type__key__in = ['gs','mu','hd','rm']).values('patient'))
+        patients_with_cr = patients.exclude(id__in = patients_with_pr.values_list('id'))
+        
+        #alerts = qryset.filter( id__in = TriggeredAlert.objects.filter( report__in = qryset).values('report'))
+        #red_patients = patients.filter( id__in = alerts.values('patient'))
+        #yes_alerts = qryset.filter( id__in = TriggeredAlert.objects.filter( report__in = qryset, trigger__destination = "AMB", response = 'YES').values('report'))
+        #po_alerts = qryset.filter( id__in = TriggeredAlert.objects.filter( report__in = qryset, trigger__destination__in = ["SUP","DIS"], response = 'PO').values('report'))
 
-        patients_l, alerts_l, red_patients_l, yes_alerts_l, po_alerts_l = patients.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), alerts.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), red_patients.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), yes_alerts.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), po_alerts.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
+        #patients_l, alerts_l, red_patients_l, yes_alerts_l, po_alerts_l = patients.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), alerts.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), red_patients.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), yes_alerts.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), po_alerts.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
 
-        ans_l = {'pats' : patients_l, 'alts' : alerts_l, 'rpats': red_patients_l, 'yalts': yes_alerts_l, 'palts': po_alerts_l, 'tot': qryset.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) }
+        patients_l, patients_with_results_l, patients_with_pr_l, patients_with_cr_l = patients.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), patients_with_results.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), patients_with_pr.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), patients_with_cr.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
 
-        patients_m, alerts_m, red_patients_m, yes_alerts_m, po_alerts_m = qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('patient',distinct = True)).order_by('year','month'), alerts.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), alerts.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('patient',distinct = True)).order_by('year','month'), yes_alerts.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), po_alerts.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
+        
+        #ans_l = {'pats' : patients_l, 'alts' : alerts_l, 'rpats': red_patients_l, 'yalts': yes_alerts_l, 'palts': po_alerts_l, 'tot': qryset.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) }
 
-        ans_m = {'pats' : patients_m, 'alts' : alerts_m, 'rpats': red_patients_m, 'yalts': yes_alerts_m, 'palts': po_alerts_m, 'tot': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
+        ans_l = {'pats' : patients_l, 'alts' : patients_with_results_l, 'rpats': patients_with_pr_l, 'yalts': patients_with_cr_l,'tot': qryset.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) }
+
+        #patients_m, alerts_m, red_patients_m, yes_alerts_m, po_alerts_m = qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('patient',distinct = True)).order_by('year','month'), alerts.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), alerts.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('patient',distinct = True)).order_by('year','month'), yes_alerts.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), po_alerts.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
+
+        patients_m, patients_with_results_m, patients_with_pr_m, patients_with_cr_m = qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('patient',distinct = True)).order_by('year','month'), results.filter(patient__in = patients_with_results).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('patient',distinct = True)).order_by('year','month'), qryset.filter(patient__in = patients_with_pr).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('patient',distinct = True)).order_by('year','month'), qryset.filter(patient__in = patients_with_cr).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('patient',distinct = True)).order_by('year','month')
+
+        #ans_m = {'pats' : patients_m, 'alts' : alerts_m, 'rpats': red_patients_m, 'yalts': yes_alerts_m, 'palts': po_alerts_m, 'tot': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
+
+        ans_m = {'pats' : patients_m, 'alts' : patients_with_results_m, 'rpats': patients_with_pr_m, 'yalts': patients_with_cr_m, 'tot': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
 
     resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'pats_l': allpatients.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), 'pats_m': reports.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('patient',distinct = True)).order_by('year','month')}
-    return render_to_response('ubuzima/risk_report.html',
-           resp, context_instance=RequestContext(req))
+    
+    if req.REQUEST.has_key('cat'):
+        if req.GET['cat'] == 'pats':
+            resp['title'] = 'Patients With Risk'
+            resp['reports'] = paginated(req, patients)
+            return render_to_response('ubuzima/patients.html', resp, context_instance=RequestContext(req))
+        elif req.GET['cat'] == 'alts':
+            resp['title'] = 'Patients With Result'
+            resp['reports'] = paginated(req, patients_with_results)
+            return render_to_response('ubuzima/patients.html', resp, context_instance=RequestContext(req))
+        elif req.GET['cat'] == 'rpats':
+            resp['title'] = 'Patients With Previous Risk'
+            resp['reports'] = paginated(req, patients_with_pr)
+            return render_to_response('ubuzima/patients.html', resp, context_instance=RequestContext(req))
+        elif req.GET['cat'] == 'yalts':
+            resp['title'] = 'Patients With Current Risk'
+            resp['reports'] = paginated(req, patients_with_cr)
+            return render_to_response('ubuzima/patients.html', resp, context_instance=RequestContext(req))
+        
+
+    return render_to_response('ubuzima/risk_report.html', resp, context_instance=RequestContext(req))
 
 ###END OF RISK TABLES, CHARTS, MAP
 
@@ -1684,7 +1734,6 @@ def emergency_room(req):
     red_res_ne = red_res.exclude(  fields__type__key__in = ['mw','cw'])
     red_unres = red.exclude( patient__in = red_res.values('patient'))
 
-    print red.values('pk'), "\n",red_res.values('pk'), "\n",red_res_po, "\n",red_res_ne, "\n",red_unres.values('pk')
     
     resp['data'] = red.values('location__name','location__pk').annotate(total = Count('id')).order_by('location__name')
         
@@ -1738,13 +1787,13 @@ def json_response(func):
 
 def pregnancy_calendar_data(request):
     
-    showdate_str = request.POST['showdate']###in the form mm/dd/year    
+    showdate_str = request.POST['showdate']###in the form mm/dd/year
     showdate_array = showdate_str.split("/")
     yyyy, mm, dd = showdate_array[2], showdate_array[0], showdate_array[1]
     showdate = datetime.date(int(yyyy), int(mm), int(dd))
 
     viewtype = request.POST['viewtype']
-    
+
     st, et = None, None
     if viewtype == 'month':
         st = datetime.datetime(showdate.year, showdate.month, 1,0,0)
@@ -1758,18 +1807,18 @@ def pregnancy_calendar_data(request):
 
     elif viewtype == 'day':
         st = datetime.datetime(showdate.year, showdate.month, showdate.day,0,0)
-        et = datetime.datetime(showdate.year, showdate.month, showdate.day + 1,23,59)
-    
+        et = datetime.datetime(showdate.year, showdate.month, showdate.day + 1,23,59)   
+
     events = []
-    edd = Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = st , edd_date__lte = et ).order_by('edd_date').values('edd_date').annotate(total = Count('id'))
+    edd = Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = st , edd_date__lte = et).order_by('edd_date').values('edd_date').annotate(total = Count('id'))
     i = 1
     for ed in edd:
         try:
-            events.append(["%d" % i, "Expected Deliveries: %d" % ed['total'], ed['edd_date'].strftime('%m/%d/%Y %H:%M'), ed['edd_date'].strftime('%m/%d/%Y %H:%M'), "1", 0, 0, "9", 1, "Rwanda", "Didier" ])
+            events.append(["%d" % i, "Expected Deliveries: %d" % ed['total'], ed['edd_date'].strftime('%m/%d/%Y %H:%M'), ed['edd_date'].strftime('%m/%d/%Y %H:%M'), "1", 0, 0, "9", 1, "Rwanda", "" ])
             i = i + 1
         except Exception, e:    print e#continue 
     
-    pdata = { 'events' : events, 'issort' : True, 'start' : st.strftime('%m/%d/%Y %H:%M'), 'end' : et.strftime('%m/%d/%Y %H:%M'), 'error' : None  }    
+    pdata = { 'events' : events, 'issort' : True, 'start' : st.strftime('%m/%d/%Y %H:%M'), 'end' : et.strftime('%m/%d/%Y %H:%M'), 'error' : None}    
 
     #data = {"events":[["1","Pregnancy","04/19/2013 00:00","04/30/2013 00:00","1",0,0,"Green",1,"Musanze",""],["2","Pregnancy","04/18/2013 00:00","04/18/2013 00:00","1",0,0,"Red",1,"Musanze",""],["3","Pregnancy","04/19/2013 00:00","04/19/2013 00:00","1",0,0,"Green",1,"Musanze",""],["4","Pregnancy","04/30/2013 00:00","04/30/2013 00:00","1",0,0,"Red",1,"Musanze",""],["5","Pregnancy","04/23/2013 00:00","04/23/2013 00:00","1",0,0,"Green",1,"Musanze",""],["6","Pregnancy","04/16/2013 00:00","04/16/2013 00:00","1",0,0,"13",1,"Musanze",""],["7","Birth","04/16/2013 00:00","04/16/2013 00:00","1",0,0,"9",1,"Kacyiru",""]],"issort":True,"start":"04/01/2013 00:00","end":"04/30/2013 23:59","error":None} 
     
@@ -1778,6 +1827,7 @@ def pregnancy_calendar_data(request):
 
 def pregnancy_calendar(req):
     resp=pull_req_with_filters(req)
+    
     if req.REQUEST.has_key('method'):
         return pregnancy_calendar_data(req)
     return render_to_response("ubuzima/pregnancy_calendar.html", resp,context_instance=RequestContext(req))

@@ -144,6 +144,7 @@ class FacilityStaffAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
     list_display = ('names', 'telephone_moh', 'dob', 'national_id', 'email', 'service', 'village', 'cell', 'sector', 'health_centre', 'referral_hospital', 'district', 'province')
     search_fields = ('telephone_moh', 'email', 'names', 'village__name', 'cell__name', 'sector__name', 'health_centre__name', 'referral_hospital__name', 'district__name', 'province__name')
+    list_filter = ('service', 'district__name',)
 
 
 admin.site.register(Role)

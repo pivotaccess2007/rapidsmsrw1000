@@ -370,6 +370,7 @@ var months_b = "{% for m in track.months %} {% if not forloop.first %},{% endif 
 if (annot.split(",")[0] == "province__name"){
 var pats_l = jQuery.parseJSON('{ {% for tr in track.items_l.pats %} {% if not forloop.first %},{% endif %} "{{tr.province__name}}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), alts_l = jQuery.parseJSON('{ {% for tr in track.items_l.alts %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), rpats_l = jQuery.parseJSON('{ {% for tr in track.items_l.rpats %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), yalts_l = jQuery.parseJSON('{ {% for tr in track.items_l.yalts %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), palts_l = jQuery.parseJSON('{ {% for tr in track.items_l.palts %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), patients_l = jQuery.parseJSON('{ {% for tr in track.pats_l %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), tot_l = jQuery.parseJSON('{ {% for tr in track.items_l.tot %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }');
 
+
 }else if(annot.split(",")[0] == "district__name"){
 	var pats_l = jQuery.parseJSON('{ {% for tr in track.items_l.pats %} {% if not forloop.first %},{% endif %} "{{tr.district__name}}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'), alts_l = jQuery.parseJSON('{ {% for tr in track.items_l.alts %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'),rpats_l = jQuery.parseJSON('{ {% for tr in track.items_l.rpats %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'), yalts_l = jQuery.parseJSON('{ {% for tr in track.items_l.yalts %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'), palts_l = jQuery.parseJSON('{ {% for tr in track.items_l.palts %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'), patients_l = jQuery.parseJSON('{ {% for tr in track.pats_l %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'), tot_l = jQuery.parseJSON('{ {% for tr in track.items_l.tot %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }');
 
@@ -386,7 +387,7 @@ var pats_m_c =[] , alts_m_c = [], rpats_m_c = [], ticks_m  = [], yalts_m_c =[], 
 	
 	
 	var str_l = "<h2 >Risk Report Statistics in {{sel.name}}-{{sel|to_class_name}} By "+locs[0].split("-")[2]+"</h2><table class = 'table-design' id = 'table_l'>";	
-	var theader_l = "<thead> <tr><th>"+locs[0].split("-")[2]+"</th><th>Total Risk</th><th>Patient With Risk</th><th>Red Alerts</th><th>Patients With Red Alerts</th><th>Responded Alerts</th><th>Positive Outcomes</th><th>Red Alerts(%)</th><th> Patients With Risk(%)</th><th>Patients With Red Alerts(%)</th><th>Responded Alerts(%)</th><th>Positive Outcomes</th></tr></thead>";
+	var theader_l = "<thead> <tr><th>"+locs[0].split("-")[2]+"</th><th>Total Risk Reports</th><th>Patient With Risk</th><th>Patient with Result</th><th>Patient With Previous Risk</th><th>Patient With Current Risk</th><!--<th>Positive Outcomes</th><th>Red Alerts(%)</th><th> Patients With Risk(%)</th><th>Patients With Red Alerts(%)</th><th>Responded Alerts(%)</th><th>Positive Outcomes</th>--></tr></thead>";
 	var tdata_l = "<tbody>";
 	for ( var l in locs) {
 			var pats_l_n, alts_l_n, rpats_l_n, yalts_l_n, palts_l_n, patients_l_n, tot_l_n, pats_l_np , alts_l_np, rpats_l_np, yalts_l_np , palts_l_np;
@@ -435,16 +436,22 @@ var pats_m_c =[] , alts_m_c = [], rpats_m_c = [], ticks_m  = [], yalts_m_c =[], 
 									
 					}
 			
-			pats_l_c.push([l,pats_l_np]);
+			/*pats_l_c.push([l,pats_l_np]);
 			rpats_l_c.push([l,rpats_l_np]);
 			alts_l_c.push([l,alts_l_np]);
 			yalts_l_c.push([l,yalts_l_np]);
-			palts_l_c.push([l,palts_l_np]);
+			palts_l_c.push([l,palts_l_np]);*/
+
+			pats_l_c.push([l,pats_l_n]);
+			rpats_l_c.push([l,rpats_l_n]);
+			alts_l_c.push([l,alts_l_n]);
+			yalts_l_c.push([l,yalts_l_n]);
+			palts_l_c.push([l,palts_l_n]);
 			
 			ticks_l.push([l, loc_n]);
 			globaltot_l += tot_l_n, pats_l_tot += pats_l_n, alts_l_tot += alts_l_n, rpats_l_tot += rpats_l_n , yalts_l_tot += yalts_l_n, palts_l_tot += palts_l_n, patients_l_tot += patients_l_n  ;
 				
-	tdata_l += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td>"+"<td>"+tot_l_n+"</td>"+"<td>"+pats_l_n+"</td>"+"<td>"+alts_l_n+"</td>"+"<td>"+rpats_l_n+"</td>"+"<td>"+yalts_l_n+"</td><td>"+palts_l_n+"</td>"+"<td>"+alts_l_np+"</td><td>"+pats_l_np+"</td><td>"+rpats_l_np+"</td><td>"+yalts_l_np+"</td><td>"+palts_l_np+"</td></tr>";
+	tdata_l += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td>"+tot_l_n+"</td>"+"<td><a href={{url.path}}?cat=pats&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+pats_l_n+"</a></td>"+"<td><a href={{url.path}}?cat=alts&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+alts_l_n+"</a></td>"+"<td><a href={{url.path}}?cat=rpats&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+rpats_l_n+"</a></td>"+"<td><a href={{url.path}}?cat=yalts&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+yalts_l_n+"</a></td><!--<td>"+palts_l_n+"</td>"+"<td>"+alts_l_np+"</td><td>"+pats_l_np+"</td><td>"+rpats_l_np+"</td><td>"+yalts_l_np+"</td><td>"+palts_l_np+"</td>--></tr>";
 	
 	
 			
@@ -458,13 +465,13 @@ var pats_m_c =[] , alts_m_c = [], rpats_m_c = [], ticks_m  = [], yalts_m_c =[], 
 
 		if (alts_l_tot > 0)yalts_l_totp = Math.round((yalts_l_tot*100/alts_l_tot)* Math.pow(10,0))/Math.pow(10,0), palts_l_totp = Math.round((palts_l_tot*100/alts_l_tot)* Math.pow(10,0))/Math.pow(10,0); 
 
-		tdata_l += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+globaltot_l+"</b></td>"+"<td><b>"+pats_l_tot+"</b></td>"+"<td><b>"+alts_l_tot+"</b></td>"+"<td><b>"+rpats_l_tot+"</b></td>"+"<td><b>"+yalts_l_tot+"</b></td>"+"<td><b>"+palts_l_tot+"</b></td>"+"<td><b>"+alts_l_totp+"</b></td><td><b>"+pats_l_totp+"</b></td>"+"<td><b>"+rpats_l_totp+"</b></td>"+"<td><b>"+yalts_l_totp+"</b></td><td><b>"+palts_l_totp+"</b></td></tr></tbody>";
+		tdata_l += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+globaltot_l+"</b></td>"+"<td><b>"+pats_l_tot+"</b></td>"+"<td><b>"+alts_l_tot+"</b></td>"+"<td><b>"+rpats_l_tot+"</b></td>"+"<td><b>"+yalts_l_tot+"</b></td>"+"<!--<td><b>"+palts_l_tot+"</b></td>"+"<td><b>"+alts_l_totp+"</b></td><td><b>"+pats_l_totp+"</b></td>"+"<td><b>"+rpats_l_totp+"</b></td>"+"<td><b>"+yalts_l_totp+"</b></td><td><b>"+palts_l_totp+"</b></td>--></tr></tbody>";
 		
 		str_l += theader_l + tdata_l +"</table><div ><form> <p style ='display:none'><label for='filename_l' >Filename</label><br></br> <input type='text' name='filename_l' value='exportfile_l.xls' id='filename_l' > </p> <p id='downloadify_l' style='margin-bottom:5px;'> You must have Flash 10 installed to download this file. </p> </form></div>";
 		
 	
 	var str_m = "<h2 >Monthly Risk Report Statistics in {{sel.name}}-{{sel|to_class_name}}</h2><table class = 'table-design' id = 'table_m'>";
-	var theader_m = "<thead> <tr><th>Month</th><th>Total Risk</th><th>Patient With Risk</th><th>Red Alerts</th><th>Patients With Red Alerts</th><th>Responded Alerts</th><th>Positive Outcomes</th><th>Red Alerts(%)</th><th> Patients With Risk(%)</th><th>Patients With Red Alerts(%)</th><th>Responded Alerts(%)</th><th>Positive Outcomes</th></tr></thead>";
+	var theader_m = "<thead> <tr><th>Month</th><th>Total Risk Reports</th><th>Patient With Risk</th><th>Patient with Result</th><th>Patient With Previous Risk</th><th>Patient With Current Risk</th><!--<th>Red Alerts(%)</th><th> Patients With Risk(%)</th><th>Patients With Red Alerts(%)</th><th>Responded Alerts(%)</th><th>Positive Outcomes</th>--></tr></thead>";
 	var tdata_m = "<tbody>";
 
 	
@@ -515,16 +522,22 @@ var pats_m_c =[] , alts_m_c = [], rpats_m_c = [], ticks_m  = [], yalts_m_c =[], 
 									
 								}
 			
-			pats_m_c.push([m,pats_m_np]);
+			/*pats_m_c.push([m,pats_m_np]);
 			rpats_m_c.push([m,rpats_m_np]);
 			alts_m_c.push([m,alts_m_np]);
 			yalts_m_c.push([m,yalts_m_np]);
-			palts_m_c.push([m,palts_m_np]);
+			palts_m_c.push([m,palts_m_np]);*/
+
+			pats_m_c.push([m,pats_m_n]);
+			rpats_m_c.push([m,rpats_m_n]);
+			alts_m_c.push([m,alts_m_n]);
+			yalts_m_c.push([m,yalts_m_n]);
+			palts_m_c.push([m,palts_m_n]);
 			
 			ticks_m.push([m, month_n]);
 			globaltot_m += tot_m_n, pats_m_tot = pats_l_tot , alts_m_tot += alts_m_n, rpats_m_tot = rpats_l_tot , yalts_m_tot += yalts_m_n, palts_m_tot += palts_m_n, patients_m_tot = patients_l_tot;
 				
-	tdata_m += "<tr><td><b>"+month_n+"</b></td>"+"<td>"+tot_m_n+"</td>"+"<td>"+pats_m_n+"</td>"+"<td>"+alts_m_n+"</td>"+"<td>"+rpats_m_n+"</td>"+"<td>"+yalts_m_n+"</td><td>"+palts_m_n+"</td>"+"<td>"+alts_m_np+"</td><td>"+pats_m_np+"</td><td>"+rpats_m_np+"</td><td>"+yalts_m_np+"</td><td>"+palts_m_np+"</td></tr>";	
+	tdata_m += "<tr><td><b>"+month_n+"</b></td>"+"<td>"+tot_m_n+"</td>"+"<td>"+pats_m_n+"</td>"+"<td>"+alts_m_n+"</td>"+"<td>"+rpats_m_n+"</td>"+"<td>"+yalts_m_n+"</td><!--<td>"+palts_m_n+"</td>"+"<td>"+alts_m_np+"</td><td>"+pats_m_np+"</td><td>"+rpats_m_np+"</td><td>"+yalts_m_np+"</td><td>"+palts_m_np+"</td>--></tr>";	
 	
 			
 			}
@@ -535,7 +548,7 @@ var pats_m_c =[] , alts_m_c = [], rpats_m_c = [], ticks_m  = [], yalts_m_c =[], 
 
 		if (alts_m_tot > 0)yalts_m_totp = Math.round((yalts_m_tot*100/alts_m_tot)* Math.pow(10,0))/Math.pow(10,0), palts_m_totp = Math.round((palts_m_tot*100/alts_m_tot)* Math.pow(10,0))/Math.pow(10,0); 
 
-		tdata_m += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+globaltot_m+"</b></td>"+"<td><b>"+pats_m_tot+"</b></td>"+"<td><b>"+alts_m_tot+"</b></td>"+"<td><b>"+rpats_m_tot+"</b></td>"+"<td><b>"+yalts_m_tot+"</b></td>"+"<td><b>"+palts_m_tot+"</b></td>"+"<td><b>"+alts_m_totp+"</b></td><td><b>"+pats_m_totp+"</b></td>"+"<td><b>"+rpats_m_totp+"</b></td>"+"<td><b>"+yalts_m_totp+"</b></td><td><b>"+palts_m_totp+"</b></td></tr></tbody>"; 
+		tdata_m += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+globaltot_m+"</b></td>"+"<td><b>"+pats_m_tot+"</b></td>"+"<td><b>"+alts_m_tot+"</b></td>"+"<td><b>"+rpats_m_tot+"</b></td>"+"<td><b>"+yalts_m_tot+"</b></td>"+"<!--<td><b>"+palts_m_tot+"</b></td>"+"<td><b>"+alts_m_totp+"</b></td><td><b>"+pats_m_totp+"</b></td>"+"<td><b>"+rpats_m_totp+"</b></td>"+"<td><b>"+yalts_m_totp+"</b></td><td><b>"+palts_m_totp+"</b></td>--></tr></tbody>"; 
 		
 		str_m += theader_m + tdata_m +"</table><div><form> <p style ='display:none'><label for='filename_m' >Filename</label><br></br> <input type='text' name='filename_m' value='exportfile_m.xls' id='filename_m' > </p> <p id='downloadify_m' style='margin-bottom:5px;'> You must have Flash 10 installed to download this file. </p> </form></div>";
 		
@@ -554,36 +567,31 @@ var pats_m_c =[] , alts_m_c = [], rpats_m_c = [], ticks_m  = [], yalts_m_c =[], 
             bars: { show: true, align:'center', barWidth:0.1 }
         },
         {
+            data: yalts_l_c,
+            label:'Patient With Current Risk',
+            color: '#C0504D',
+            bars: { show: true, align:'center', barWidth:0.1 }
+        },
+        {
             data: rpats_l_c,
             color: '#FF3333',
-            label:'Patients With Red Alert',
+            label:'Patients With Previous Risk',
             bars: { show: true, align:'center', barWidth:0.1 }
         },
         {
             data: alts_l_c,
-	    color : '#C0504D',
-            label:'Red Alerts',
-            bars: { show: true, align:'center', barWidth:0.1 }
-        },
-        {
-            data: yalts_l_c,
-            label:'Responded Red Alerts',
-            color: '#003366',
-            bars: { show: true, align:'center', barWidth:0.1 }
-        },
-        {
-            data: palts_l_c,
-            label:'Positive Outcomes',
-            color: '#409628',
+	    color : '#409628',
+            label:'Patients With Result',
             bars: { show: true, align:'center', barWidth:0.1 }
         }
+        
     ]; 
 
    var options_l = {
             selection: { mode: "xy" },
         grid: { hoverable: true, clickable: true },
                 xaxis:{ ticks:ticks_l },
-                yaxis:{ min:0,max:100,ticks:[[10,"10%"],[20,"20%"],[30,"30%"],[40,"40%"],[50,"50%"],[60,"60%"],[70,"70%"],[80,"80%"],[90,"90%"],[100,"100%"]] },
+                //yaxis:{ min:0,max:100,ticks:[[10,"10%"],[20,"20%"],[30,"30%"],[40,"40%"],[50,"50%"],[60,"60%"],[70,"70%"],[80,"80%"],[90,"90%"],[100,"100%"]] },
         multiplebars: true
     };
 
@@ -598,31 +606,25 @@ var data_m = [
             data: pats_m_c,
             color: '#FFFF33',
             label:'Patients With Risk',
-            lines: { show: true, align:'center', barWidth:0.2 }
+            lines: { show: true, align:'center', barWidth:0.1 }
+        },
+        {
+            data: yalts_m_c,
+            label:'Patient With Current Risk',
+            color: '#C0504D',
+            lines: { show: true, align:'center', barWidth:0.1 }
         },
         {
             data: rpats_m_c,
             color: '#FF3333',
-            label: 'Patients With Red Alert',
-            lines: { show: true, align:'center', barWidth:0.2 }
+            label:'Patients With Previous Risk',
+            lines: { show: true, align:'center', barWidth:0.1 }
         },
         {
             data: alts_m_c,
-            label:'Red Alerts',
-	    color : '#C0504D',
-            lines: { show: true, align:'center', barWidth:0.2 }
-        },
-        {
-            data: yalts_m_c,
-            label:'Responded Red Alerts',
-            color: '#003366',
-            lines: { show: true, align:'center', barWidth:0.2 }
-        },
-        {
-            data: palts_m_c,
-            label:'Positive Outcomes',
-            color: '#409628',
-            lines: { show: true, align:'center', barWidth:0.2 }
+	    color : '#409628',
+            label:'Patients With Result',
+            lines: { show: true, align:'center', barWidth:0.1 }
         }
     ];
 
@@ -630,7 +632,7 @@ var options_m = {
             selection: { mode: "xy" },
         grid: { hoverable: true, clickable: true },
                 xaxis:{ ticks:ticks_m },
-                yaxis:{ min:0,max:100,ticks:[[10,"10%"],[20,"20%"],[30,"30%"],[40,"40%"],[50,"50%"],[60,"60%"],[70,"70%"],[80,"80%"],[90,"90%"],[100,"100%"]] },
+                //yaxis:{ min:0,max:100,ticks:[[10,"10%"],[20,"20%"],[30,"30%"],[40,"40%"],[50,"50%"],[60,"60%"],[70,"70%"],[80,"80%"],[90,"90%"],[100,"100%"]] },
         multiplebars: true
     };
 
@@ -649,7 +651,7 @@ var previousPoint = null;
                     y = item.datapoint[1]/*.toFixed(2)*/;
                 
                 showTooltip(item.pageX, item.pageY,
-                            item.series.label + ":" + y +"%");
+                            item.series.label + ":" + y +"");
             }
         }
         else {
@@ -671,7 +673,7 @@ $("#placeholder_m").bind("plothover", function (event, pos, item) {
                     y = item.datapoint[1]/*.toFixed(2)*/;
                 
                 showTooltip(item.pageX, item.pageY,
-                            item.series.label + ":" + y +"%");
+                            item.series.label + ":" + y +"");
             }
         }
         else {

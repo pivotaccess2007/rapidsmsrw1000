@@ -88,6 +88,26 @@ def index(request):
     return render_to_response("chws/province.html", dict(prvs=prv, user=request.user), context_instance=RequestContext(request))
 
 
+def chwreg(request):
+    """CHW reg"""
+    request.base_template = "webapp/layout.html"
+    uiurl = 'http://%s' % settings.SERVER_IP 
+
+    prv = Province.objects.all().order_by("-id")
+
+    paginator = Paginator(prv, 2)
+
+    try: page = int(request.GET.get("page", '1'))
+    except ValueError: page = 1
+
+    try:
+        prv = paginator.page(page)
+    except (InvalidPage, EmptyPage):
+        prv = paginator.page(paginator.num_pages)
+    
+    return render_to_response("chws/chwreg.html", dict(prvs=prv, user=request.user, uiurl = uiurl), context_instance=RequestContext(request))    
+
+
 @require_GET
 @require_http_methods(["GET"])
 def group_messages(request):

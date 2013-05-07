@@ -412,14 +412,14 @@ var pnc1_c_m =[] , pnc2_c_m = [], ticks_m  = [], pnc3_c_m = [], globaltot_m=0,pn
 	var theader1_1 = "<thead><!--<tr><th></th><th colspan=4>Delivery Report Numbers</th><th colspan=3>Delivery Report Percentages</th></tr>-->";
 	var tdata1 = "";
 	var str1 = "<h2 >PNC Report Statistics in {{sel.name}}-{{sel|to_class_name}} By "+locs[0].split("-")[2]+"</h2><table class = 'table-design' id = 'table1'>";
-	var theader1 = "<thead><tr><th>Location</th><th>PNC1</th><th>PNC2</th><th>PNC3</th><th>Total</th><th>PNC1(%)</th><th>PNC2(%)</th><th>PNC3(%)</th></tr></thead>";
+	var theader1 = "<thead><tr><th>Location</th><th>PNC1</th><th>PNC2</th><th>PNC3</th><th>Total</th><!--<th>PNC1(%)</th><th>PNC2(%)</th><th>PNC3(%)</th>--></tr></thead>";
 
 
 
 	var theader2_1 = "<thead><!--<tr><th></th><th colspan=5>Delivery Report Numbers</th><th colspan=4>Delivery Report Percentages</th></tr> -->";
 	var tdata2 = "";
 	var str2 = "<h2 >Monthly PNC Report Statistics in {{sel.name}}-{{sel|to_class_name}} </h2><table class = 'table-design' id = 'table2'>";
-	var theader2 = "<thead><tr><th>Month</th><th> PNC1 </th><th> PNC2   </th><th> PNC3  </th><th>Total</th><th> PNC1(%) </th><th>  PNC2(%)  </th><th>  PNC3(%)  </th></tr></thead>";
+	var theader2 = "<thead><tr><th>Month</th><th> PNC1 </th><th> PNC2   </th><th> PNC3  </th><th>Total</th><!--<th> PNC1(%) </th><th>  PNC2(%)  </th><th>  PNC3(%)  </th>--></tr></thead>";
 
 	for ( var l in locs) {
 			var pnc1_n,pnc2_n,pnc3_n,tot_n,pnc1_np,pnc2_np,pnc3_np;
@@ -452,20 +452,23 @@ var pnc1_c_m =[] , pnc2_c_m = [], ticks_m  = [], pnc3_c_m = [], globaltot_m=0,pn
 			
 			
 
-			pnc1_c.push([l,pnc1_np]);
-			pnc2_c.push([l,pnc2_np]);
-			pnc3_c.push([l,pnc3_np]);
+			//pnc1_c.push([l,pnc1_np]);
+			//pnc2_c.push([l,pnc2_np]);
+			//pnc3_c.push([l,pnc3_np]);
+			pnc1_c.push([l,pnc1_n]);
+			pnc2_c.push([l,pnc2_n]);
+			pnc3_c.push([l,pnc3_n]);
 			ticks.push([l, loc_n]);
 			globaltot += tot_n, pnc1_tot += pnc1_n, pnc2_tot += pnc2_n, pnc3_tot += pnc3_n;
 				//alert(month_names[months_b[s].trim().split("-")[0]]);//+"-"+months_b[s+1].split("-")[1]);
 
-	tdata1 += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td>"+pnc1_n+"</td>"+"<td>"+pnc2_n+"</td>"+"<td>"+pnc3_n+"</td>"+"<td>"+tot_n+"</td>"+"<td>"+pnc1_np+"</td>"+"<td>"+pnc2_np+"</td>"+"<td>"+pnc3_np+"</td></tr>";
+	tdata1 += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td>"+pnc1_n+"</td>"+"<td>"+pnc2_n+"</td>"+"<td>"+pnc3_n+"</td>"+"<td>"+tot_n+"</td>"+"<!--<td>"+pnc1_np+"</td>"+"<td>"+pnc2_np+"</td>"+"<td>"+pnc3_np+"</td>--></tr>";
 	
 			
 			}
 		if (globaltot > 0)pnc1_totp = Math.round((pnc1_tot * 100/globaltot)* Math.pow(10,2))/Math.pow(10,2),pnc2_totp = Math.round((pnc2_tot * 100/globaltot)* Math.pow(10,2))/Math.pow(10,2),pnc3_totp = Math.round((pnc3_tot * 100/globaltot)* Math.pow(10,2))/Math.pow(10,2); 
 
-		tdata1 += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+pnc1_tot+"</b></td>"+"<td><b>"+pnc2_tot+"</b></td>"+"<td><b>"+pnc3_tot+"</b></td>"+"<td><b>"+globaltot+"</b></td>"+"<td><b>"+pnc1_totp+"</b></td>"+"<td><b>"+pnc2_totp+"</b></td>"+"<td><b>"+pnc3_totp+"</b></td></tr>";
+		tdata1 += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+pnc1_tot+"</b></td>"+"<td><b>"+pnc2_tot+"</b></td>"+"<td><b>"+pnc3_tot+"</b></td>"+"<td><b>"+globaltot+"</b></td>"+"<!--<td><b>"+pnc1_totp+"</b></td>"+"<td><b>"+pnc2_totp+"</b></td>"+"<td><b>"+pnc3_totp+"</b></td>--></tr>";
 
 
 		
@@ -500,21 +503,24 @@ var pnc1_c_m =[] , pnc2_c_m = [], ticks_m  = [], pnc3_c_m = [], globaltot_m=0,pn
 									
 								}
 			
-			pnc1_c_m.push([s,pnc1_np_m]);
-			pnc2_c_m.push([s,pnc2_np_m]);
-			pnc3_c_m.push([s,pnc3_np_m]);
+			//pnc1_c_m.push([s,pnc1_np_m]);
+			//pnc2_c_m.push([s,pnc2_np_m]);
+			//pnc3_c_m.push([s,pnc3_np_m]);
+			pnc1_c_m.push([s,pnc1_n_m]);
+			pnc2_c_m.push([s,pnc2_n_m]);
+			pnc3_c_m.push([s,pnc3_n_m]);
 			ticks_m.push([s, month_n]);
 			globaltot_m += tot_n_m, pnc1_tot_m += pnc1_n_m, pnc2_tot_m += pnc2_n_m, pnc3_tot_m += pnc3_n_m;
 				//alert(month_names[months_b[s].trim().split("-")[0]]);//+"-"+months_b[s+1].split("-")[1]);
 
-	tdata2 += "<tr><td>"+month_n+"</td>"+"<td>"+pnc1_n_m+"</td>"+"<td>"+pnc2_n_m+"</td>"+"<td>"+pnc3_n_m+"</td>"+"<td>"+tot_n_m+"</td>"+"<td>"+pnc1_np_m+"</td>"+"<td>"+pnc2_np_m+"</td>"+"<td>"+pnc3_np_m+"</td></tr>";
+	tdata2 += "<tr><td>"+month_n+"</td>"+"<td>"+pnc1_n_m+"</td>"+"<td>"+pnc2_n_m+"</td>"+"<td>"+pnc3_n_m+"</td>"+"<td>"+tot_n_m+"</td>"+"<!--<td>"+pnc1_np_m+"</td>"+"<td>"+pnc2_np_m+"</td>"+"<td>"+pnc3_np_m+"</td>--></tr>";
 	
 	
 			
 			}
 		if (globaltot_m > 0) pnc1_totp_m = Math.round((pnc1_tot_m * 100/globaltot_m)* Math.pow(10,2))/Math.pow(10,2),pnc2_totp_m = Math.round((pnc2_tot_m * 100/globaltot_m)* Math.pow(10,2))/Math.pow(10,2),pnc3_totp_m = Math.round((pnc3_tot_m * 100/globaltot_m)* Math.pow(10,2))/Math.pow(10,2); 
 
-		tdata2 += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+pnc1_tot_m+"</b></td>"+"<td><b>"+pnc2_tot_m+"</b></td>"+"<td><b>"+pnc3_tot_m+"</b></td>"+"<td><b>"+globaltot_m+"</b></td>"+"<td><b>"+pnc1_totp_m+"</b></td>"+"<td><b>"+pnc2_totp_m+"</b></td>"+"<td><b>"+pnc3_totp_m+"</b></td></tr>";
+		tdata2 += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+pnc1_tot_m+"</b></td>"+"<td><b>"+pnc2_tot_m+"</b></td>"+"<td><b>"+pnc3_tot_m+"</b></td>"+"<td><b>"+globaltot_m+"</b></td>"+"<!--<td><b>"+pnc1_totp_m+"</b></td>"+"<td><b>"+pnc2_totp_m+"</b></td>"+"<td><b>"+pnc3_totp_m+"</b></td>--></tr>";
 		
 		str2 += theader2+tdata2+"</table><div><form> <p style ='display:none'><label for='filename_2' >Filename</label><br></br> <input type='text' name='filename_2' value='exportfile_2.xls' id='filename_2' > </p> <p id='downloadify_2' style='margin-bottom:5px;'> You must have Flash 10 installed to download this file. </p> </form></div>";
 
@@ -549,7 +555,8 @@ var options_l = {
             selection: { mode: "xy" },
         grid: { hoverable: true, clickable: true },
                 xaxis:{ ticks:ticks },
-                yaxis:{ min:0,max:100,ticks:[[10,"10%"],[20,"20%"],[30,"30%"],[40,"40%"],[50,"50%"],[60,"60%"],[70,"70%"],[80,"80%"],[90,"90%"],[100,"100%"]] },
+                //yaxis:{ min:0,max:100,ticks:[[10,"10%"],[20,"20%"],[30,"30%"],[40,"40%"],[50,"50%"],[60,"60%"],[70,"70%"],[80,"80%"],[90,"90%"],[100,"100%"]] },
+		//yaxis:{ min:0,max:100,ticks:[[10,"10"],[20,"20"],[30,"30"],[40,"40"],[50,"50"],[60,"60"],[70,"70"],[80,"80"],[90,"90"],[100,"100"]] },
         multiplebars: true
     };
 
@@ -580,7 +587,7 @@ var options_m = {
             selection: { mode: "xy" },
         grid: { hoverable: true, clickable: true },
                 xaxis:{ ticks:ticks_m },
-                yaxis:{ min:0 },
+                //yaxis:{ min:0 },
         multiplebars: true
     };
 
