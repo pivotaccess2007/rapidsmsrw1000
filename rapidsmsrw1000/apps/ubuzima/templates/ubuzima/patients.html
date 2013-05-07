@@ -1,0 +1,118 @@
+{% extends request.base_template %}
+
+{% block title %}Reports: {{title}}{% endblock %}
+
+{% block javascripts %}
+
+<script language="javascript" type="text/javascript" src="/static/webapp/javascripts/jquery-1.4.1.min.js"></script>
+<script language="javascript" type="text/javascript" src="/static/webapp/javascripts/jquery.table2csv.0.1.1.min.js"></script>
+<!--[if IE]><script type="text/javascript" src="/static/webapp/javascripts/excanvas.pack.js"></script>
+<![endif]-->
+<script type="text/javascript" src="/static/webapp/javascripts/jquery.flot.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/downloadify/js/downloadify.min.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/downloadify/js/swfobject.js"></script>
+<script language="javascript" type="text/javascript" src="/static/webapp/javascripts/jquery.flot.multi.js"></script>
+
+<link type="text/css" rel="stylesheet" href="/static/webapp/stylesheets/modules.css" />
+<link rel="stylesheet" type="text/css" href="/static/webapp/stylesheets/tabview.css" ></link>
+<script type="text/javascript" src="/static/webapp/javascripts/tabview.js"></script>
+<script type="text/javascript"
+    src="/static/webapp/javascripts/stats.js"></script>
+
+<link rel="stylesheet" type="text/css"
+    href="/static/webapp/stylesheets/stats.css" />
+<link type="text/css" rel="stylesheet" href="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.css"></link>
+<script type="text/javascript" src="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.js"></script>
+
+{% endblock %}
+
+{% load pagination-tags %}
+
+{% block content %}
+
+<div>
+    <form class="topstrip">
+        <h2>Filtering</h2>
+        <table width="100%">
+            <thead>
+                <tr><th colspan="2">Period</th><th>Location</th><th></th><th></th><th></th></tr>
+                <tr><th>Start</th><th>End</th><th>Province</th><th>District</th><th>Health
+                        Centre</th><th></th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+            <input type="text" id="pickstartdate" value="{{ start_date }}"
+            name="start_date" readonly="readonly" size="10" /></td>
+        <td><input type="text" id="pickenddate" value="{{ end_date }}"
+            name="end_date" readonly="readonly" size="10" />
+                    </td>
+                    <td>
+            <select name="province" id="provchoose"><option></option>
+                {%  for loc in filters.province %}<option value="{{ loc.id }}" {% if loc.selected and request.GET.province %} selected="selected"{% endif %}>{{ loc.name }}</option>{%  endfor %}
+            </select>
+                    </td>
+                    <td>
+            <select name="district" id="distchoose"><option></option>
+                {%  for loc in filters.district %}<option value="{{ loc.id }}"{% if loc.selected and request.GET.district %} selected="selected"{% endif %}>{{ loc.name }}</option>{%  endfor %}
+            </select>
+                    </td>
+                    <td>
+            <select name="location" id="locchoose"><option></option>
+                {%  for loc in filters.location %}<option value="{{ loc.id }}"{% if loc.selected and request.GET.location %} selected="selected"{% endif %}>{{ loc.name }}</option>{%  endfor %}
+            </select>
+                    </td>
+                    <td>
+            <input type="button" value="Update Filters"  onClick="return deroulement(this.form);"/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+    <div class="clear-hack"></div>
+</div>
+<h2> Reports: {%if title%} {{title}}{%endif%} {%if not request.GET.province and not request.GET.district and not request.GET.location %}<p style=" text-align:center; ">Nation Wide, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%else%}<p style=" text-align:center; ">{{locationname}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%endif%}</h2>
+<table width="100%"> 
+    <thead>
+	<!--<tr><th colspan = "3"><a href={{request.url}}?csv{%if postqn%}&{{postqn}}{%endif%}>Export Reports Log -- CSV</a></th><th colspan = "2"><a href={{request.url}}?excel{%if postqn%}&{{postqn}}{%endif%}>Export Reports Log -- EXCEL</a></th><th colspan = "2"></th></tr> -->
+        <tr>
+        	<th>Id</th>
+	    <th>National ID</th>
+            <th>Village</th>
+	    <th>Cell</th>
+            <th>Sector</th>
+            <th>Location</th>
+            <th>District</th>
+            <th>Province</th>
+            
+        </tr>
+    </thead>
+    <tbody>
+    	{% for patient in reports.object_list %}
+            <tr>
+            	<td ><a href="/ubuzima/patient/{{patient.pk}}?{%if postqn%}&{{postqn}}{%endif%}">{{patient.pk}}</a></td>
+                <td><a href="/ubuzima/patient/{{patient.pk}}?{%if postqn%}&{{postqn}}{%endif%}">{{patient.national_id}}</a></td>
+                <td>{{patient.village.name}}</td>
+		<td>{{patient.cell.name}}</td>
+		<td>{{patient.sector.name}}</td>
+		<td>{{patient.location.name}}</td>
+		<td>{{patient.district.name}}</td>
+		<td>{{patient.province.name}}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    
+    <tfoot>
+			<tr>
+				<td colspan="10">
+					{% paginator reports %}
+				</td>
+			</tr>
+			<tr>
+				<td colspan="10">
+				Matching Reports: {{ reports.paginator.count }}
+				</td>
+			</tr>
+	</tfoot>
+</table>
+{% endblock %}
