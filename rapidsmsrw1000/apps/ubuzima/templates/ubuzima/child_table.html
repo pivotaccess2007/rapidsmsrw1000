@@ -12,8 +12,8 @@
             <th>Mother</th>
             <th>Sex</th>
 	    <th>Weight(Kg)</th>
-	    <th>MUAC(Cm)</th>
-	    <th>Risk</th>
+	    <!--<th>MUAC(Cm)</th>
+	    <th>Risk</th>-->
         </tr>
     </thead>
     <tbody>
@@ -26,8 +26,8 @@
                 <td><a href="/ubuzima/patient/{{report.patient.pk}}">{{report.patient.national_id}}</a></td>
 		<td>{{report.get_child.birth.sex}}</td>                
 		<td>{{report.get_child.birth.weight.value|floatformat:"2"}}</td>
-		<td>{{report.get_child.birth.muac.value|floatformat:"2"}}</td>
-		<td>{%for r in report.get_child.birth.risk %}{% if not forloop.first %},{% endif %}{{r.type.description}}{%endfor%}</td>
+		<!--<td>{{report.get_child.birth.muac.value|floatformat:"2"}}</td>
+		<td>{%for r in report.get_child.birth.risk %}{% if not forloop.first %},{% endif %}{{r.type.description}}{%endfor%}</td>-->
             </tr>
         {% endfor %}
     </tbody>

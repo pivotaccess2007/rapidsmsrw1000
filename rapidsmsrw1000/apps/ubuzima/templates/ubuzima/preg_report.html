@@ -289,9 +289,9 @@ function fetch_stats_indics(indic){
 	</div>
 	<div id="graph">
 		<div id="content">    	
-        		<h2 >Comparison of Death Report Statistics in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
+        		<h2 >Comparison of Pregnancy Report Statistics in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
 		<div id="placeholder_l" style=" width: 100%;height:400px;"></div>
-		<h2 >Variation of Death Statistics in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
+		<h2 >Variation of Pregnancy Statistics in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
 		<div id="placeholder_m" style=" width: 100%;height:400px;"></div>
     		</div>
 	</div>
@@ -307,7 +307,7 @@ function fetch_stats_indics(indic){
 	<div id="log">
 
 		
-		<h2 >Death Report Log in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
+		<h2 >Pregnancy Report Log in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
 		<div id="content">    	
         		{% include 'ubuzima/report_table.html' %}
     		</div>
@@ -367,7 +367,7 @@ var months_edd = "{% for m in track.months_edd %} {% if not forloop.first %},{% 
 
 
 if (annot.split(",")[0] == "province__name"){
-var pre_l = jQuery.parseJSON('{ {% for tr in track.items_l.pre %} {% if not forloop.first %},{% endif %} "{{tr.province__name}}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), prehr_l = jQuery.parseJSON('{ {% for tr in track.items_l.prehr %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'),edd_l = jQuery.parseJSON('{ {% for tr in track.items_l.edd %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), eddhr_l = jQuery.parseJSON('{ {% for tr in track.items_l.eddhr %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), pre_w_l = jQuery.parseJSON('{ {% for tr in track.items_l.pre_w %} {% if not forloop.first %},{% endif %} "{{tr.province__name}}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), edd_2_w_l = jQuery.parseJSON('{ {% for tr in track.items_l.edd_2_w %} {% if not forloop.first %},{% endif %} "{{tr.province__name}}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }');
+var pre_l = jQuery.parseJSON('{ {% for tr in track.items_l.pre %} {% if not forloop.first %},{% endif %} "{{tr.province__name}}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), prehr_l = jQuery.parseJSON('{ {% for tr in track.items_l.prehr %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'),edd_l = jQuery.parseJSON('{ {% for tr in track.items_l.edd %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), eddhr_l = jQuery.parseJSON('{ {% for tr in track.items_l.eddhr %} {% if not forloop.first %},{% endif %} "{{ tr.province__name }}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), pre_w_l = jQuery.parseJSON('{ {% for tr in track.items_l.pre_w %} {% if not forloop.first %},{% endif %} "{{tr.province__name}}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'), edd_2_w_l = jQuery.parseJSON('{ {% for tr in track.items_l.edd_2_w %} {% if not forloop.first %},{% endif %} "{{tr.province__name}}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }'),hedd_2_w_l = jQuery.parseJSON('{ {% for tr in track.items_l.hedd_2_w %} {% if not forloop.first %},{% endif %} "{{tr.province__name}}-{{tr.province__pk}}" : {{tr.number}}  {% endfor %} }');
 
 }else if(annot.split(",")[0] == "district__name"){
 	var pre_l = jQuery.parseJSON('{ {% for tr in track.items_l.pre %} {% if not forloop.first %},{% endif %} "{{tr.district__name}}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'), prehr_l = jQuery.parseJSON('{ {% for tr in track.items_l.prehr %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'),edd_l = jQuery.parseJSON('{ {% for tr in track.items_l.edd %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'), eddhr_l = jQuery.parseJSON('{ {% for tr in track.items_l.eddhr %} {% if not forloop.first %},{% endif %} "{{ tr.district__name }}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'), pre_w_l = jQuery.parseJSON('{ {% for tr in track.items_l.pre_w %} {% if not forloop.first %},{% endif %} "{{tr.district__name}}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }'), edd_2_w_l = jQuery.parseJSON('{ {% for tr in track.items_l.edd_2_w %} {% if not forloop.first %},{% endif %} "{{tr.district__name}}-{{tr.district__pk}}" : {{tr.number}}  {% endfor %} }');
@@ -379,16 +379,16 @@ var pre_l = jQuery.parseJSON('{ {% for tr in track.items_l.pre %} {% if not forl
 
 var pre_m = jQuery.parseJSON('{ {% for tr in track.items_m.pre %} {% if not forloop.first %},{% endif %} "{{ tr.month }}-{{tr.year}}" : {{tr.number}}  {% endfor %} }'), prehr_m = jQuery.parseJSON('{ {% for tr in track.items_m.prehr %} {% if not forloop.first %},{% endif %} "{{ tr.month }}-{{tr.year}}" : {{tr.number}}  {% endfor %} }'), edd_m = jQuery.parseJSON('{ {% for tr in track.items_m.edd %} {% if not forloop.first %},{% endif %} "{{ tr.month }}-{{tr.year}}" : {{tr.number}}  {% endfor %} }'), eddhr_m = jQuery.parseJSON('{ {% for tr in track.items_m.eddhr %} {% if not forloop.first %},{% endif %} "{{ tr.month }}-{{tr.year}}" : {{tr.number}}  {% endfor %} }');
 
-var pre_l_c =[] , prehr_l_c = [], ticks_l  = [], edd_l_c = [], eddhr_l_c = [], pre_l_tot=0, prehr_l_tot=0, edd_l_tot=0, eddhr_l_tot=0, pre_w_l_tot = 0, edd_2_w_l_tot = 0;
+var pre_l_c =[] , prehr_l_c = [], ticks_l  = [], edd_l_c = [], eddhr_l_c = [], hedd_2_w_l_c= [], pre_l_tot=0, prehr_l_tot=0, edd_l_tot=0, eddhr_l_tot=0, pre_w_l_tot = 0, edd_2_w_l_tot = 0, hedd_2_w_l_tot = 0;
 
 var pre_m_c =[] , prehr_m_c = [], ticks_m  = [], edd_m_c = [], eddhr_m_c = [], pre_m_tot=0, prehr_m_tot=0, edd_m_tot=0, eddhr_m_tot=0;
 	
 	
 	var str_l = "<h2 >Pregnancy Report Statistics in {{sel.name}}-{{sel|to_class_name}} By "+locs[0].split("-")[2]+" from {{filters.period.start|date:'d/M/Y'}} to  {{filters.period.end|date:'d/M/Y'}}</h2><table class = 'table-design' id = 'table_l'>";	
-	var theader_l = "<thead> <tr><th>"+locs[0].split("-")[2]+"</th><th>Registered Pregnancy</th><th>High Risk Registered Pregnancy</th><th>Expected Delivery</th><th>High Risk Expected Delivery</th><th>Pregnant Women </br>&nbsp;&nbsp;on </br>{{filters.period.end|date:'d/M/Y'}}</th><th>Pregnant Women Exepected to delever next 2 weeks </br>&nbsp;&nbsp;from </br>{{filters.period.end|date:'d/M/Y'}}</th></tr></thead>";
+	var theader_l = "<thead> <tr><th>"+locs[0].split("-")[2]+"</th><th>Registered Pregnancy</th><th>High Risk Registered Pregnancy</th><th>Expected Delivery</th><th>High Risk Expected Delivery</th><th>Pregnant Women </br>&nbsp;&nbsp;on </br>{{filters.period.end|date:'d/M/Y'}}</th><th>Pregnant Women Exepected to delever next 2 weeks </br>&nbsp;&nbsp;from </br>{{filters.period.end|date:'d/M/Y'}}</th><th>High Risk Pregnant Women Exepected to delever next 2 weeks </br>&nbsp;&nbsp;from </br>{{filters.period.end|date:'d/M/Y'}}</th></tr></thead>";
 	var tdata_l = "<tbody>";
 	for ( var l in locs) {
-			var pre_l_n, prehr_l_n, edd_l_n, eddhr_l_n, pre_w_l_n, edd_2_w_l_n;
+			var pre_l_n, prehr_l_n, edd_l_n, eddhr_l_n, pre_w_l_n, edd_2_w_l_n, hedd_2_w_l_n;
 			
 			var loc_n = $.trim(locs[l]).split("-")[0];
 			var loc_id = $.trim(locs[l]).split("-")[1];
@@ -409,23 +409,26 @@ var pre_m_c =[] , prehr_m_c = [], ticks_m  = [], edd_m_c = [], eddhr_m_c = [], p
 
 			if (edd_2_w_l[$.trim(locs[l]).split("-")[0]+"-"+$.trim(locs[l]).split("-")[1]]) edd_2_w_l_n = edd_2_w_l[$.trim(locs[l]).split("-")[0]+"-"+$.trim(locs[l]).split("-")[1]];
 			else edd_2_w_l_n = 0;
+			if (hedd_2_w_l[$.trim(locs[l]).split("-")[0]+"-"+$.trim(locs[l]).split("-")[1]]) hedd_2_w_l_n = hedd_2_w_l[$.trim(locs[l]).split("-")[0]+"-"+$.trim(locs[l]).split("-")[1]];
+			else hedd_2_w_l_n = 0;
 			
 			pre_l_c.push([l, pre_l_n]);
 			prehr_l_c.push([l, prehr_l_n]);
 			edd_l_c.push([l, edd_l_n]);
 			eddhr_l_c.push([l, eddhr_l_n]);
+			//hedd_2_w_l_c.push([l, hedd_2_w_l_n]);
 			
 			ticks_l.push([l, loc_n]);
-			pre_l_tot += pre_l_n, prehr_l_tot += prehr_l_n, edd_l_tot += edd_l_n , eddhr_l_tot += eddhr_l_n, pre_w_l_tot += pre_w_l_n, edd_2_w_l_tot += edd_2_w_l_n ;
+			pre_l_tot += pre_l_n, prehr_l_tot += prehr_l_n, edd_l_tot += edd_l_n , eddhr_l_tot += eddhr_l_n, pre_w_l_tot += pre_w_l_n, edd_2_w_l_tot += edd_2_w_l_n, hedd_2_w_l_tot += hedd_2_w_l_n ;
 			//if (l%2 == 0){trc="even";} else {trc="odd";}	
-	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+pre_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=hrisk&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+prehr_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=edd&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+edd_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=hedd&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+eddhr_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=pre_w&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+pre_w_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=edd_2_w&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+edd_2_w_l_n+"</a></td></tr>";
+	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+pre_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=hrisk&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+prehr_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=edd&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+edd_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=hedd&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+eddhr_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=pre_w&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+pre_w_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=edd_2_w&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+edd_2_w_l_n+"</a></td>"+"<td><a href =/ubuzima/type/{{report_type.pk}}?cat=hedd_2_w&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+hedd_2_w_l_n+"</a></td></tr>";
 	
 	
 			
 			}
 		
 
-		tdata_l += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+pre_l_tot+"</b></td>"+"<td><b>"+prehr_l_tot+"</b></td>"+"<td><b>"+edd_l_tot+"</b></td>"+"<td><b>"+eddhr_l_tot+"</b></td>"+"<td><b>"+pre_w_l_tot+"</b></td>"+"<td><b>"+edd_2_w_l_tot+"</b></td></tr></tbody>";
+		tdata_l += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+pre_l_tot+"</b></td>"+"<td><b>"+prehr_l_tot+"</b></td>"+"<td><b>"+edd_l_tot+"</b></td>"+"<td><b>"+eddhr_l_tot+"</b></td>"+"<td><b>"+pre_w_l_tot+"</b></td>"+"<td><b>"+edd_2_w_l_tot+"</b></td>"+"<td><b>"+hedd_2_w_l_tot+"</b></td></tr></tbody>";
 		
 		str_l += theader_l + tdata_l +"</table><div ><form> <p style ='display:none'><label for='filename_l' >Filename</label><br></br> <input type='text' name='filename_l' value='exportfile_l.xls' id='filename_l' > </p> <p id='downloadify_l' style='margin-bottom:5px;'> You must have Flash 10 installed to download this file. </p> </form></div>";
 
@@ -505,7 +508,13 @@ var pre_m_c =[] , prehr_m_c = [], ticks_m  = [], edd_m_c = [], eddhr_m_c = [], p
             label:'High Risk Expected Delivery',
             color: '#C0504D',
             bars: { show: true, align:'center', barWidth:0.2 }
-        }
+        },/*
+	{
+            data: hedd_2_w_l_c,
+            label:'High Risk Pregnant Women Exepected to delever next 2 weeks </br>&nbsp;&nbsp;from </br>{{filters.period.end|date:"d/M/Y"}}',
+            color: '#C0504D',
+            bars: { show: true, align:'center', barWidth:0.2 }
+        }*/
     ]; 
 
    var options_l = {

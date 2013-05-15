@@ -299,7 +299,7 @@ function fetch_stats_indics(indic){
         		<h2 >Comparison of Delivery Report Statistics in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
 		<div id="placeholder_l" style=" width: 800px;height:400px;"></div>
 		<h2 >Variation of Delivery Report Statistics in {{sel.name}}-{{sel|to_class_name}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</h2>
-		<div id="placeholder_m" style=" width: 2400px;height:400px;"></div>
+		<div id="placeholder_m" style=" width: 100%;height:400px;"></div>
     		</div>
 	</div>
 	<div id="map">
@@ -409,7 +409,7 @@ var fac_m_c =[] , route_m_c = [], ticks_m  = [], home_m_c = [], globaltot_m=0, h
 
 	var str_l = "<h2 >Delivery Report Statistics in {{sel.name}}-{{sel|to_class_name}} By "+locs[0].split("-")[2]+"</h2><table class = 'table-design' id = 'table_l'>";
 	
-	var theader_l = "<thead><tr><th>"+locs[0].split("-")[2]+"</th><th>At Facility</th><th>On Route</th><th>At Home</th><th>Total</th><th>At Facility(%)</th><th>On Route(%)</th><th>At Home(%)</th></tr></thead>";
+	var theader_l = "<thead><tr><th>"+locs[0].split("-")[2]+"</th><th>At Facility</th><th>On Route</th><th>At Home</th><th>Total</th><!--<th>At Facility(%)</th><th>On Route(%)</th><th>At Home(%)</th>--></tr></thead>";
 		
 	var tdata_l = "<tbody>";
 	
@@ -439,28 +439,33 @@ var fac_m_c =[] , route_m_c = [], ticks_m  = [], home_m_c = [], globaltot_m=0, h
 									home_l_np = Math.round((0)* Math.pow(10,2))/Math.pow(10,2);//home_n*100/tot_n.toFixed(2);
 									
 								}
-			
+			/*
 			fac_l_c.push([l,fac_l_np]);
 			route_l_c.push([l,route_l_np]);
 			home_l_c.push([l,home_l_np]);
+			*/
+
+			fac_l_c.push([l,fac_l_n]);
+			route_l_c.push([l,route_l_n]);
+			home_l_c.push([l,home_l_n]);
 			
 			ticks_l.push([l, loc_n]);
 			globaltot_l += tot_l_n, fac_l_tot += fac_l_n, route_l_tot += route_l_n, home_l_tot += home_l_n ;
 				//alert(month_names[months_b[s].trim().split("-")[0]]);//+"-"+months_b[s+1].split("-")[1]);
 				//if (l%2 == 0){trc="even";} else {trc="odd";}
-	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td>"+"<td>"+fac_l_n+"</td>"+"<td>"+route_l_n+"</td>"+"<td>"+home_l_n+"</td>"+"<td>"+tot_l_n+"</td>"+"<td>"+fac_l_np+"</td>"+"<td>"+route_l_np+"</td>"+"<td>"+home_l_np+"</td>"+"</tr>";
+	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td>"+"<td>"+fac_l_n+"</td>"+"<td>"+route_l_n+"</td>"+"<td>"+home_l_n+"</td>"+"<td>"+tot_l_n+"</td>"+"<!--<td>"+fac_l_np+"</td>"+"<td>"+route_l_np+"</td>"+"<td>"+home_l_np+"</td>"+"--></tr>";
 	
 	
 			
 			}
 		if (globaltot_l > 0)home_l_totp = Math.round((home_l_tot * 100/globaltot_l)* Math.pow(10,0))/Math.pow(10,0),fac_l_totp = Math.round((fac_l_tot * 100/globaltot_l)* Math.pow(10,0))/Math.pow(10,0),route_l_totp = Math.round((route_l_tot * 100/globaltot_l)* Math.pow(10,0))/Math.pow(10,0); 
 
-		tdata_l += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+fac_l_tot+"</b></td>"+"<td><b>"+route_l_tot+"</b></td>"+"<td><b>"+home_l_tot+"</b></td>"+"<td><b>"+globaltot_l+"</b></td>"+"<td><b>"+fac_l_totp+"</b></td>"+"<td><b>"+route_l_totp+"</b></td>"+"<td><b>"+home_l_totp+"</b></td>"+"</tr></tbody>";
+		tdata_l += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+fac_l_tot+"</b></td>"+"<td><b>"+route_l_tot+"</b></td>"+"<td><b>"+home_l_tot+"</b></td>"+"<td><b>"+globaltot_l+"</b></td>"+"<!--<td><b>"+fac_l_totp+"</b></td>"+"<td><b>"+route_l_totp+"</b></td>"+"<td><b>"+home_l_totp+"</b></td>"+"--></tr></tbody>";
 		
 		str_l += theader_l + tdata_l +"</table><div ><form> <p style ='display:none'><label for='filename_l' >Filename</label><br></br> <input type='text' name='filename_l' value='exportfile_l.xls' id='filename_l' > </p> <p id='downloadify_l' style='margin-bottom:5px;'> You must have Flash 10 installed to download this file. </p> </form></div>";
 	
 	var str_m = "<h2 >Monthly Delivery Report Statistics in {{sel.name}}-{{sel|to_class_name}} </h2><table class = 'table-design' id = 'table_m'>";
-	var theader_m = "<thead> <tr><th>Month</th><th>At Facility</th><th>On Route</th><th>At Home</th><th>Total</th><th>At Facility(%)</th><th>On Route(%)</th><th>At Home(%)</th></tr></thead>";
+	var theader_m = "<thead> <tr><th>Month</th><th>At Facility</th><th>On Route</th><th>At Home</th><th>Total</th><!--<th>At Facility(%)</th><th>On Route(%)</th><th>At Home(%)</th>--></tr></thead>";
 	var tdata_m = "<tbody>";
 	for ( var s in months_b) {
 			var fac_m_n,route_m_n,home_m_n,tot_m_n,fac_m_np,route_m_np,home_m_np;
@@ -485,23 +490,27 @@ var fac_m_c =[] , route_m_c = [], ticks_m  = [], home_m_c = [], globaltot_m=0, h
 									home_m_np = Math.round((0)* Math.pow(10,0))/Math.pow(10,0);//home_n*100/tot_n.toFixed(2);
 									
 								}
-			
+			/*
 			fac_m_c.push([s,fac_m_np]);
 			route_m_c.push([s,route_m_np]);
 			home_m_c.push([s,home_m_np]);
+			*/
+			fac_m_c.push([s,fac_m_n]);
+			route_m_c.push([s,route_m_n]);
+			home_m_c.push([s,home_m_n]);
 			
 			ticks_m.push([s, month_n]);
 			globaltot_m += tot_m_n, fac_m_tot += fac_m_n, route_m_tot += route_m_n, home_m_tot += home_m_n ;
 			//if (s%2 == 0){trc="even";} else {trc="odd";}	
 
-	tdata_m += "<tr class="+trc+"><td>"+month_n+"</td>"+"<td>"+fac_m_n+"</td>"+"<td>"+route_m_n+"</td>"+"<td>"+home_m_n+"</td>"+"<td>"+tot_m_n+"</td>"+"<td>"+fac_m_np+"</td>"+"<td>"+route_m_np+"</td>"+"<td>"+home_m_np+"</td>"+"</tr>";
+	tdata_m += "<tr class="+trc+"><td>"+month_n+"</td>"+"<td>"+fac_m_n+"</td>"+"<td>"+route_m_n+"</td>"+"<td>"+home_m_n+"</td>"+"<td>"+tot_m_n+"</td>"+"<!--<td>"+fac_m_np+"</td>"+"<td>"+route_m_np+"</td>"+"<td>"+home_m_np+"</td>"+"--></tr>";
 	
 	
 			
 			}
 		if (globaltot_m > 0) home_m_totp = Math.round((home_m_tot * 100/globaltot_m)* Math.pow(10,0))/Math.pow(10,0),fac_m_totp = Math.round((fac_m_tot * 100/globaltot_m)* Math.pow(10,0))/Math.pow(10,0),route_m_totp = Math.round((route_m_tot * 100/globaltot_m)* Math.pow(10,0))/Math.pow(10,0); 
 
-		tdata_m += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+fac_m_tot+"</b></td>"+"<td><b>"+route_m_tot+"</b></td>"+"<td><b>"+home_m_tot+"</b></td>"+"<td><b>"+globaltot_m+"</b></td>"+"<td><b>"+fac_m_totp+"</b></td>"+"<td><b>"+route_m_totp+"</b></td>"+"<td><b>"+home_m_totp+"</b></td>"+"</tr></tbody>";
+		tdata_m += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+fac_m_tot+"</b></td>"+"<td><b>"+route_m_tot+"</b></td>"+"<td><b>"+home_m_tot+"</b></td>"+"<td><b>"+globaltot_m+"</b></td>"+"<!--<td><b>"+fac_m_totp+"</b></td>"+"<td><b>"+route_m_totp+"</b></td>"+"<td><b>"+home_m_totp+"</b></td>"+"--></tr></tbody>";
 		
 		str_m += theader_m + tdata_m +"</table><div><form> <p style ='display:none'><label for='filename_m' >Filename</label><br></br> <input type='text' name='filename_m' value='exportfile_m.xls' id='filename_m' > </p> <p id='downloadify_m' style='margin-bottom:5px;'> You must have Flash 10 installed to download this file. </p> </form></div>";
 		
@@ -537,7 +546,7 @@ var fac_m_c =[] , route_m_c = [], ticks_m  = [], home_m_c = [], globaltot_m=0, h
             selection: { mode: "xy" },
         grid: { hoverable: true, clickable: true },
                 xaxis:{ ticks:ticks_l },
-                yaxis:{ min:0,max:100,ticks:[[10,"10%"],[20,"20%"],[30,"30%"],[40,"40%"],[50,"50%"],[60,"60%"],[70,"70%"],[80,"80%"],[90,"90%"],[100,"100%"]] },
+                //yaxis:{ min:0,max:100,ticks:[[10,"10%"],[20,"20%"],[30,"30%"],[40,"40%"],[50,"50%"],[60,"60%"],[70,"70%"],[80,"80%"],[90,"90%"],[100,"100%"]] },
         multiplebars: true
     };
 
@@ -569,7 +578,7 @@ var data_m = [
             selection: { mode: "xy" },
         grid: { hoverable: true, clickable: true },
                 xaxis:{ ticks:ticks_m },
-                yaxis:{ min:0,max:100,ticks:[[10,"10%"],[20,"20%"],[30,"30%"],[40,"40%"],[50,"50%"],[60,"60%"],[70,"70%"],[80,"80%"],[90,"90%"],[100,"100%"]] },
+                //yaxis:{ min:0,max:100,ticks:[[10,"10%"],[20,"20%"],[30,"30%"],[40,"40%"],[50,"50%"],[60,"60%"],[70,"70%"],[80,"80%"],[90,"90%"],[100,"100%"]] },
         multiplebars: true
     };
 
@@ -588,7 +597,7 @@ var previousPoint = null;
                     y = item.datapoint[1]/*.toFixed(2)*/;
                 
                 showTooltip(item.pageX, item.pageY,
-                            item.series.label + ":" + y +"%");
+                            item.series.label + ":" + y +"");
             }
         }
         else {
@@ -610,7 +619,7 @@ $("#placeholder_m").bind("plothover", function (event, pos, item) {
                     y = item.datapoint[1]/*.toFixed(2)*/;
                 
                 showTooltip(item.pageX, item.pageY,
-                            item.series.label + ":" + y +"%");
+                            item.series.label + ":" + y +"");
             }
         }
         else {

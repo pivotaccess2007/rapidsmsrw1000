@@ -427,16 +427,20 @@ var matde_m_c =[] , chide_m_c = [], ticks_m  = [], nebde_m_c =[], bir_m_tot=0, g
 									nebde_l_np = Math.round((0)* Math.pow(10,0))/Math.pow(10,0);
 									
 								}
-			
+			/*
 			matde_l_c.push([l,matde_l_np]);
 			chide_l_c.push([l,chide_l_np]);
 			nebde_l_c.push([l,nebde_l_np]);
-			
+			*/
+
+			matde_l_c.push([l,matde_l_n]);
+			chide_l_c.push([l,chide_l_n]);
+			nebde_l_c.push([l,nebde_l_n]);
 			
 			ticks_l.push([l, loc_n]);
 			globaltot_l += tot_l_n, matde_l_tot += matde_l_n, chide_l_tot += chide_l_n, nebde_l_tot += nebde_l_n , bir_l_tot += bir_l_n ;
 				
-	tdata_l += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td>"+"<td>"+matde_l_n+"</td>"+"<td>"+chide_l_n+"</td>"+"<td>"+nebde_l_n+"</td>"+"<td>"+tot_l_n+"</td><!--<td>"+bir_l_n+"</td>"+"<td>"+matde_l_np+"</td>"+"<td>"+chide_l_np+"</td>"+"<td>"+nebde_l_np+"</td>--></tr>";
+	tdata_l += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td><a href={{url.path}}?cat=md&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+matde_l_n+"</a></td>"+"<td><a href={{url.path}}?cat=cd&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+chide_l_n+"</a></td>"+"<td><a href={{url.path}}?cat=nd&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+nebde_l_n+"</a></td>"+"<td>"+tot_l_n+"</td><!--<td>"+bir_l_n+"</td>"+"<td>"+matde_l_np+"</td>"+"<td>"+chide_l_np+"</td>"+"<td>"+nebde_l_np+"</td>--></tr>";
 	
 	
 			
@@ -482,10 +486,15 @@ var matde_m_c =[] , chide_m_c = [], ticks_m  = [], nebde_m_c =[], bir_m_tot=0, g
 									nebde_m_np = Math.round((0)* Math.pow(10,0))/Math.pow(10,0);
 									
 								}
-			
+			/*
 			matde_m_c.push([m,matde_m_np]);
 			chide_m_c.push([m,chide_m_np]);
 			nebde_m_c.push([m,nebde_m_np]);
+			*/			
+
+			matde_m_c.push([m,matde_m_n]);
+			chide_m_c.push([m,chide_m_n]);
+			nebde_m_c.push([m,nebde_m_n]);
 			
 			
 			ticks_m.push([m, month_n]);

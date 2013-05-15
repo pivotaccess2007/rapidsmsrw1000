@@ -208,7 +208,7 @@ def by_type(req, pk, **flts):
                 reports = fetch_high_risky_preg(reports)
                 title   = "High Risk Pregnant Women"
 
-            elif req.REQUEST['cat'] == 'pre_w' or req.REQUEST['cat'] == 'edd_2_w':
+            elif req.REQUEST['cat'] == 'pre_w' or req.REQUEST['cat'] == 'edd_2_w' or req.REQUEST['cat'] == 'hedd_2_w':
                 resp=pull_req_with_filters(req)
                 end = resp['filters']['period']['end']
                 start = resp['filters']['period']['start']
@@ -220,10 +220,14 @@ def by_type(req, pk, **flts):
                 if req.REQUEST['cat'] == 'pre_w':
                     reports = Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = end).filter(** rez)
                     title   = "Pregnant Women on %d/%d/%d" % (end.day, end.month, end.year)
-                else:
+                elif req.REQUEST['cat'] == 'edd_2_w':
                     title   = "Pregnant Women Expected to deliver next two weeks from %d/%d/%d" % (end.day, end.month, end.year)
                     reports = Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = end + timedelta(days = 14) , \
-                                                                                edd_date__lte = end + timedelta(days = 28)).filter(** rez)   
+                                                                                edd_date__lte = end + timedelta(days = 28)).filter(** rez)
+                elif req.REQUEST['cat'] == 'hedd_2_w':
+                    title   = "High Risk Pregnant Women Expected to deliver next two weeks from %d/%d/%d" % (end.day, end.month, end.year)
+                    reports = fetch_high_risky_preg(Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = end + timedelta(days = 14) , \
+                                                                                edd_date__lte = end + timedelta(days = 28)).filter(** rez))   
             elif req.REQUEST['cat'] == 'edd':
                 resp=pull_req_with_filters(req)
                 end = resp['filters']['period']['end']
@@ -515,11 +519,11 @@ def fetch_newborn_death(qryset):
     return qryset.filter(fields__in=Field.objects.filter(type=FieldType.objects.get(key = 'nd'))).distinct()
 
 def fetch_vaccinated_info(qryset):
-    return qryset.filter(fields__in=Field.objects.filter(type__in = FieldType.objects.filter(category=FieldCategory.objects.get(name='Vaccination')))).distinct()
+    return qryset.filter(fields__in=Field.objects.filter(type__in = FieldType.objects.filter(category=FieldCategory.objects.get(name='Vaccination Codes')))).distinct()
 
 def fetch_vaccinated_stats(reps):
     track={}
-    for r in FieldType.objects.filter(category=FieldCategory.objects.get(name='Vaccination')): track[r.key]=reps.filter(fields__in = Field.objects.filter(type=FieldType.objects.get(key=r.key))).distinct()
+    for r in FieldType.objects.filter(category=FieldCategory.objects.get(name='Vaccination Codes')): track[r.key]=reps.filter(fields__in = Field.objects.filter(type=FieldType.objects.get(key=r.key))).distinct()
     return track
 
 def fetch_high_risky_preg(qryset):    
@@ -579,8 +583,10 @@ def preg_report(req):
     resp['reports'] = paginated(req, preg)
     if preg.exists() or edd.exists(): 
         preg_l, preg_risk_l, edd_l, edd_risk_l, pre_w, edd_2_w = preg.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(preg).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), edd.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(edd).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) ,pregnant_women.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), pregnant_women.filter(edd_date__gte = end + timedelta(days = 14) , edd_date__lte = end + timedelta(days = 28)).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
+        
+        hedd_2_w = fetch_high_risky_preg(edd_2_w).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
     
-        ans_l = {'pre' : preg_l, 'prehr' : preg_risk_l, 'edd': edd_l, 'eddhr': edd_risk_l, 'pre_w' : pre_w, 'edd_2_w' : edd_2_w}
+        ans_l = {'pre' : preg_l, 'prehr' : preg_risk_l, 'edd': edd_l, 'eddhr': edd_risk_l, 'pre_w' : pre_w, 'edd_2_w' : edd_2_w, 'hedd_2_w' : hedd_2_w}
         
         preg_m, preg_risk_m, edd_m, edd_risk_m = preg.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), fetch_high_risky_preg(preg).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), edd.extra(select={'year': 'EXTRACT(year FROM edd_date)','month': 'EXTRACT(month FROM edd_date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'),fetch_high_risky_preg(edd).extra(select={'year': 'EXTRACT(year FROM edd_date)','month': 'EXTRACT(month FROM edd_date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
 
@@ -588,7 +594,8 @@ def preg_report(req):
         print preg_m
     resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'months_edd' : months_between(start,end)}
     resp['report_type'] = ReportType.objects.get(name = 'Pregnancy')
-    return render_to_response('ubuzima/preg_report.html',
+    if req.REQUEST.has_key('csv') or req.REQUEST.has_key('excel'):  return reports_to_excel(resp['reports'])  
+    else:   return render_to_response('ubuzima/preg_report.html',
            resp, context_instance=RequestContext(req))
 ##END OF PREGNANCY TABLES, CHARTS, MAP
 
@@ -713,7 +720,7 @@ def community_report(req):
 
         diarrhea_c, malaria_c, pneumonia_c = diarrhea_m.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), malaria_m.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), pneumonia_m.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
 
-        ans_m = {'diarrhea_m' : diarrhea_c, 'malaria_m' : malaria_c, 'ncb3_m': pneumonia_c ,'tot_m': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
+        ans_m = {'diarrhea_m' : diarrhea_c, 'malaria_m' : malaria_c, 'pneumonia_m': pneumonia_c ,'tot_m': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
 
 
 
@@ -780,8 +787,8 @@ def view_reminders(req, **flts):
     lox, lxn = 0, location_name(req)
     if req.REQUEST.has_key('location') and req.REQUEST['location'] != '0':
         lox = int(req.REQUEST['location'])
-        lxn = Location.objects.get(id = lox)
-        lxn=lxn.name+' '+lxn.type.name+', '+lxn.parent.parent.name+' '+lxn.parent.parent.type.name+', '+lxn.parent.parent.parent.name+' '+lxn.parent.parent.parent.type.name
+        lxn = HealthCentre.objects.get(id = lox)
+        lxn=lxn.name+', '+lxn.district.name+', '+lxn.province.name
     template_name="ubuzima/remlog.html"
     req.base_template = "webapp/layout.html"
     rez=match_filters(req,filters)
@@ -790,7 +797,7 @@ def view_reminders(req, **flts):
 
     rems_by_type = []#remlogs.values('type__name','type__pk').annotate(number = Count('id')).order_by('type__name')
     rem_types = ReminderType.objects.all().order_by('id')
-    for rem in rem_types:   print rem.id, rem.name, remlogs.filter(type = rem).count()
+    #for rem in rem_types:   print rem.id, rem.name, remlogs.filter(type = rem).count()
     for rem in rem_types:
         rems_by_type.append({ 'type': rem , 'number': remlogs.filter(type = rem).count() })
 
@@ -807,7 +814,7 @@ def view_reminders(req, **flts):
         return htp
     else:
         reminders = remlogs.filter(**pst)
-
+        print rez, pst
         return render_to_response(template_name, { "reminders": paginated(req, reminders), 'remts': rems_by_type,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
              'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 
@@ -821,8 +828,8 @@ def view_delivery_nots(req, **flts):
     lox, lxn = 0, location_name(req)
     if req.REQUEST.has_key('location') and req.REQUEST['location'] != '0':
         lox = int(req.REQUEST['location'])
-        lxn = Location.objects.get(id = lox)
-        lxn=lxn.name+' '+lxn.type.name+', '+lxn.parent.parent.name+' '+lxn.parent.parent.type.name+', '+lxn.parent.parent.parent.name+' '+lxn.parent.parent.parent.type.name
+        lxn = HealthCentre.objects.get(id = lox)
+        lxn=lxn.name+' , '+lxn.district.name+' , '+lxn.province.name
     template_name="ubuzima/remlog.html"
     req.base_template = "webapp/layout.html"
     rez=match_filters(req,filters)
@@ -894,8 +901,8 @@ def view_alerts(req, **flts):
     lox, lxn = 0, location_name(req)
     if req.REQUEST.has_key('location') and req.REQUEST['location'] != '0':
         lox = int(req.REQUEST['location'])
-        lxn = Location.objects.get(id = lox)
-        lxn=lxn.name+' '+lxn.type.name+', '+lxn.parent.parent.name+' '+lxn.parent.parent.type.name+', '+lxn.parent.parent.parent.name+' '+lxn.parent.parent.parent.type.name
+        lxn = HealthCentre.objects.get(id = lox)
+        lxn=lxn.name+' , '+lxn.district.name+' , '+lxn.province.name
     template_name="ubuzima/alertlog.html"
     rez=match_filters(req,filters)
     pst=match_filters_fresher(req)
@@ -929,8 +936,8 @@ def alerts_by_type(req,pk,**flts):
     lox, lxn = 0, location_name(req)
     if req.REQUEST.has_key('location') and req.REQUEST['location'] != '0':
         lox = int(req.REQUEST['location'])
-        lxn = Location.objects.get(id = lox)
-        lxn=lxn.name+' '+lxn.type.name+', '+lxn.parent.parent.name+' '+lxn.parent.parent.type.name+', '+lxn.parent.parent.parent.name+' '+lxn.parent.parent.parent.type.name
+        lxn = HealthCentre.objects.get(id = lox)
+        lxn=lxn.name+' , '+lxn.district.name+' , '+lxn.province.name
     template_name="ubuzima/alertlog.html"
     rez=match_filters(req,filters)
     pst=match_filters_fresher(req)
@@ -1130,7 +1137,7 @@ def birth_report(req):
     end = resp['filters']['period']['end']
     start = resp['filters']['period']['start']
     #qryset = resp['reports'].filter(type__name='Birth')
-    qryset = resp['reports'].filter(type__name='Birth', created__gte = start, created__lte = end )
+    qryset = resp['reports'].filter(type__name='Birth', date__gte = start, date__lte = end )#resp['reports'].filter(type__name='Birth', created__gte = start, created__lte = end )
     #print qryset.count()
     annot=resp['annot_l']
     locs=resp['locs']
@@ -1138,7 +1145,10 @@ def birth_report(req):
     ans_l, ans_m = {}, {}
     resp['reports'] = paginated(req, qryset)
     if qryset.exists():
-        home,fac,route = fetch_home_deliveries(qryset),fetch_hosp_deliveries(qryset),fetch_en_route_deliveries(qryset)
+        fac,route,home = fetch_hosp_deliveries(qryset),fetch_en_route_deliveries(qryset),fetch_home_deliveries(qryset)
+        #unk = qryset.exclude(id__in = fac).exclude(id__in = route).exclude(id__in = home)
+        #qryset = qryset.exclude(id__in = unk)
+        #resp['reports'] = paginated(req, qryset)
 
         home_l,fac_l,route_l = home.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fac.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), route.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
 
@@ -1180,6 +1190,22 @@ def death_report(req):
         ans_m = {'matde' : matde_m, 'chide' : chide_m, 'nebde': nebde_m, 'tot': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
 
     resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'bir_l': births.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), 'bir_m': births.extra(select={'year': 'EXTRACT(year FROM date)','month': 'EXTRACT(month FROM date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
+
+    if req.REQUEST.has_key('cat'):
+        if req.GET['cat'] == 'cd':
+            resp['title'] = 'Child Death'
+            resp['reports'] = paginated(req, chide)
+            return render_to_response('ubuzima/type.html', resp, context_instance=RequestContext(req))
+        elif req.GET['cat'] == 'nd':
+            resp['title'] = 'New Born Death'
+            resp['reports'] = paginated(req, nebde)
+            return render_to_response('ubuzima/type.html', resp, context_instance=RequestContext(req))
+        elif req.GET['cat'] == 'md':
+            resp['title'] = 'Maternal Death'
+            resp['reports'] = paginated(req, matde)
+            return render_to_response('ubuzima/type.html', resp, context_instance=RequestContext(req))
+        
+
     return render_to_response('ubuzima/death_report.html',
            resp, context_instance=RequestContext(req))
 
@@ -1312,12 +1338,70 @@ def child_report(req):
     resp['reports']=matching_reports(req,resp['filters'])
     end = resp['filters']['period']['end']
     start = resp['filters']['period']['start']
-    qryset = resp['reports'].filter(type__name='Birth', created__gte = start, created__lte = end )
+    qryset = resp['reports'].filter(type__name='Birth', date__gte = start, date__lte = end ).order_by('-date')
     annot=resp['annot_l']
     locs=resp['locs']
     resp['reports'] = paginated(req, qryset)
     return render_to_response('ubuzima/child_report.html',
            resp, context_instance=RequestContext(req))
+
+def view_chihe(req):
+    resp=pull_req_with_filters(req)
+    resp['reports']=matching_reports(req,resp['filters'])
+    end = resp['filters']['period']['end']
+    start = resp['filters']['period']['start']
+    qryset = resp['reports'].filter(type__name='Child Health', created__gte = start, created__lte = end ).order_by('-date')
+    annot=resp['annot_l']
+    locs=resp['locs']
+    resp['reports'] = paginated(req, qryset)
+
+    chihe_reps = qryset.select_related('fields')
+    vac_chihe_reps = fetch_vaccinated_stats(fetch_vaccinated_info(chihe_reps))
+    
+    ans=[]
+    for v in FieldType.objects.filter(category=FieldCategory.objects.get(name='Vaccination Codes')).exclude(key__in = ['vc','vi','nv']):
+        ans.append({'label':"Children vaccinated with %s"%v.description,'id':'%s'%v.key,'number':len(vac_chihe_reps[v.key])})
+   
+    ans.append({'label':"Children Vaccination Completed ",'id':'vc','number':len(vac_chihe_reps['vc'])})
+    ans.append({'label':"Children Vaccination Not Completed",'id':'vi','number':len(vac_chihe_reps['vi'])})
+    ans.append({'label':"Children Unimmunized",'id':'nv','number':len(vac_chihe_reps['nv'])})
+    
+    resp['track'] = ans
+    return render_to_response('ubuzima/chihe.html', resp, context_instance = RequestContext(req))
+
+def chihe_stats(req, format, dat):
+    resp=pull_req_with_filters(req)
+    resp['reports']=matching_reports(req,resp['filters'])
+    end = resp['filters']['period']['end']
+    start = resp['filters']['period']['start']
+    qryset = resp['reports'].filter(type__name='Child Health', created__gte = start, created__lte = end ).order_by('-date')
+    annot=resp['annot_l']
+    locs=resp['locs']
+    
+    resp['stattitle'] = {'%s'%dat:'%s' % FieldType.objects.get(key=dat).description}[dat]
+
+    chihe_reps = qryset.select_related('fields')
+    vac_chihe_reps = fetch_vaccinated_stats(fetch_vaccinated_info(chihe_reps))
+
+    rez = []
+    for v in vac_chihe_reps.keys():        
+        if dat=='%s'%v:
+            rez=vac_chihe_reps[v]
+    if dat=='all':
+        rez=fetch_vaccinated_info(chihe_reps)
+
+    resp['reports'] = paginated(req, rez)
+    
+    if format == 'csv':
+        return reports_to_excel(rez)
+    else:
+        return render_to_response('ubuzima/chihedetails.html', resp, context_instance = RequestContext(req))#return render_to_response(req, ('ubuzima/chihedetails.html'),
+    #{'reports':paginated(req, rez, prefix = 'imp'),'start_date':date.strftime(flts['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
+     #    'end_date':date.strftime(flts['period']['end'], '%d.%m.%Y'),
+      #     'locationname':lxn,
+   #'stattitle': {'%s'%dat:'Children Vaccinated with %s'%dat}[dat]})
+
+
 ##END OF CHILD TABLES, CHARTS, MAP
 ##START OF CHILD DETAILS TABLES, CHARTS, MAP
 @permission_required('ubuzima.can_view')
@@ -1732,6 +1816,14 @@ def nutrition(req):
     resp['hindics'] = paginated(req, hindics['home'])
     resp['chart_data'] = growth_chart_data()
     return render_to_response("ubuzima/nutrition_dash.html", resp, context_instance=RequestContext(req))
+
+permission_required('ubuzima.can_view')
+def nutrition_data(req):
+    resp=pull_req_with_filters(req)
+    hindics = nutrition_indicators(req,resp['filters'])
+    resp['hindics'] = paginated(req, hindics['home'])
+    #resp['chart_data'] = growth_chart_data()
+    return render_to_response("ubuzima/nutrition_data.html", resp, context_instance=RequestContext(req))
 ###END OF NUTRITION TABLES, CHARTS, MAP
 
 

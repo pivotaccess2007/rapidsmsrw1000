@@ -36,8 +36,12 @@ urlpatterns = patterns('',
     url(r'^alerts/type/(?P<pk>\d+)$', views.alerts_by_type),
     url(r'^indicator/(?P<indic>\d+)/(?P<format>html|csv)$', views.view_indicator),
     url(r'^nutrition$', views.nutrition),
+    url(r'^nutrition/data/$', views.nutrition_data),
     url(r'^nutrition/(?P<indic>\d+)/(?P<format>html|csv)$', views.view_nutrition),
     url(r'^charts$', views.view_nutrition_charts),
     url(r'^emergency$', views.emergency_room),
+
+    url(r'^vaccination$',views.view_chihe),
+    url(r'^vaccination/(?P<format>\w+)/(?P<dat>\w+)$',views.chihe_stats),
     
 )

@@ -354,6 +354,18 @@ def initialize_reporttypes():
     return True
         
 
+def build_reminders():
+    rems = Reminder.objects.all()
+    for reminder in rems:
+        reporter = reminder.reporter
+        reminder.village = reporter.village
+        reminder.cell = reporter.cell
+        reminder.sector = reporter.sector
+        reminder.district = reporter.district
+        reminder.province = reporter.province
+        reminder.nation = reporter.nation
+        reminder.save()
+    return True
 
 
 def update_locations():

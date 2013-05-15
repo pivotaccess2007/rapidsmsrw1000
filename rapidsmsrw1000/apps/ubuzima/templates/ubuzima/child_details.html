@@ -1,26 +1,56 @@
-{% extends request.base_template %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{% load i18n %}
+{% load region-tags %}
 
-{% block title %}Child Health{% endblock %}
+{% load webapp-tags %}
+<html>
 
+<head src="style/irwanda.png">
+  <title>{% block title %}{% endblock %}{% block title_suffix %} Emergency Room - RapidSMS{% endblock %}</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="refresh" content="60">
+		{% block stylesheets %}
+		<!-- stylesheets -->
+		<link href="/static/webapp/stylesheets/default.css" rel="stylesheet" type="text/css" media="screen" />
+		<link type="text/css" rel="stylesheet" href="/static/webapp/stylesheets/menu.css" />
+		<link type="text/css" rel="stylesheet" href="/static/webapp/stylesheets/modules.css" />
+		<link rel="stylesheet" type="text/css" href="/static/webapp/stylesheets/style.css" title="style" />
+
+		{% block page_stylesheets %}{% endblock %}
+		{% endblock %}
+		<!-- javascripts (global, app, page) -->
+		<!--<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=true" type="text/javascript"></script>-->
+		<script type="text/javascript" src="/static/webapp/javascripts/jquery.js"></script>
+
+                <script type="text/javascript" src="/static/webapp/javascripts/menu-new.js"></script>
+		<script type="text/javascript" src="/static/webapp/javascripts/jquery-1.3.2.min.js"></script>{% for js in javascripts %}
+		<script type="text/javascript" src="{{ js }}"></script>{% endfor %}
 		{% block javascripts %}
-		<link type="text/css" rel="stylesheet" href="/static/webapp/stylesheets/layout.css" ></link>
-		<link type="text/css" rel="stylesheet" href="/static/webapp/stylesheets/modules.css" ></link>
-		<link rel="stylesheet" type="text/css" href="/static/webapp/stylesheets/tabview.css" ></link>
-		<link rel="stylesheet" type="text/css"  href="/static/webapp/stylesheets/stats.css" ></link>
-		<link type="text/css" rel="stylesheet" href="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.css"></link>
-		<style type="text/css" rel="stylesheet">
-		.table-design thead ,.table-design th , .table-design td {
-			border:solid black 1px
-			}
-		</style>
 
 		<script language="javascript" type="text/javascript" src="/static/webapp/javascripts/jquery-1.4.1.min.js"></script>
 		<script language="javascript" type="text/javascript" src="/static/webapp/javascripts/jquery.table2csv.0.1.1.min.js"></script>
 		<!--[if IE]><script type="text/javascript" src="/static/webapp/javascripts/excanvas.pack.js"></script>
 		<![endif]-->
-		<script type="text/javascript" src="/static/webapp/javascripts/tabview.js"></script>
+		
 		<script type="text/javascript"   src="/static/webapp/javascripts/stats.js"></script>
+
+		<link rel="stylesheet" type="text/css"  href="/static/webapp/stylesheets/stats.css" />
+		<link type="text/css" rel="stylesheet" href="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.css"></link>
 		<script type="text/javascript" src="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.js"></script>
+
+
+
+		
+		<link rel="stylesheet" type="text/css" href="/static/webapp/stylesheets/tabview.css" ></link>
+		<link rel="stylesheet" type="text/css"  href="/static/webapp/stylesheets/stats.css" ></link>
+		<style type="text/css" rel="stylesheet">
+		.table-design thead ,.table-design th , .table-design td {
+			border:solid black 1px
+			}
+		</style>
+		<script type="text/javascript" src="/static/webapp/javascripts/tabview.js"></script>
+		
 		<script type="text/javascript" src="/static/webapp/javascripts/jquery.flot.js"></script>
 		<script type="text/javascript" src="/static/webapp/javascripts/downloadify/js/downloadify.min.js"></script>
 		<script type="text/javascript" src="/static/webapp/javascripts/downloadify/js/swfobject.js"></script>
@@ -121,8 +151,35 @@
 					</script>
 		
 		{% endblock %}
-	</head>
-	<body>
+	<meta name="description" content="website description" />
+		  <meta name="keywords" content="website keywords, website keywords" />
+		  <meta http-equiv="content-type" content="text/html; charset=windows-1252" />
+		  
+		  
+  
+</head>
+
+<body>
+  <div id="main">
+
+    <div id="new-header">
+      <div id = "header_image"><img src="/static/webapp/images/header.png"> </div>
+      </div>
+    </div>
+
+	
+
+
+    <div id="header">
+  
+      <div id="menubar">
+        <!-- start menu -->
+      
+	<!-- end menu -->
+      </div>
+   </div>
+<!-- site content -->
+    <div id="site_content">
 
 
 {% load pagination-tags %}
@@ -173,16 +230,11 @@ var str_l = "<h2 >Child {{track.id.chino}}, Sex: {{track.birth.sex}}, Mother: {{
 		
 	var tdata_l = "<tbody>";
 
-w_c.push([0,{{track.birth.weight.value}}]);ticks.push([0, "{{track.birth.date}}"]);
-
-tdata_l += "<tr ><td>{{track.birth.date}}</td><td>{{track.birth.weight.value|floatformat:"2"}}</td><td>{{track.birth.muac.value|floatformat:"2"}}</td><td></td><td>{%for r in track.birth.risk %}{% if not forloop.first %},{% endif %}{{r.type.description}}{%endfor%}</td></tr>";
-
-
 {%for tr in track.track%} 
 
-w_c.push([index++,{{tr.weight.value}}]);
-ticks.push([index, "{{tr.date.date}}"]); 
-
+w_c.push([index,{{tr.weight.value}}]);
+ticks.push([index, "{{tr.date.date}}"]);
+index = index + 1;
 tdata_l += "<tr ><td>{{tr.date.date}}</td><td>{{tr.weight.value|floatformat:"2"}}</td><td>{{tr.muac.value|floatformat:"2"}}</td><td></td><td>{%for r in tr.risk %}{% if not forloop.first %},{% endif %}{{r.type.description}}{%endfor%}</td></tr>";
 
 {%endfor%}

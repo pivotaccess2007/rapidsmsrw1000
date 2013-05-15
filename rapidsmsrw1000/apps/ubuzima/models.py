@@ -418,14 +418,14 @@ class Report(models.Model):
     	try:
 
     		chino, dob, mother = self.get_child_id()['chino'], self.get_child_id()['dob'], self.get_child_id()['mother']
-    		chihe = Report.objects.filter( type__name = "Child Health", date = dob , patient = mother , fields__in = Field.objects.filter(type__key = 'child_number',   value = Decimal(chino))).order_by('created')
+    		chihe = Report.objects.filter( date = dob , patient = mother , fields__in = Field.objects.filter(type__key = 'child_number',   value = Decimal(chino))).order_by('created')
 
     		ans, track = {},[]
     		for r in chihe:
-    			track.append( {'date': r.created, 'risk': r.fields.filter(type__category__name = 'Risk'), 'weight': r.get_field('child_weight'), 'muac': r.get_field('muac') })
+    			track.append( {'date': r.created, 'risk': r.fields.filter(type__category__name = 'Risk Codes'), 'weight': r.get_field('child_weight'), 'muac': r.get_field('muac') })
 
     		ans['id'] = self.get_child_id()
-    		ans['birth'] = {'date': self.date, 'risk': self.fields.filter(type__category__name = 'Risk'), 'weight': self.get_field('child_weight'), 'muac': self.get_field('muac'), 'sex': self.get_sex() }
+    		ans['birth'] = {'date': self.date, 'risk': self.fields.filter(type__category__name = 'Risk Codes'), 'weight': self.get_field('child_weight'), 'muac': self.get_field('muac'), 'sex': self.get_sex() }
     		ans['track'] = track
 		ans['log'] = chihe
    		return ans
@@ -592,7 +592,8 @@ class Field(models.Model):
 
     def __unicode__(self):
         if self.value:
-            return "%s=%.2f" % (_(self.type.description), self.value)
+            if self.type.key == 'child_number':  return "%s=%d" % (_(self.type.description), int(self.value))
+            else:   return "%s=%.2f" % (_(self.type.description), self.value)
         else:
             return "%s" % _(self.type.description)
     class Meta:
@@ -900,6 +901,20 @@ def ensure_refusal_correct(sender, **kwargs):
         refusal.nation = reporter.nation
         refusal.save()
 
+def ensure_reminder_correct(sender, **kwargs):
+    if kwargs.get('created', False):
+        reminder = kwargs.get('instance')
+        ##Field details correct
+        reporter = reminder.reporter
+
+        reminder.village = reporter.village
+        reminder.cell = reporter.cell
+        reminder.sector = reporter.sector
+        reminder.district = reporter.district
+        reminder.province = reporter.province
+        reminder.nation = reporter.nation
+        reminder.save()
+
 def ensure_departure_correct(sender, **kwargs):
     if kwargs.get('created', False):
         dep = kwargs.get('instance')
@@ -925,6 +940,7 @@ post_save.connect(ensure_report_correct, sender = Report)
 post_save.connect(ensure_field_correct, sender = Field)
 post_save.connect(ensure_refusal_correct, sender = Refusal)
 post_save.connect(ensure_departure_correct, sender = Departure)
+post_save.connect(ensure_reminder_correct, sender = Reminder)
 post_save.connect(send_alert_mails,sender=UserLocation)
 
 

@@ -1,4 +1,4 @@
-{% extends base_template %}
+{% extends request.base_template %}
 {% block title %}{{stattitle}}{% endblock %}
 {% block javascripts %}
 <link rel="stylesheet" type="text/css" href="/static/webapp/stylesheets/stats.css" />
@@ -15,7 +15,7 @@
 {% load pagination-tags %}
 
 {% block content %}
-<h2>{{stattitle}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{locationname}}&nbsp;&nbsp;From&nbsp; {{start_date}} &nbsp;&nbsp;TO &nbsp;{{end_date}}<div align="right"><a href="/ubuzima/stats{%if postqn%}?{{postqn}}{%endif%}"> <img src="/static/webapp/icons/silk/decline.png"  border="0"></a></div></h2>
+<h2>{{stattitle}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{locationname}}&nbsp;&nbsp;From&nbsp; {{start_date}} &nbsp;&nbsp;TO &nbsp;{{end_date}}<div align="right"><!--<a href="/ubuzima/stats{%if postqn%}?{{postqn}}{%endif%}"> <img src="/static/webapp/icons/silk/decline.png"  border="0"></a> --></div></h2>
 <table width="100%">
     <thead>
         <tr>

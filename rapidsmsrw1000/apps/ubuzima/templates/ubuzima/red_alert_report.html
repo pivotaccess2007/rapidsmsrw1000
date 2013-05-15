@@ -450,7 +450,7 @@ var pats_m_c =[] , alts_m_c = [], rpats_m_c = [], ticks_m  = [], yalts_m_c =[], 
 			ticks_l.push([l, loc_n]);
 			globaltot_l += tot_l_n, pats_l_tot += pats_l_n, alts_l_tot += alts_l_n, rpats_l_tot += rpats_l_n , yalts_l_tot += yalts_l_n, palts_l_tot += palts_l_n, patients_l_tot += patients_l_n  ;
 				
-	tdata_l += "<tr><td><a href={{url.path}}?cat=alts&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<!--<td>"+tot_l_n+"</td>"+"<td>"+pats_l_n+"</td>-->"+"<td>"+alts_l_n+"</td>"+"<td><a href={{url.path}}?cat=rpats&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+rpats_l_n+"</a></td>"+"<td><a href={{url.path}}?cat=res&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+yalts_l_n+"</a></td><td><a href={{url.path}}?cat=palts&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+palts_l_n+"</a></td>"+"<!--<td>"+alts_l_np+"</td><td>"+pats_l_np+"</td><td>"+rpats_l_np+"</td><td>"+yalts_l_np+"</td><td>"+palts_l_np+"</td>--></tr>";
+	tdata_l += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<!--<td>"+tot_l_n+"</td>"+"<td>"+pats_l_n+"</td>-->"+"<td>"+alts_l_n+"</td>"+"<td><a href={{url.path}}?cat=rpats&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+rpats_l_n+"</a></td>"+"<td><a href={{url.path}}?cat=res&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+yalts_l_n+"</a></td><td><a href={{url.path}}?cat=palts&"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+palts_l_n+"</a></td>"+"<!--<td>"+alts_l_np+"</td><td>"+pats_l_np+"</td><td>"+rpats_l_np+"</td><td>"+yalts_l_np+"</td><td>"+palts_l_np+"</td>--></tr>";
 	
 	
 			

@@ -412,14 +412,14 @@ var nbc1_c_m =[] , nbc2_c_m = [], ticks_m  = [], nbc3_c_m = [], globaltot_m=0,nb
 	var theader1_1 = "<thead><!--<tr><th></th><th colspan=4>Delivery Report Numbers</th><th colspan=3>Delivery Report Percentages</th></tr>-->";
 	var tdata1 = "";
 	var str1 = "<h2 >NBC Report Statistics in {{sel.name}}-{{sel|to_class_name}} By "+locs[0].split("-")[2]+"</h2><table class = 'table-design' id = 'table1'>";
-	var theader1 = "<thead><tr><th>Location</th><th>NBC1</th><th>NBC2</th><th>NBC3</th><th>Total</th><th>NBC1(%)</th><th>NBC2(%)</th><th>NBC3(%)</th></tr></thead>";
+	var theader1 = "<thead><tr><th>Location</th><th>NBC1</th><th>NBC2</th><th>NBC3</th><th>Total</th><!--<th>NBC1(%)</th><th>NBC2(%)</th><th>NBC3(%)</th>--></tr></thead>";
 
 
 
 	var theader2_1 = "<thead><!--<tr><th></th><th colspan=5>Delivery Report Numbers</th><th colspan=4>Delivery Report Percentages</th></tr> -->";
 	var tdata2 = "";
 	var str2 = "<h2 >Monthly NBC Report Statistics in {{sel.name}}-{{sel|to_class_name}} </h2><table class = 'table-design' id = 'table2'>";
-	var theader2 = "<thead><tr><th>Month</th><th> NBC1 </th><th> NBC2   </th><th> NBC3  </th><th>Total</th><th> NBC1(%) </th><th>  NBC2(%)  </th><th>  NBC3(%)  </th></tr></thead>";
+	var theader2 = "<thead><tr><th>Month</th><th> NBC1 </th><th> NBC2   </th><th> NBC3  </th><th>Total</th><!--<th> NBC1(%) </th><th>  NBC2(%)  </th><th>  NBC3(%)  </th>--></tr></thead>";
 
 	for ( var l in locs) {
 			var nbc1_n,nbc2_n,nbc3_n,tot_n,nbc1_np,nbc2_np,nbc3_np;
@@ -452,20 +452,23 @@ var nbc1_c_m =[] , nbc2_c_m = [], ticks_m  = [], nbc3_c_m = [], globaltot_m=0,nb
 			
 			
 
-			nbc1_c.push([l,nbc1_np]);
+			/*nbc1_c.push([l,nbc1_np]);
 			nbc2_c.push([l,nbc2_np]);
-			nbc3_c.push([l,nbc3_np]);
+			nbc3_c.push([l,nbc3_np]);*/
+			nbc1_c.push([l,nbc1_n]);
+			nbc2_c.push([l,nbc2_n]);
+			nbc3_c.push([l,nbc3_n]);
 			ticks.push([l, loc_n]);
 			globaltot += tot_n, nbc1_tot += nbc1_n, nbc2_tot += nbc2_n, nbc3_tot += nbc3_n;
 				//alert(month_names[months_b[s].trim().split("-")[0]]);//+"-"+months_b[s+1].split("-")[1]);
 
-	tdata1 += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td>"+nbc1_n+"</td>"+"<td>"+nbc2_n+"</td>"+"<td>"+nbc3_n+"</td>"+"<td>"+tot_n+"</td>"+"<td>"+nbc1_np+"</td>"+"<td>"+nbc2_np+"</td>"+"<td>"+nbc3_np+"</td></tr>";
+	tdata1 += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td>"+nbc1_n+"</td>"+"<td>"+nbc2_n+"</td>"+"<td>"+nbc3_n+"</td>"+"<td>"+tot_n+"</td>"+"<!--<td>"+nbc1_np+"</td>"+"<td>"+nbc2_np+"</td>"+"<td>"+nbc3_np+"</td>--></tr>";
 	
 			
 			}
 		if (globaltot > 0)nbc1_totp = Math.round((nbc1_tot * 100/globaltot)* Math.pow(10,2))/Math.pow(10,2),nbc2_totp = Math.round((nbc2_tot * 100/globaltot)* Math.pow(10,2))/Math.pow(10,2),nbc3_totp = Math.round((nbc3_tot * 100/globaltot)* Math.pow(10,2))/Math.pow(10,2); 
 
-		tdata1 += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+nbc1_tot+"</b></td>"+"<td><b>"+nbc2_tot+"</b></td>"+"<td><b>"+nbc3_tot+"</b></td>"+"<td><b>"+globaltot+"</b></td>"+"<td><b>"+nbc1_totp+"</b></td>"+"<td><b>"+nbc2_totp+"</b></td>"+"<td><b>"+nbc3_totp+"</b></td></tr>";
+		tdata1 += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+nbc1_tot+"</b></td>"+"<td><b>"+nbc2_tot+"</b></td>"+"<td><b>"+nbc3_tot+"</b></td>"+"<td><b>"+globaltot+"</b></td>"+"<!--<td><b>"+nbc1_totp+"</b></td>"+"<td><b>"+nbc2_totp+"</b></td>"+"<td><b>"+nbc3_totp+"</b></td>--></tr>";
 
 
 		
@@ -500,21 +503,24 @@ var nbc1_c_m =[] , nbc2_c_m = [], ticks_m  = [], nbc3_c_m = [], globaltot_m=0,nb
 									
 								}
 			
-			nbc1_c_m.push([s,nbc1_np_m]);
+			/*nbc1_c_m.push([s,nbc1_np_m]);
 			nbc2_c_m.push([s,nbc2_np_m]);
-			nbc3_c_m.push([s,nbc3_np_m]);
+			nbc3_c_m.push([s,nbc3_np_m]);*/
+			nbc1_c_m.push([s,nbc1_n_m]);
+			nbc2_c_m.push([s,nbc2_n_m]);
+			nbc3_c_m.push([s,nbc3_n_m]);
 			ticks_m.push([s, month_n]);
 			globaltot_m += tot_n_m, nbc1_tot_m += nbc1_n_m, nbc2_tot_m += nbc2_n_m, nbc3_tot_m += nbc3_n_m;
 				//alert(month_names[months_b[s].trim().split("-")[0]]);//+"-"+months_b[s+1].split("-")[1]);
 
-	tdata2 += "<tr><td>"+month_n+"</td>"+"<td>"+nbc1_n_m+"</td>"+"<td>"+nbc2_n_m+"</td>"+"<td>"+nbc3_n_m+"</td>"+"<td>"+tot_n_m+"</td>"+"<td>"+nbc1_np_m+"</td>"+"<td>"+nbc2_np_m+"</td>"+"<td>"+nbc3_np_m+"</td></tr>";
+	tdata2 += "<tr><td>"+month_n+"</td>"+"<td>"+nbc1_n_m+"</td>"+"<td>"+nbc2_n_m+"</td>"+"<td>"+nbc3_n_m+"</td>"+"<td>"+tot_n_m+"</td>"+"<!--<td>"+nbc1_np_m+"</td>"+"<td>"+nbc2_np_m+"</td>"+"<td>"+nbc3_np_m+"</td>--></tr>";
 	
 	
 			
 			}
 		if (globaltot_m > 0) nbc1_totp_m = Math.round((nbc1_tot_m * 100/globaltot_m)* Math.pow(10,2))/Math.pow(10,2),nbc2_totp_m = Math.round((nbc2_tot_m * 100/globaltot_m)* Math.pow(10,2))/Math.pow(10,2),nbc3_totp_m = Math.round((nbc3_tot_m * 100/globaltot_m)* Math.pow(10,2))/Math.pow(10,2); 
 
-		tdata2 += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+nbc1_tot_m+"</b></td>"+"<td><b>"+nbc2_tot_m+"</b></td>"+"<td><b>"+nbc3_tot_m+"</b></td>"+"<td><b>"+globaltot_m+"</b></td>"+"<td><b>"+nbc1_totp_m+"</b></td>"+"<td><b>"+nbc2_totp_m+"</b></td>"+"<td><b>"+nbc3_totp_m+"</b></td></tr>";
+		tdata2 += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+nbc1_tot_m+"</b></td>"+"<td><b>"+nbc2_tot_m+"</b></td>"+"<td><b>"+nbc3_tot_m+"</b></td>"+"<td><b>"+globaltot_m+"</b></td>"+"<!--<td><b>"+nbc1_totp_m+"</b></td>"+"<td><b>"+nbc2_totp_m+"</b></td>"+"<td><b>"+nbc3_totp_m+"</b></td>--></tr>";
 		
 		str2 += theader2+tdata2+"</table><div><form> <p style ='display:none'><label for='filename_2' >Filename</label><br></br> <input type='text' name='filename_2' value='exportfile_2.xls' id='filename_2' > </p> <p id='downloadify_2' style='margin-bottom:5px;'> You must have Flash 10 installed to download this file. </p> </form></div>";
 
