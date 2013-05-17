@@ -386,7 +386,7 @@ def default_province(req):
 
         if uloc:
             if uloc.nation:
-                sel = int(req.REQUEST['province']) if req.REQUEST.has_key('province') else 1
+                sel = int(req.REQUEST['province']) if req.REQUEST.has_key('province') else 0
                 prvs = Province.objects.all().extra(select = {'selected':'id = %d' % (sel,)}).order_by('name')
 
             elif uloc.province:
@@ -402,7 +402,7 @@ def default_province(req):
                 prvs = Province.objects.filter( pk = uloc.health_centre.province.id ).extra(select = {'selected':'id = %d' % (sel,)}).order_by('name')
 
             if req.REQUEST.has_key('province'): prvs = prvs.filter(id = int(req.REQUEST['province']))
-            return prvs
+            return prvs.exclude(name = 'TEST')
         else:
             return []
 

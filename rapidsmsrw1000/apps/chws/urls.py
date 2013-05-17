@@ -24,7 +24,7 @@ urlpatterns = patterns('',
     url(r'^supervisor$',             views.view_supervisor),
     url(r'^datamanager$',             views.view_datamanager),
     url(r'^facilitystaff$',             views.view_facilitystaff),
-    url(r'^chwreg$',             views.chwreg),
+    url(r'^chwreg$',             views.chwreg, name='reg_chws'),
     
     
 )

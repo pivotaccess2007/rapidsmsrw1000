@@ -22,7 +22,7 @@ class WhoHandler (KeywordHandler):
     
     def filter(self):
         if not getattr(message, 'connection', None):
-            self.respond(_("You need to be registered first, use the REG keyword"))
+            self.respond(_("You need to be registered first"))
             return True 
     def help(self):
         return self.who(self.msg)
@@ -43,7 +43,7 @@ class WhoHandler (KeywordHandler):
         except Exception, e:
             try:    message.supervisor = Supervisor.objects.filter(email = message.connection.contact.name )[0]
             except Exception,e:
-                message.respond(_("You need to be registered first, use the REG keyword"))
+                message.respond(_("You need to be registered first"))
                 return True
            
         if getattr(message, 'reporter', None):

@@ -128,7 +128,7 @@ class CHWAdmin(admin.ModelAdmin):
 class RegistrationConfirmationAdmin(admin.ModelAdmin):
 
     list_display = ('reporter', 'responded', 'answer')
-    search_fields = ('responded',)
+    search_fields = ('responded','reporter__telephone_moh')
 
 class SupervisorAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)

@@ -28,7 +28,7 @@ class NdemeyeHandler (KeywordHandler):
     
     def filter(self):
         if not getattr(message, 'connection', None):
-            self.respond(_("You need to be registered first, use the REG keyword"))
+            self.respond(_("You need to be registered first"))
             return True 
     def help(self):
         return self.ndemeye(self.msg)
@@ -50,7 +50,7 @@ class NdemeyeHandler (KeywordHandler):
         except Exception, e:
             try:    message.supervisor = Supervisor.objects.filter(email = message.connection.contact.name )[0]
             except Exception,e:
-                message.respond(_("You need to be registered first, use the REG keyword"))
+                message.respond(_("You need to be registered first"))
                 return True
 
         try:
@@ -62,7 +62,7 @@ class NdemeyeHandler (KeywordHandler):
         except Exception, e:
             if message.supervisor:
                 message.respond("Muraho murakomeye! Ohereza ijambo 'WHO' urebeko wanditse neza, kandi wibutse abajyanamako bagomba kohereza ubutumwa kuri %s. Murakoze" % settings.SHORTCODE)   
-            else:   message.respond(_("You need to be registered first, use the REG keyword"))
+            else:   message.respond(_("You need to be registered first"))
             return True    			 
 
         message.respond("Muraho murakomeye! Mwatangira kohereza ubutumwa ku buzima bw'umubyeyi n'umwana kuri Rapidsms numero %s.\

@@ -4,6 +4,7 @@
 
 from rapidsmsrw1000.apps.chws.models import *
 from rapidsmsrw1000.apps.utils import *
+from rapidsmsrw1000.apps.smser import *
 from xlrd import open_workbook, cellname, XL_CELL_NUMBER, XLRDError
 from django.template import RequestContext
 
@@ -67,8 +68,6 @@ def paginated(req, data):
     return data
 
 @permission_required('chws.can_view')
-@require_GET
-@require_http_methods(["GET"])
 def index(request):
     """Main listing."""
     request.base_template = "webapp/layout.html"
@@ -88,28 +87,92 @@ def index(request):
     return render_to_response("chws/province.html", dict(prvs=prv, user=request.user), context_instance=RequestContext(request))
 
 
+
+	
+@permission_required('chws.can_view')
 def chwreg(request):
     """CHW reg"""
     request.base_template = "webapp/layout.html"
-    uiurl = 'http://%s' % settings.SERVER_IP 
-
-    prv = Province.objects.all().order_by("-id")
-
-    paginator = Paginator(prv, 2)
-
-    try: page = int(request.GET.get("page", '1'))
-    except ValueError: page = 1
-
+    prvs = dsts = hcs = hps = scs = clls = vlls = None
+    e = ""
+    prvs = default_province(request)#;print prvs
     try:
-        prv = paginator.page(page)
-    except (InvalidPage, EmptyPage):
-        prv = paginator.page(paginator.num_pages)
-    
-    return render_to_response("chws/chwreg.html", dict(prvs=prv, user=request.user, uiurl = uiurl), context_instance=RequestContext(request))    
+        if request.REQUEST.has_key('province'):    dsts = default_district(request).filter(province__id = int(request.REQUEST['province']))
+        if request.REQUEST.has_key('district'):
+            hcs = default_location(request).filter(district__id = int(request.REQUEST['district']))
+            scs = Sector.objects.filter(district__id = int(request.REQUEST['district'])).order_by('-name')
+            hps = Hospital.objects.filter(district__id = int(request.REQUEST['district'])).order_by('-name')
+        if request.REQUEST.has_key('sector'):
+            clls = Cell.objects.filter(sector__id = int(request.REQUEST['sector'])).order_by('-name')
+            scs = scs.extra(select = {'selected':'id = %d' % (int(request.REQUEST['sector']),)})
+        if request.REQUEST.has_key('cell'):
+            vlls = Village.objects.filter(cell__id = int(request.REQUEST['cell'])).order_by('-name')
+            clls = clls.extra(select = {'selected':'id = %d' % (int(request.REQUEST['cell']),)})
+        if request.REQUEST.has_key('village'):
+            vlls = Village.objects.filter(cell__id = int(request.REQUEST['cell'])).extra(select = {'selected':'id = %d' % (int(request.REQUEST['village']),)}).order_by('-name')
+        if request.REQUEST.has_key("nid") or request.REQUEST.has_key("telephone_moh"): 
+            #print request.POST['nid'],request.POST['telephone_moh'],request.POST['surname'],request.POST['given_name'],request.POST['role'],request.POST['edu_level'],request.POST['sex'],request.POST['dob'],request.POST['dob'],request.POST['jod'],request.POST['hospital'],request.POST['location'],request.POST['district'],request.POST['province'],request.POST['sector'],request.POST['cell'],request.POST['village']
+            try:
+                try:    reporter, created = Reporter.objects.get_or_create( national_id = parse_alias(request.POST['nid']), telephone_moh = parse_phone_number(request.POST['telephone_moh']))
+                except Exception,  e:
+                    e = e
+                    try:    reporter, created = Reporter.objects.get_or_create( national_id = parse_alias(request.POST['nid']))
+                    except Exception, e:
+                        e = e
+                        try:    reporter, created = Reporter.objects.get_or_create( telephone_moh = parse_phone_number(request.POST['telephone_moh']))
+                        except Exception, e:
+                            e = e
+                            reporter = Reporter( national_id = parse_alias(request.POST['nid']), telephone_moh = parse_phone_number(request.POST['telephone_moh']))          
+                reporter.surname         = get_name(parse_name(request.POST['surname']))
+                reporter.given_name      = get_name(parse_name(request.POST['given_name']))
+                reporter.role            = get_role(request.POST['role'])
+                reporter.sex 	        =  get_sex(request.POST['sex'])
+                reporter.education_level = get_education(request.POST['edu_level'])
+                reporter.date_of_birth   =	get_date(request.POST['dob'])
+                reporter.join_date		=   get_date(request.POST['jod'])
+                reporter.district		=   District.objects.get( pk = int(request.POST['district']))
+                reporter.nation			=   reporter.district.nation
+                reporter.province		=   reporter.district.province
+                reporter.health_centre	=   HealthCentre.objects.get(pk = int(request.POST['location']))
+                reporter.sector			=   Sector.objects.get(pk = int(request.POST['sector']))
+                
+                reporter.referral_hospital=	Hospital.objects.get(pk = int(request.POST['hospital']))
+                
+                reporter.cell			=	Cell.objects.get(pk = int(request.POST['cell']))
+                reporter.village		=   Village.objects.get(pk = int(request.POST['village']))
+                reporter.updated		= timezone.localtime(timezone.now())
+                reporter.language       = reporter.language_kinyarwanda
+                reporter.save()
+
+                confirm, created = RegistrationConfirmation.objects.get_or_create(reporter = reporter)
+                confirm.save()
+                contact, created = Contact.objects.get_or_create(name = reporter.national_id)
+                contact.language = reporter.language#; print settings.PRIMARY_BACKEND
+                backend = Backend.objects.filter(name = settings.PRIMARY_BACKEND)[0]
+                connection, created = Connection.objects.get_or_create(identity = reporter.telephone_moh, backend = backend)
+                connection.contact = contact
+                connection.backend = backend
+                contact.save()
+                connection.save() 
+                try:    Smser().send_message_via_kannel(reporter.telephone_moh, "Muraho! Minisiteri y'ubuzima iragusaba niba uri umujyanama w'ubuzima kohereza akajambo NDEMEYE wemeze ko uri umujyanama w'ubuzima.")
+                except Exception, e:
+                    e = "Message to start not sent, you can send it manually. Use Group Messages."
+                    pass
+                chw = reporter
+                e =  "SURNAME: %s, " % chw.surname + "GIVEN NAME: %s, " %chw.given_name + "ROLE: %s, " %chw.role + "SEX: %s, " %chw.sex + "EDUCATIONAL LEVEL: %s, " %chw.education_level + "DATE OF BIRTH: %s, " %chw.date_of_birth + "JOINING DATE: %s, " %chw.join_date + "NATIONAL ID: %s, " %chw.national_id + "TELEPHONE: %s, " %chw.telephone_moh + "VILLAGE: %s, " %chw.village + "CELL: %s, " %chw.cell + "SECTOR: %s, " %chw.sector + "HEALTH CENTRE: %s, " %chw.health_centre + "REFERRAL HOSPITAL: %s, " %chw.referral_hospital + "DISTRICT: %s, " %chw.district + "PROVINCE: %s, " %chw.province + "NATION: %s, " %chw.nation + "CREATED: %s, " %chw.created + "UPDATED: %s, " %chw.updated + "LANGUAGE: %s, " %chw.language+ "Connection: %s, " %chw.connection() + "Contact: %s" %chw.contact()
+
+            except Exception, e:
+                e = e
+                pass
+    except Exception, e:
+        e = e        
+        pass    
+    ##print e
+    return render_to_response("chws/chwreg.html", dict(dsts = dsts, error = e, hcs = hcs, hps = hps, prvs = prvs, scs = scs, clls = clls, vlls = vlls,\
+                                 user=request.user), context_instance=RequestContext(request))    
 
 
-@require_GET
-@require_http_methods(["GET"])
+@permission_required('chws.can_view')
 def group_messages(request):
     """Messaging Feature."""
     request.base_template = "webapp/layout.html"
@@ -175,8 +238,8 @@ def group_messages(request):
                     except:
                         try:
                             telephone = r.telephone
-                            forward(telephone, text)
-                        except: pass
+                            Smser().send_message_via_kannel(telephone,text)#forward(telephone, text)
+                        except: continue#pass
         except:
             pass
         paginator = Paginator(reps, 20)
@@ -191,8 +254,6 @@ def group_messages(request):
         return render_to_response("chws/messaging.html", dict(reps = reps, sent = sent, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
-@require_GET
-@require_http_methods(["GET"])
 def errors(request, ref):
     """Errors listing."""
     request.base_template = "webapp/layout.html"
@@ -211,8 +272,7 @@ def errors(request, ref):
 
     return render_to_response("chws/errors.html", dict(errors=errors, user=request.user), context_instance=RequestContext(request))
 
-@require_GET
-@require_http_methods(["GET"])
+@permission_required('chws.can_view')
 def warnings(request, ref):
     """Errors listing."""
     request.base_template = "webapp/layout.html"
@@ -231,6 +291,7 @@ def warnings(request, ref):
 
     return render_to_response("chws/warnings.html", dict(warnings=warnings, user=request.user), context_instance=RequestContext(request))
 
+@permission_required('chws.can_view')
 def view_uploads(request):
     request.base_template = "webapp/layout.html"
     hc = dst = reporters = sup = None
@@ -314,8 +375,6 @@ def view_uploads(request):
         return render_to_response("chws/uploads.html", dict( errors=errors,reporters = reporters , sup = sup, regs = regs, confirms = confirms, pendings = pendings, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
-@require_GET
-@require_http_methods(["GET"])
 def view_pendings(request):
     """Pending listing."""
     request.base_template = "webapp/layout.html"
@@ -375,8 +434,6 @@ def view_pendings(request):
         return render_to_response("chws/pendings.html", dict(pendings = pendings, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
-@require_GET
-@require_http_methods(["GET"])
 def view_confirms(request):
     """confirms listing."""
     request.base_template = "webapp/layout.html"
@@ -431,6 +488,7 @@ def view_confirms(request):
             confirms = paginator.page(paginator.num_pages)
         return render_to_response("chws/confirms.html", dict(confirms = confirms, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
+@permission_required('chws.can_view')
 def import_reporters_from_excell(req):
     req.base_template = "webapp/layout.html"
     try:
@@ -645,6 +703,7 @@ def get_name(name):
             return name
 
 def get_role(role):
+    
     try:
         if "asm" in role.lower() :  role = Role.objects.get( code ='asm')
         elif "a.s.m" in role.lower():   role = Role.objects.get( code ='asm')
@@ -659,6 +718,7 @@ def get_sex (sex):
     try:
 
         if 'f' in sex.lower():  sex = Reporter.sex_female
+        elif 'm' in sex.lower():  sex = Reporter.sex_male
         elif 'gore' in sex.lower():  sex = Reporter.sex_female
         elif 'gabo' in sex.lower():  sex = Reporter.sex_male
         else:   sex = Reporter.sex_female
@@ -853,7 +913,7 @@ def matching_filters(req,diced,alllocs=False):
 
     return rez
 
-
+@permission_required('chws.can_view')
 def view_active_reporters(req,**flts):
     req.base_template = "webapp/layout.html"
     try:    group = Role.objects.get(code = req.REQUEST['group'])
@@ -915,8 +975,6 @@ def view_inactive_reporters(req,**flts):
 #####END OF INACTIVITY
 
 @permission_required('chws.can_view')
-@require_GET
-@require_http_methods(["GET"])
 def view_asm(request):
     """asm listing."""
     request.base_template = "webapp/layout.html"
@@ -975,8 +1033,6 @@ def view_asm(request):
 
 
 @permission_required('chws.can_view')
-@require_GET
-@require_http_methods(["GET"])
 def view_binome(request):
     """Binome listing."""
     request.base_template = "webapp/layout.html"
@@ -1034,8 +1090,6 @@ def view_binome(request):
         return render_to_response("chws/binome.html", dict(binomes = binomes, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
-@require_GET
-@require_http_methods(["GET"])
 def view_supervisor(request):
     """Supervisor listing."""
     request.base_template = "webapp/layout.html"
@@ -1093,8 +1147,6 @@ def view_supervisor(request):
         return render_to_response("chws/supervisor.html", dict(supervisors = supervisors, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
-@require_GET
-@require_http_methods(["GET"])
 def view_datamanager(request):
     """Data Managers listing."""
     request.base_template = "webapp/layout.html"
@@ -1152,8 +1204,6 @@ def view_datamanager(request):
         return render_to_response("chws/datamanager.html", dict(datamangers = datamangers, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
-@require_GET
-@require_http_methods(["GET"])
 def view_facilitystaff(request):
     """Facility Staff listing."""
     request.base_template = "webapp/layout.html"
