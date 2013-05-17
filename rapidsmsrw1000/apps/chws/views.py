@@ -122,7 +122,10 @@ def chwreg(request):
                         try:    reporter, created = Reporter.objects.get_or_create( telephone_moh = parse_phone_number(request.POST['telephone_moh']))
                         except Exception, e:
                             e = e
-                            reporter = Reporter( national_id = parse_alias(request.POST['nid']), telephone_moh = parse_phone_number(request.POST['telephone_moh']))          
+                            reporter = Reporter( national_id = parse_alias(request.POST['nid']), telephone_moh = parse_phone_number(request.POST['telephone_moh']))
+
+                reporter.national_id =  parse_alias(request.POST['nid'])
+                reporter.telephone_moh =  parse_phone_number(request.POST['telephone_moh'])        
                 reporter.surname         = get_name(parse_name(request.POST['surname']))
                 reporter.given_name      = get_name(parse_name(request.POST['given_name']))
                 reporter.role            = get_role(request.POST['role'])
