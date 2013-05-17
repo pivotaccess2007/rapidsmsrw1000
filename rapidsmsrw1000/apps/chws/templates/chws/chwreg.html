@@ -1,0 +1,248 @@
+{% extends request.base_template %}
+
+{% block title %} CHW Registration {% endblock %}
+
+{% block javascripts %}
+<link rel="stylesheet" type="text/css" href="{{uiurl}}/extjs/resources/css/ext-all.css" />
+    
+    <!-- GC -->
+
+    <script type="text/javascript" src="{{uiurl}}/extjs/ext-all-debug.js"></script>
+
+    <script type="text/javascript" src="/static/webapp/javascripts/chwreg.js"></script>
+    <link type="text/css" rel="stylesheet" href="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.css"></link>
+    <script type="text/javascript" src="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.js"></script>
+
+    <style type="text/css">
+        .employee-add {
+            background-image: url('/static/webapp/icons/fam/user_add.gif') !important;
+        }
+
+        .employee-remove {
+            background-image: url('/static/webapp/icons/fam/user_delete.gif') !important;
+        }
+    </style>
+
+<script type="text/javascript"> 
+$(function()
+{
+
+$('#provchoose').change(function(evt)
+    {	
+        if ($(this).attr('value') != ''){window.location = window.location.pathname + '?province=' +
+        $(this).attr('value');
+	} else {
+			window.location = window.location.pathname;			
+			}
+    });
+
+
+$('#distchoose').change(function()
+    {
+        if ($(this).attr('value') != ''){ window.location = window.location.pathname + '?district=' +
+        $(this).attr('value') + '&province=' + $('#provchoose').attr('value');
+	}
+		else {
+			window.location = window.location.pathname + '?'+ '&province=' + $('#provchoose').attr('value');			
+			}
+    });
+
+
+$('#locchoose').change(function()
+    {
+       if ($(this).attr('value') != '') { window.location = window.location.pathname + '?location=' +
+        $(this).attr('value') + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value') ;
+	} 
+		else{
+			window.location = window.location.pathname + '?' + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value');
+			}
+    });
+
+
+
+$('#secchoose').change(function()
+    {
+       if ($(this).attr('value') != '') { window.location = window.location.pathname + '?sector=' +
+        $(this).attr('value') + '&location=' +  $('#locchoose').attr('value') + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value') ;
+	} 
+		else{
+			window.location = window.location.pathname + '?' + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value') + '&location=' +   $('#locchoose').attr('value');
+			}
+    });
+
+
+
+$('#celchoose').change(function()
+    {
+       if ($(this).attr('value') != '') { window.location = window.location.pathname + '?cell=' +
+        $(this).attr('value') + '&sector=' +
+        $("#secchoose").attr('value') + '&location=' +  $('#locchoose').attr('value') + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value') ;
+	} 
+		else{
+			window.location = window.location.pathname + '?' + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value') + '&location=' +   $('#locchoose').attr('value')+ '&sector=' + $("#secchoose").attr('value');
+			}
+    });
+
+$('#vilchoose').change(function()
+    {
+       if ($(this).attr('value') != '') { window.location = window.location.pathname + '?village=' +
+        $(this).attr('value') + '&cell=' +   $('#celchoose').attr('value') + '&sector=' +
+        $("#secchoose").attr('value') + '&location=' +  $('#locchoose').attr('value') + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value') ;
+	} 
+		else{
+			window.location = window.location.pathname + '?' + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value') + '&location=' +   $('#locchoose').attr('value')+ '&sector=' + $("#secchoose").attr('value');
+			}
+    });
+
+});
+
+
+
+</script>
+
+
+{% endblock %}
+
+{% block content %}
+<div><div><font color = "#266d99">{{error}}</font><div>
+<form enctype="multipart/form-data" action="{% url reg_chws %}" method="POST">
+{% csrf_token %}
+<table>
+<tr>			                    
+<td>
+<label id = "prv">Province</label></br>
+<select name="province" id="provchoose"><option></option>
+{%  for prv in prvs %}<option value="{{prv.id}}" {% if prv.selected  %} selected="selected"{% endif %}>{{ prv.name }}</option>{%  endfor %}
+</select>
+</td>
+<td>
+<label id = "dst">District</label></br>
+<select name="district" id="distchoose"><option></option>
+{%  for dst in dsts %}<option value="{{dst.id}}" {% if dst.selected  %} selected="selected"{% endif %}>{{ dst.name }}</option>{%  endfor %}  
+</select>
+</td>
+<td>
+<label id = "hc">Health Centre</label></br>
+<select name="location" id="locchoose"><option></option>
+{%  for hc in hcs %}<option value="{{hc.id}}" {% if hc.selected  %} selected="selected"{% endif %}>{{ hc.name }}</option>{%  endfor %}  
+</select>
+</td>
+<td>
+<label id = "sc">Sector</label></br>
+<select name="sector" id="secchoose"><option></option>
+{%  for sc in scs %}<option value="{{sc.id}}" {% if sc.selected  %} selected="selected"{% endif %}>{{ sc.name }}</option>{%  endfor %}  
+</select>
+</td>
+
+<td>
+<label id = "cl">Cell</label></br>
+<select name="cell" id="celchoose"><option></option>
+{%  for cl in clls %}<option value="{{cl.id}}" {% if cl.selected  %} selected="selected"{% endif %}>{{ cl.name }}</option>{%  endfor %}  
+</select>
+</td>
+
+<td>
+<label id = "vl">Village</label></br>
+<select name="village" id="vilchoose"><option></option>
+{%  for vl in vlls %}<option value="{{vl.id}}" {% if vl.selected  %} selected="selected"{% endif %}>{{ vl.name }}</option>{%  endfor %}  
+</select>
+</td><td></td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "sur">Surname</label></td><td colspan=2><input type="text" name="surname" value="" />
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "gn">Given Name</label></td><td colspan=2><input type="text" name="given_name" value="" />
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "sex">Sex</label></td><td colspan=2>
+<select name="sex" id="sexchoose"><option></option>
+<option value="M" >Male</option>
+<option value="F" >Female</option>   
+</select>
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "role">Role</label></td><td colspan=2>
+<select name="role" id="rolechoose"><option></option>
+<option value="asm" >ASM</option>
+<option value="binome" >Binome</option>   
+</select>
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "edu">Educational Level</label></td><td colspan=2>
+<select name="edu_level" id="educhoose"> <option value="N" >None</option>
+<option value="P" >Primaire</option>
+<option value="S" >Secondaire</option>
+<option value="U" >University</option>  
+</select>
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "dob">Date of Birth</label></td><td colspan=2><input style="background-color: white" type="text" id="dob" value=""  name="dob" 					readonly="readonly"  onFocus="displayCalendar(form.dob,'dd/mm/yyyy',this)" onchange="return deroulement(this.form);"/>
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "jod">Joining Date</label></td><td colspan=2><input style="background-color: white" type="text" id="jod" value=""  name="jod" 					readonly="readonly"  onFocus="displayCalendar(form.jod,'dd/mm/yyyy',this)"/>
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "hp">Referral Hospital</label></td><td colspan=2>
+<select name="hospital" id="hpchoose"><option></option>
+{%  for hp in hps %}<option value="{{hp.id}}" {% if hp.selected  %} selected="selected"{% endif %}>{{ hp.name }}</option>{%  endfor %}  
+</select>
+</td>
+
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "nid">National ID</label></td><td colspan=2><input type="text" name="nid" value="" />
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "tel">Telephone MoH</label></td><td colspan=2><input type="text" name="telephone_moh" value="" />
+</td>
+</tr>
+
+<tr><td colspan = 6></td>
+<td>
+<input type="submit" value="Submit" />
+</td>
+</tr>
+
+
+
+</table>
+</form>
+<div>
+{% endblock %}
