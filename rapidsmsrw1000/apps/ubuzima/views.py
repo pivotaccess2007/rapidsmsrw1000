@@ -1345,6 +1345,7 @@ def child_report(req):
     return render_to_response('ubuzima/child_report.html',
            resp, context_instance=RequestContext(req))
 
+@permission_required('ubuzima.can_view')
 def view_chihe(req):
     resp=pull_req_with_filters(req)
     resp['reports']=matching_reports(req,resp['filters'])
@@ -1369,6 +1370,7 @@ def view_chihe(req):
     resp['track'] = ans
     return render_to_response('ubuzima/chihe.html', resp, context_instance = RequestContext(req))
 
+@permission_required('ubuzima.can_view')
 def chihe_stats(req, format, dat):
     resp=pull_req_with_filters(req)
     resp['reports']=matching_reports(req,resp['filters'])
