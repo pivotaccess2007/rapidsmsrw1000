@@ -945,6 +945,7 @@ def view_active_reporters(req,**flts):
              'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
               }, context_instance=RequestContext(req))
 
+@permission_required('chws.can_view')
 def view_inactive_reporters(req,**flts):
 
     req.base_template = "webapp/layout.html"
