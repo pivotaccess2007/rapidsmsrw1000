@@ -382,6 +382,7 @@ def default_location(req):
 def default_province(req):
     uloc = get_user_location(req)
     prvs = None
+    
     try:
 
         if uloc:
@@ -397,8 +398,8 @@ def default_province(req):
                 sel = int(req.REQUEST['province']) if req.REQUEST.has_key('province') else uloc.district.province.id
                 prvs = Province.objects.filter( pk = uloc.district.province.id ).extra(select = {'selected':'id = %d' % (sel,)}).order_by('name')
 
-            elif uloc.heath_centre:
-                sel = int(req.REQUEST['province']) if req.REQUEST.has_key('province') else uloc.health_centre.id
+            elif uloc.health_centre:                
+                sel = int(req.REQUEST['province']) if req.REQUEST.has_key('province') else uloc.health_centre.province.id
                 prvs = Province.objects.filter( pk = uloc.health_centre.province.id ).extra(select = {'selected':'id = %d' % (sel,)}).order_by('name')
 
             if req.REQUEST.has_key('province'): prvs = prvs.filter(id = int(req.REQUEST['province']))
@@ -427,7 +428,7 @@ def default_district(req):
                 sel = int(req.REQUEST['district']) if req.REQUEST.has_key('district') else uloc.district.id
                 dsts = District.objects.filter( pk = uloc.district.id ).extra(select = {'selected':'id = %d' % (sel,)}).order_by('name')
 
-            elif uloc.heath_centre:
+            elif uloc.health_centre:
                 sel = int(req.REQUEST['district']) if req.REQUEST.has_key('district') else uloc.health_centre.district.id
                 dsts = District.objects.filter( pk = uloc.health_centre.district.id ).extra(select = {'selected':'id = %d' % (sel,)}).order_by('name')
 

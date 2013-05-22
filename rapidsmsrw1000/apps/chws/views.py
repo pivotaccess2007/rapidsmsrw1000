@@ -96,7 +96,12 @@ def chwreg(request):
     prvs = dsts = hcs = hps = scs = clls = vlls = None
     e = ""
     prvs = default_province(request)#;print prvs
+    uloc = get_user_location(request)
     try:
+        if uloc.health_centre or uloc.district:
+            hcs = default_location(request)
+            dsts = default_district(request)
+            scs = Sector.objects.filter(district__in = dsts).order_by('-name')        
         if request.REQUEST.has_key('province'):    dsts = default_district(request).filter(province__id = int(request.REQUEST['province']))
         if request.REQUEST.has_key('district'):
             hcs = default_location(request).filter(district__id = int(request.REQUEST['district']))
@@ -110,6 +115,8 @@ def chwreg(request):
             clls = clls.extra(select = {'selected':'id = %d' % (int(request.REQUEST['cell']),)})
         if request.REQUEST.has_key('village'):
             vlls = Village.objects.filter(cell__id = int(request.REQUEST['cell'])).extra(select = {'selected':'id = %d' % (int(request.REQUEST['village']),)}).order_by('-name')
+        
+            #hps = Hospital.objects.filter(district__id = int(request.REQUEST['district'])).order_by('-name')    
         if request.REQUEST.has_key("nid") or request.REQUEST.has_key("telephone_moh"): 
             #print request.POST['nid'],request.POST['telephone_moh'],request.POST['surname'],request.POST['given_name'],request.POST['role'],request.POST['edu_level'],request.POST['sex'],request.POST['dob'],request.POST['dob'],request.POST['jod'],request.POST['hospital'],request.POST['location'],request.POST['district'],request.POST['province'],request.POST['sector'],request.POST['cell'],request.POST['village']
             try:
