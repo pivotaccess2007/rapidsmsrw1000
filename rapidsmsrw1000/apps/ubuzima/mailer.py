@@ -1,4 +1,5 @@
 from django.core import mail
+from django.conf import settings
 from django.core.management.base import BaseCommand
 class Mailer(BaseCommand):
 	help = "To send Email"
@@ -11,10 +12,11 @@ class Mailer(BaseCommand):
 			message = "Dear %s,\n This is to let you know that you are now registered in RapidSMS Rwanda System. Your username is '%s', and your email in RapidSMS is '%s', and the default password is already set for you, but please use this link http://%s:%s/account/password_reset/ to reset it before you can login in." % (user.get_full_name(), user.username, user.email, settings.SERVER_IP, settings.SERVER_PORT)
 			connection = mail.get_connection()
 			connection.open()
-			email = mail.EmailMessage(subject, message, from_email,[user.email], connection=connection)
+			email = mail.EmailMessage(subject, message, from_email,user.email, connection=connection)
+			print email
 			email.send()
 			connection.close()
-		except:
-			pass
+		except Exception, e:
+			print e#pass
 		return True
 
