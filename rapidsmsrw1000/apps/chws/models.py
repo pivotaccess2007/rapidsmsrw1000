@@ -539,15 +539,21 @@ class DataManager(models.Model):
     language_french		= 'fr'
     language_kinyarwanda	= 'rw'
 
+    health_centre = 'hc'
+    district_hospital = 'hd'
+
     LANGUAGE_CHOICES = ( (language_english, "English"),
                 (language_french, "French"),
                 (language_kinyarwanda, "Kinyarwanda"))
+
+    AREA_CHOICES = ( (health_centre, "Health Centre"),
+                        (district_hospital, "District Hospital"))
 
 
 
     names = models.CharField(max_length=150, null=True)
     dob = models.DateField(blank=True, null = True, help_text="Date Of Birth")
-    area_level = models.CharField(max_length=13, null=True)
+    area_level = models.CharField(max_length = 2, blank=True, null = True, choices= AREA_CHOICES, help_text="Select the level of working")
     village = models.ForeignKey(Village, null = True, blank=True)
     cell = models.ForeignKey(Cell, null = True, blank=True)
     sector = models.ForeignKey(Sector, null = True, blank=True)
@@ -817,7 +823,7 @@ def assign_login(sender, **kwargs):
                         Login in www.rapidsms.moh.gov.rw:5000 website to access data from %s %s, where you are registered now." % \
                         (person.names, user.username, user.password, loc, person.area_level)
 
-            print message
+            #print message
             Smser().send_message_via_kannel(person.connection().identity, message)
             user.email_user(subject = "RapidSMS RWANDA - Registration Confirmation", message = message, from_email = "unicef@rapidsms.moh.gov.rw")
         except Exception, e:

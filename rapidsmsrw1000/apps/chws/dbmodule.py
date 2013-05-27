@@ -524,11 +524,16 @@ def update_login(reporter_chw_object):
     group, created = Group.objects.get_or_create(name = 'DataViewer')
     group.permissions = permissions
     group.save()
-    user, created = User.objects.get_or_create(username = person.email)
+    try:    user, created = User.objects.get_or_create(username = person.email)
+    except:
+        user = User.objects.filter(email = person.email)
+        user.delete()
+        user, created = User.objects.get_or_create(username = person.email)
     user.email = person.email
     user.set_password("123")
     user.groups.add(group)
     user.save()
+    
     try:    
         if person.area_level.lower() == 'hc':
             user_location = UserLocation.objects.filter(user = user)
