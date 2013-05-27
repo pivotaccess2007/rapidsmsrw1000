@@ -545,14 +545,14 @@ class DataManager(models.Model):
 
 
 
-    names = models.EmailField(max_length=150, null=True)
+    names = models.CharField(max_length=150, null=True)
     dob = models.DateField(blank=True, null = True, help_text="Date Of Birth")
     area_level = models.CharField(max_length=13, null=True)
-    village = models.ForeignKey(Village, null = True)
-    cell = models.ForeignKey(Cell, null = True)
-    sector = models.ForeignKey(Sector, null = True)
-    health_centre = models.ForeignKey(HealthCentre, null = True)
-    referral_hospital = models.ForeignKey(Hospital, null = True)
+    village = models.ForeignKey(Village, null = True, blank=True)
+    cell = models.ForeignKey(Cell, null = True, blank=True)
+    sector = models.ForeignKey(Sector, null = True, blank=True)
+    health_centre = models.ForeignKey(HealthCentre, null = True, blank=True)
+    referral_hospital = models.ForeignKey(Hospital, null = True, blank=True)
     district = models.ForeignKey(District, null = True)
     province = models.ForeignKey(Province, null = True)
     nation = models.ForeignKey(Nation, null = True)
@@ -621,7 +621,7 @@ class DataManager(models.Model):
         # TODO: add a "preferred" flag to connection, which then
         # overrides the last_seen connection as the default, here
         try:
-            return Connection.objects.get(contact__name = self.email, contact = self.contact())#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
+            return Connection.objects.filter(contact__name = self.email)[0]#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
 
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
@@ -636,7 +636,7 @@ class DataManager(models.Model):
         # TODO: add a "preferred" flag to connection, which then
         # overrides the last_seen connection as the default, here
         try:
-            return Contact.objects.get(name = self.email)
+            return Contact.objects.filter(name = self.email)[0]
 
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
@@ -675,18 +675,18 @@ class FacilityStaff(models.Model):
                             (chief_of_medicalstaff, 'Chief of Medical Staff'),)
 
 
-    names = models.EmailField(max_length=150, null=True)
+    names = models.CharField(max_length=150, null=True)
     dob = models.DateField(blank=True, null = True, help_text="Date Of Birth")
     area_level = models.CharField(max_length = 2, blank=True, null = True, choices= AREA_CHOICES, help_text="Select the level of working")
     service = models.CharField(max_length = 4, blank=True, null = True, choices= SERVICE_CHOICES, help_text="Select the level of service")
-    village = models.ForeignKey(Village, null = True)
-    cell = models.ForeignKey(Cell, null = True)
-    sector = models.ForeignKey(Sector, null = True)
-    health_centre = models.ForeignKey(HealthCentre, null = True)
-    referral_hospital = models.ForeignKey(Hospital, null = True)
-    district = models.ForeignKey(District, null = True)
-    province = models.ForeignKey(Province, null = True)
-    nation = models.ForeignKey(Nation, null = True)
+    village = models.ForeignKey(Village, null = True, blank=True)
+    cell = models.ForeignKey(Cell, null = True, blank=True)
+    sector = models.ForeignKey(Sector, null = True, blank=True)
+    health_centre = models.ForeignKey(HealthCentre, null = True, blank=True)
+    referral_hospital = models.ForeignKey(Hospital, null = True, blank=True)
+    district = models.ForeignKey(District, null = True, blank=True)
+    province = models.ForeignKey(Province, null = True, blank=True)
+    nation = models.ForeignKey(Nation, null = True, blank=True)
     telephone_moh  = models.CharField(max_length=13, null=True, unique = True)
     email = models.EmailField(max_length=50, unique = True, null = True)
     national_id =  models.CharField(max_length=16, null=True, unique = True)
@@ -753,7 +753,7 @@ class FacilityStaff(models.Model):
         # TODO: add a "preferred" flag to connection, which then
         # overrides the last_seen connection as the default, here
         try:
-            return Connection.objects.get(contact__name = self.national_id, contact = self.contact())#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
+            return Connection.objects.filter(contact__name = self.national_id)[0]#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
 
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
@@ -768,7 +768,7 @@ class FacilityStaff(models.Model):
         # TODO: add a "preferred" flag to connection, which then
         # overrides the last_seen connection as the default, here
         try:
-            return Contact.objects.get(name = self.national_id)
+            return Contact.objects.filter(name = self.national_id)[0]
 
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
@@ -798,12 +798,16 @@ def assign_login(sender, **kwargs):
         user.save()
         try:    
             if person.area_level.lower() == 'hc':
-                user_location, created = UserLocation.objects.get_or_create(user = user)
+                user_location = UserLocation.objects.filter(user = user)
+                user_location.delete()
+                user_location = UserLocation.objects.create(user = user)
                 user_location.health_centre= person.health_centre
                 loc = person.health_centre
                 user_location.save()
             elif person.area_level.lower() == 'hd':
-                user_location, created = UserLocation.objects.get_or_create(user = user)
+                user_location = UserLocation.objects.filter(user = user)
+                user_location.delete()
+                user_location = UserLocation.objects.create(user = user)
                 user_location.district = person.district
                 loc = person.district
                 user_location.save()
@@ -813,7 +817,7 @@ def assign_login(sender, **kwargs):
                         Login in www.rapidsms.moh.gov.rw:5000 website to access data from %s %s, where you are registered now." % \
                         (person.names, user.username, user.password, loc, person.area_level)
 
-            #print message
+            print message
             Smser().send_message_via_kannel(person.connection().identity, message)
             user.email_user(subject = "RapidSMS RWANDA - Registration Confirmation", message = message, from_email = "unicef@rapidsms.moh.gov.rw")
         except Exception, e:

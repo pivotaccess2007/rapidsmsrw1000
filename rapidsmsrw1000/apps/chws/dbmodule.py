@@ -531,12 +531,16 @@ def update_login(reporter_chw_object):
     user.save()
     try:    
         if person.area_level.lower() == 'hc':
-            user_location, created = UserLocation.objects.get_or_create(user = user)
+            user_location = UserLocation.objects.filter(user = user)
+            user_location.delete()
+            user_location = UserLocation.objects.create(user = user)
             user_location.health_centre = person.health_centre
             loc = person.health_centre
             user_location.save()
         elif person.area_level.lower() == 'hd':
-            user_location, created = UserLocation.objects.get_or_create(user = user)
+            user_location = UserLocation.objects.filter(user = user)
+            user_location.delete()
+            user_location = UserLocation.objects.create(user = user)
             user_location.district = person.district
             loc = person.district
             user_location.save()

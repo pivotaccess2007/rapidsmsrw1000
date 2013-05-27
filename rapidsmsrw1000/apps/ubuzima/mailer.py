@@ -13,10 +13,10 @@ class Mailer(BaseCommand):
 			connection = mail.get_connection()
 			connection.open()
 			email = mail.EmailMessage(subject, message, from_email,[user.email], connection=connection)
-			print email
+			#print email
 			email.send()
 			connection.close()
 		except Exception, e:
-			print e#pass
+			pass#print e#pass
 		return True
 
