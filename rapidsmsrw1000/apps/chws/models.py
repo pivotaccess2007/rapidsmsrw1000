@@ -783,6 +783,129 @@ class FacilityStaff(models.Model):
 
 
 
+
+####MONITORS AND EVALUATORS OF RAPIDSMS RWANDA######
+class MonitorEvaluator(models.Model):
+
+    language_english	= 'en'
+    language_french		= 'fr'
+    language_kinyarwanda	= 'rw'
+
+    health_centre = 'hc'
+    district_hospital = 'hd'
+    district = 'ds'
+
+    LANGUAGE_CHOICES = ( (language_english, "English"),
+                (language_french, "French"),
+                (language_kinyarwanda, "Kinyarwanda"))
+
+    AREA_CHOICES = ( (health_centre, "Health Centre"),
+                        (district_hospital, "District Hospital"),
+                        (district, "District"))
+
+
+
+    names = models.CharField(max_length=150, null=True)
+    dob = models.DateField(blank=True, null = True, help_text="Date Of Birth")
+    area_level = models.CharField(max_length = 2, blank=True, null = True, choices= AREA_CHOICES, help_text="Select the level of working")
+    village = models.ForeignKey(Village, null = True, blank=True)
+    cell = models.ForeignKey(Cell, null = True, blank=True)
+    sector = models.ForeignKey(Sector, null = True, blank=True)
+    health_centre = models.ForeignKey(HealthCentre, null = True, blank=True)
+    referral_hospital = models.ForeignKey(Hospital, null = True, blank=True)
+    district = models.ForeignKey(District, null = True)
+    province = models.ForeignKey(Province, null = True)
+    nation = models.ForeignKey(Nation, null = True)
+    telephone_moh  = models.CharField(max_length=13, null=True, unique = True)
+    email = models.EmailField(max_length=50, unique = True)
+    national_id =  models.CharField(max_length=16, null=True, unique = True)
+    language = models.CharField(max_length = 2, blank=True, null = True, choices= LANGUAGE_CHOICES, help_text="Select the preferred language to receive SMS")
+
+    class Meta:
+        # define a permission for this app to use the @permission_required
+        # in the admin's auth section, we have a group called 'manager' whose
+        # users have this permission -- and are able to see this section
+        permissions = (
+        ("can_view", "Can view"),
+        )
+
+    def __unicode__(self):
+        return "Data Manager: %s" % (self.names)
+
+    def get_connections(self):
+        connections = None
+
+        try:
+            contact, created = Contact.objects.get_or_create(name = self.email)
+            if self.language:    contact.language = self.language.lower()
+            else:   contact.language = 'rw'
+
+            backends = Backend.objects.all()
+            for b in backends:
+                try:
+                    identity = self.telephone_moh if b.name != 'message_tester' else self.telephone_moh.replace('+','')
+                    connection, created = Connection.objects.get_or_create(contact = contact, backend = b, identity = identity)
+                    connection.save()
+                except Exception,e:
+                    continue
+
+            contact.save()
+            connections = Connection.objects.filter(contact = contact)
+        except Exception, e:
+            pass
+
+        return connections
+
+    def last_seen(self):
+        """Returns the Python datetime that this Reporter was last seen,
+            on any Connection. Before displaying in the WebUI, the output
+           should be run through the XXX  filter, to make it prettier."""
+
+        # comprehend a list of datetimes that this
+        # reporter was last seen on each connection,
+        # excluding those that have never seen them
+        timedates = [
+                        c.date
+                        for c in Message.objects.filter( connection__in = Connection.objects.filter(contact__name = self.email))
+                        if c.date is not None]
+
+        # return the latest, or none, if they've
+        # has never been seen on ANY connection
+        return max(timedates) if timedates else None
+
+    def connection(self):
+        """Returns the connection object last used by this Reporter.
+        The field is (probably) updated by app.py when receiving
+        a message, so depends on _incoming_ messages only."""
+
+        # TODO: add a "preferred" flag to connection, which then
+        # overrides the last_seen connection as the default, here
+        try:
+            return Connection.objects.filter(contact__name = self.email)[0]#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
+
+        # if no connections exist for this reporter (how
+        # did that happen?!), then just return None...
+        except Connection.DoesNotExist:
+            return None
+
+    def contact(self):
+        """Returns the connection object last used by this Reporter.
+        The field is (probably) updated by app.py when receiving
+        a message, so depends on _incoming_ messages only."""
+
+        # TODO: add a "preferred" flag to connection, which then
+        # overrides the last_seen connection as the default, here
+        try:
+            return Contact.objects.filter(name = self.email)[0]
+
+        # if no connections exist for this reporter (how
+        # did that happen?!), then just return None...
+        except Contact.DoesNotExist:
+            return None
+
+####END OF MONITORS AND EVALUATORS OF RAPIDSMS RWANDA###
+
+
 ##Signals
 
 def assign_login(sender, **kwargs):
@@ -810,13 +933,14 @@ def assign_login(sender, **kwargs):
                 user_location.health_centre= person.health_centre
                 loc = person.health_centre
                 user_location.save()
-            elif person.area_level.lower() == 'hd':
+            elif person.area_level.lower() == 'hd' or person.area_level.lower() == 'ds':
                 user_location = UserLocation.objects.filter(user = user)
                 user_location.delete()
                 user_location = UserLocation.objects.create(user = user)
                 user_location.district = person.district
                 loc = person.district
                 user_location.save()
+            
 
             message = "Dear %s, you are registered in RapidSMS Rwanda to track the first 1000 days of life. \
                         Your username is %s and default password is %s, please feel free to change it at http://rapidsms.moh.gov.rw:5000/account/password_reset/ .\
@@ -846,8 +970,10 @@ post_save.connect(ensure_connections_exists, sender = Reporter)
 post_save.connect(ensure_connections_exists, sender = Supervisor)
 post_save.connect(assign_login, sender = DataManager)
 post_save.connect(assign_login, sender = FacilityStaff)
+post_save.connect(assign_login, sender = MonitorEvaluator)
 post_save.connect(ensure_connections_exists, sender = DataManager)
 post_save.connect(ensure_connections_exists, sender = FacilityStaff)
+post_save.connect(ensure_connections_exists, sender = MonitorEvaluator)
 
 
 
