@@ -186,6 +186,8 @@ def chwreg(request):
 def group_messages(request):
     """Messaging Feature."""
     request.base_template = "webapp/layout.html"
+    if get_user_location(request).user.username != 'gaju':        
+        return render_to_response("ubuzima/404.html",{'error':"YOU ARE NOT ALLOWED TO SEND GROUP MESSAGES. PLEASE CONTACT ERIC GAJU"}, context_instance=RequestContext(request))
     hc = dst = None
     sent = []
     reps = Reporter.objects.all().order_by("-id")
@@ -900,7 +902,7 @@ def inactive_reporters(req, rez, group):
 
 def active_reporters(req, rez, group):
     reps = Reporter.objects.filter(role=group, **rez)
-    pst = reporter_fresher(req)
+    pst = reporter_fresher(req);print pst,rez
     return reps.filter(**pst).filter(is_active=True)
 
 
@@ -982,6 +984,34 @@ def view_inactive_reporters(req,**flts):
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
           }, context_instance=RequestContext(req))
 
+
+@permission_required('chws.can_view')
+def activity_statistics(req):
+
+    filters = {'period':default_period(req),
+             'location':default_location(req),
+             'province':default_province(req),
+             'district':default_district(req)}
+
+    lox, lxn = 0, location_name(req)
+
+    start = datetime.date.today() - datetime.timedelta(days = 60)
+    end = datetime.date.today()
+
+    messages = Message.objects.filter(direction = 'I', date__gte = start , date__lte = end).exclude(contact = None)
+    reports = Report.objects.filter(created__gte = start, created__lte = end)
+
+    contacts_from_messages = [ s[0] for s in set(messages.values_list('contact__name')) ]
+    reportes_from_reports = [ s[0] for s in set(reports.values_list('reporter__id')) ] 
+
+    active_reporters = Reporter.objects.filter(id__in = reportes_from_reports, national_id__in = contacts_from_messages)
+    inactive_reporters = Reporter.objects.all().exclude(id__in = active_reporters.values_list('pk'))
+
+    return render_to_response(
+        "chws/dashboard.html", {
+        "reporters": paginated(req, active_reporters),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+         'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
+          }, context_instance=RequestContext(req))
 
 #####END OF INACTIVITY
 
