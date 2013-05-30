@@ -196,7 +196,7 @@ def import_facilities(filepath = "rapidsmsrw1000/apps/chws/xls/facilities.xls", 
             continue
     return locs
 
-def update_cells_villages(filepath = "rapidsmsrw1000/apps/chws/xls/minaloc.xls", sheetname = "GeographicAreas"):
+def update_cells_villages(filepath = "rapidsmsrw1000/apps/chws/xls/MINALOC SECTORS_EG.xls", sheetname = "villages"):
     book = open_workbook(filepath)
     sheet = book.sheet_by_name(sheetname)
     c_n = v_n = 0
@@ -204,28 +204,46 @@ def update_cells_villages(filepath = "rapidsmsrw1000/apps/chws/xls/minaloc.xls",
     for row_index in range(sheet.nrows):
         if row_index < 1: continue   
         try:
+            nation_name = sheet.cell(row_index,1).value
+
+            province_code = sheet.cell(row_index,2).value
+            province_name = sheet.cell(row_index,3).value
+            district_code = sheet.cell(row_index,4).value
+            district_name = sheet.cell(row_index,5).value
+            sector_code = sheet.cell(row_index,6).value
+            sector_name = sheet.cell(row_index,7).value
             cell_code = sheet.cell(row_index,8).value
             cell_name = sheet.cell(row_index,9).value
             village_code = sheet.cell(row_index,10).value
             village_name = sheet.cell(row_index,11).value
-            try:    cell = Cell.objects.get(code = cell_code)
-            except Cell.DoesNotExist, e:
-                try:
-                    sector = Sector.objects.get(code = cell_code[0:len(cell_code)-2])
-                    cell = Cell(code = cell_code , name = cell_name , sector = sector , district = sector.district, \
-                                province = sector.province, nation = sector.nation).save()
-                except: c_n = c_n + 1; c_codes.append(cell_code)
-            try:    village = Village.objects.get(code = village_code)
-            except Village.DoesNotExist, e:
-                try:
-                    cell = Cell.objects.get(code = village_code[0:len(village_code)-2])
-                    cell = Village(code = village_code , name = village_name , cell = cell, sector = cell.sector, \
-                                    district = cell.district, province = cell.province, nation = cell.nation).save()
-                except: v_n = v_n + 1; v_codes.appende(village_code)
+            
+            nation = Nation.objects.get(name = nation_name.strip())
+            province, created = Province.objects.get_or_create(code = province_code)
+            district, created = District.objects.get_or_create(code = district_code)
+            sector, created = Sector.objects.get_or_create(code = sector_code)
+            cell, created = Cell.objects.get_or_create(code = cell_code)
+            village, created = Village.objects.get_or_create(code = village_code)
+
+            #province.name, province.nation =  province_name.strip(), nation
+            
+            district.name, district.province, district.nation = district_name.strip().upper(), province, nation
+            
+            sector.name, sector.district, sector.province, sector.nation = sector_name.strip().upper(), district, province, nation
+
+            cell.name, cell.sector, cell.district, cell.province, cell.nation = cell_name.strip().upper(), sector, district, province, nation
+
+            village.name, village.cell, village.sector, village.district, village.province, village.nation = village_name.strip().upper(), cell, sector, district, province, nation
+
+            #province.save()
+            district.save()
+            sector.save()
+            cell.save()
+            village.save()
+
         except Exception, e:
-            print e
+            print e, village_name,village_code
             pass
-    print "Cell: %d, Village: %d, \ncell_codes: %s\nvillage_codes: %s" % (c_n, v_n, c_codes, v_codes)
+    #print "Cell: %d, Village: %d, \ncell_codes: %s\nvillage_codes: %s" % (c_n, v_n, c_codes, v_codes)
 
 def import_supervisors(filepath = "rapidsmsrw1000/apps/chws/xls/supervisors.xls", sheetname = "supervisors"):
     book = open_workbook(filepath)
