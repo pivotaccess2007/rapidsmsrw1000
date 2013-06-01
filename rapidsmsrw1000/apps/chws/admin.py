@@ -90,32 +90,32 @@ export_model_as_excel.short_description = _('Export to EXCEL')
 class SectorAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
     list_display = ('name', 'code', 'district')
-    search_fields = ('name',)
+    search_fields = ('name','code',)
 
 class HealthCentreAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
     list_display = ('name', 'code', 'sector', 'district')
-    search_fields = ('name',)
+    search_fields = ('name','code',)
 
 class HospitalAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
     list_display = ('name', 'code', 'district')
-    search_fields = ('name',)
+    search_fields = ('name','code',)
 
 class DistrictAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
     list_display = ('name', 'code', 'province')
-    search_fields = ('name',)
+    search_fields = ('name','code',)
 
 class CellAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
     list_display = ('name', 'code', 'sector', 'district')
-    search_fields = ('name',)
+    search_fields = ('name','code',)
 
 class VillageAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
     list_display = ('name', 'code', 'cell', 'sector', 'district')
-    search_fields = ('name',)
+    search_fields = ('name','code',)
 
 
 class CHWAdmin(admin.ModelAdmin):
