@@ -315,7 +315,7 @@ class Reporter(models.Model):
         # overrides the last_seen connection as the default, here
         try:
             if self.get_connections().exists():
-                return get_connections()[0]#Connection.objects.get(contact__name = self.national_id, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
+                return self.get_connections()[0]#Connection.objects.get(contact__name = self.national_id, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
 
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
@@ -513,7 +513,7 @@ class Supervisor(models.Model):
         # overrides the last_seen connection as the default, here
         try:
             if self.get_connections().exists():
-                return get_connections()[0]#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
+                return self.get_connections()[0]#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
 
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
@@ -630,7 +630,7 @@ class DataManager(models.Model):
         # overrides the last_seen connection as the default, here
         try:
             if self.get_connections().exists():
-                return get_connections()[0]#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
+                return self.get_connections()[0]#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
 
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
@@ -763,7 +763,7 @@ class FacilityStaff(models.Model):
         # overrides the last_seen connection as the default, here
         try:
             if self.get_connections().exists():
-                return get_connections()[0]#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
+                return self.get_connections()[0]#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
 
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
@@ -886,7 +886,7 @@ class MonitorEvaluator(models.Model):
         # overrides the last_seen connection as the default, here
         try:
             if self.get_connections().exists():
-                return get_connections()[0]#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
+                return self.get_connections()[0]#Connection.objects.get(contact__name = self.email, pk = Message.objects.filter( date = self.last_seen(), contact = self.contact())[0].connection.id)
 
         # if no connections exist for this reporter (how
         # did that happen?!), then just return None...
