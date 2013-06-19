@@ -431,25 +431,32 @@ class Supervisor(models.Model):
     language_french		= 'fr'
     language_kinyarwanda	= 'rw'
 
+    health_centre = 'hc'
+    district_hospital = 'hd'
+    district = 'ds'
+
     LANGUAGE_CHOICES = ( (language_english, "English"),
                 (language_french, "French"),
                 (language_kinyarwanda, "Kinyarwanda"))
 
+    AREA_CHOICES = ( (health_centre, "Health Centre"),
+                        (district_hospital, "District Hospital"))
 
-    names = models.EmailField(max_length=150, null=True)
+
+    names = models.EmailField(max_length=150, null=True, blank=True)
     dob = models.DateField(blank=True, null = True, help_text="Date Of Birth")
-    area_level = models.CharField(max_length=13, null=True)
-    village = models.ForeignKey(Village, null = True)
-    cell = models.ForeignKey(Cell, null = True)
-    sector = models.ForeignKey(Sector, null = True)
-    health_centre = models.ForeignKey(HealthCentre, null = True)
-    referral_hospital = models.ForeignKey(Hospital, null = True)
-    district = models.ForeignKey(District, null = True)
-    province = models.ForeignKey(Province, null = True)
-    nation = models.ForeignKey(Nation, null = True)
-    telephone_moh  = models.CharField(max_length=13, null=True, unique = True)
-    email = models.EmailField(max_length=50, unique = True)
-    national_id =  models.CharField(max_length=16, null=True, unique = True)
+    area_level = models.CharField(max_length = 2, blank=True, null = True, choices= AREA_CHOICES, help_text="Select the level of working")
+    village = models.ForeignKey(Village, null = True, blank=True)
+    cell = models.ForeignKey(Cell, null = True, blank=True)
+    sector = models.ForeignKey(Sector, null = True, blank=True)
+    health_centre = models.ForeignKey(HealthCentre, null = True, blank=True)
+    referral_hospital = models.ForeignKey(Hospital, null = True, blank=True)
+    district = models.ForeignKey(District, null = True, blank=True)
+    province = models.ForeignKey(Province, null = True, blank=True)
+    nation = models.ForeignKey(Nation, null = True, blank=True)
+    telephone_moh  = models.CharField(max_length=13, null=True, unique = True, blank=True)
+    email = models.EmailField(max_length=50, unique = True, blank=True)
+    national_id =  models.CharField(max_length=16, null=True, unique = True, blank=True)
     language = models.CharField(max_length = 2, blank=True, null = True, choices= LANGUAGE_CHOICES, help_text="Select the preferred language to receive SMS")
 
     class Meta:
@@ -543,6 +550,7 @@ class DataManager(models.Model):
 
     health_centre = 'hc'
     district_hospital = 'hd'
+    district = 'ds'
 
     LANGUAGE_CHOICES = ( (language_english, "English"),
                 (language_french, "French"),
@@ -661,6 +669,7 @@ class FacilityStaff(models.Model):
 
     health_centre = 'hc'
     district_hospital = 'hd'
+    district = 'ds'
 
     chief_of_supervisors = 'csup'
     chief_of_drivers = 'cdrv'
