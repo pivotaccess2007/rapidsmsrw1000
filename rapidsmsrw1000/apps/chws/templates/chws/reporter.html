@@ -1,0 +1,117 @@
+{% extends request.base_template %}
+{% block title %}CHWs - {{title}} {% endblock %}
+{% block javascripts %}
+<script type="text/javascript" src="/static/webapp/javascripts/jquery.flot.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/jquery.flot.pie.pack.js"></script>
+<script type="text/javascript"    src="/static/webapp/javascripts/jquery.datepick.min.js"></script>
+<link rel="stylesheet" type="text/css"   href="/static/webapp/stylesheets/jquery.datepick.css" />
+<link rel="stylesheet" type="text/css"  href="/static/webapp/stylesheets/stats.css" />
+
+<script type="text/javascript"   src="/static/webapp/javascripts/stats.js"></script>
+<link rel="stylesheet" type="text/css"    href="/static/webapp/stylesheets/stats.css" />
+<link type="text/css" rel="stylesheet" href="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.css"></link>
+<script type="text/javascript" src="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/webapp/stylesheets/tabview.css" ></link>
+<script type="text/javascript" src="/static/webapp/javascripts/tabview.js"></script>
+
+<script type="text/javascript">
+
+function deroulement(form)
+  {
+	path=document.URL	
+
+if ((form.province.value=="") || (form.district.value=="") || (form.location.value==""))
+	{
+		
+		if (path.indexOf("?") < 0 && path.indexOf("start_date") <0 )
+			{ 
+				window.location=path+'?start_date='+form.start_date.value+'&end_date='+form.end_date.value;
+			}
+		
+		else if(path.indexOf("start_date") <0){
+			window.location=path+'&start_date='+form.start_date.value+'&end_date='+form.end_date.value;
+			}
+
+		else {
+			path=path.replace(/(start_date=)[^\&]+/, '$1' + form.start_date.value);
+			path=path.replace(/(end_date=)[^\&]+/, '$1' + form.end_date.value);
+			window.location=path;
+			}
+       }
+
+else {
+	form.submit();	
+	}
+
+ }
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+    {% load pagination-tags %}
+
+
+<div>
+    
+        <h2>{{title}} {{request.GET.dat}}</h2>
+        
+<table width="100%"> 
+    <thead>
+	<tr><th><a href="{{request.url}}?format=excel{%if postqn%}&{{postqn}}{%endif%}">Export To Excel</a>
+                    </th><th colspan="9"></th>
+	</tr>
+        <tr>
+		<th>Names</th>
+        	<th>National ID</th>
+		<th>Telephone</th>
+            	<th>Last Seen</th>
+		<th>Village</th>
+		<th>Health Centre</th>
+		<th>District</th>
+		
+		<th>Cell</th>
+		<th>Sector</th>
+		
+		 <th>Province</th>
+            
+            
+        </tr>
+    </thead>
+    <tbody>
+	
+    	{% for p in reporters.object_list %}
+            <tr>
+            	<td>{{p.surname}} {{p.given_name}}</td>
+                <td><a href="/ubuzima/reporter/{{p.pk}}">{{p.national_id}}</a></td>
+                <td>{{p.telephone_moh}}</td>
+		<td>{{p.last_seen}}</td>
+		<td>{{p.village.name}}</td>
+		<td>{{p.health_centre.name}}</td>
+		<td>{{p.district.name}}</td>
+		<td>{{p.cell.name}}</td>
+		<td>{{p.sector.name}}</td>
+		
+		 <td>{{p.province.name}}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    
+    <tfoot>
+			<tr>
+				<td colspan="11">
+					{% paginator reporters %}
+				</td>
+			</tr>
+			<tr>
+				<td colspan="11">
+				Matching Reporters: {{ reporters.paginator.count }}
+				</td>
+			</tr>
+	</tfoot>
+</table>
+
+{% endblock %}
+
+

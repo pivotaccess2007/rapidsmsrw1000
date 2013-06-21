@@ -1,0 +1,546 @@
+{% extends request.base_template %}
+{% load diksort%}
+{% block title %}CHWs -Statistics{% endblock %}
+{% block javascripts %}
+<script type="text/javascript" src="/static/webapp/javascripts/jquery.flot.js"></script>
+<script type="text/javascript" src="/static/webapp/javascripts/jquery.flot.pie.pack.js"></script>
+<script type="text/javascript"    src="/static/webapp/javascripts/jquery.datepick.min.js"></script>
+<link rel="stylesheet" type="text/css"   href="/static/webapp/stylesheets/jquery.datepick.css" />
+<link rel="stylesheet" type="text/css"  href="/static/webapp/stylesheets/stats.css" />
+
+<script type="text/javascript"   src="/static/webapp/javascripts/stats.js"></script>
+<link rel="stylesheet" type="text/css"    href="/static/webapp/stylesheets/stats.css" />
+<link type="text/css" rel="stylesheet" href="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.css"></link>
+<script type="text/javascript" src="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/webapp/stylesheets/tabview.css" ></link>
+<script type="text/javascript" src="/static/webapp/javascripts/tabview.js"></script>
+
+<!-- ExtJS -->
+<link rel="stylesheet" type="text/css" href="/static/webapp/extjs/resources/css/ext-all.css" />
+
+<style type="text/css">
+.x-panel-framed {
+    padding: 0;
+}
+</style>
+<script type="text/javascript" src="/static/webapp/extjs/ext-all.js"></script>
+
+<script type="text/javascript">
+
+function deroulement(form)
+  {
+	path=document.URL	
+
+if ((form.province.value=="") || (form.district.value=="") || (form.location.value==""))
+	{
+		
+		if (path.indexOf("?") < 0 && path.indexOf("start_date") <0 )
+			{ 
+				window.location=path+'?start_date='+form.start_date.value+'&end_date='+form.end_date.value;
+			}
+		
+		else if(path.indexOf("start_date") <0){
+			window.location=path+'&start_date='+form.start_date.value+'&end_date='+form.end_date.value;
+			}
+
+		else {
+			path=path.replace(/(start_date=)[^\&]+/, '$1' + form.start_date.value);
+			path=path.replace(/(end_date=)[^\&]+/, '$1' + form.end_date.value);
+			window.location=path;
+			}
+       }
+
+else {
+	form.submit();	
+	}
+
+ }
+
+Ext.require('Ext.chart.*');
+Ext.require(['Ext.Window', 'Ext.layout.container.Fit', 'Ext.fx.target.Sprite', 'Ext.window.MessageBox']);
+
+Ext.onReady(function () {
+
+    var xaxes = "{% for x in xaxes %} {% if not forloop.first %},{% endif %}{{x}} {% endfor %}".split(",") ;
+
+    var active_asm = JSON.parse('{% autoescape off %} {{ tracks }} {% endautoescape %} ').active_asm;
+    var inactive_asm = JSON.parse('{% autoescape off %} {{ tracks }} {% endautoescape %} ').inactive_asm;
+    var active_binome = JSON.parse('{% autoescape off %} {{ tracks }} {% endautoescape %} ').active_binome;
+    var inactive_binome = JSON.parse('{% autoescape off %} {{ tracks }} {% endautoescape %} ').inactive_binome;
+	
+	//alert("ACTIVE ASM: "+active_asm + ", INACTIVE ASM:"+ inactive_asm + ", ACTIVE BINOME:" + active_binome+", INACTIVE BINOME:"+ inactive_binome);
+	
+    var data_l = [], data_m = [], data_p =[];
+	
+	for (var x in xaxes){
+	 data_m.push({ 'month': xaxes[x].trim(), 'Active ASM': active_asm[xaxes[x].trim()], 'Inactive ASM': inactive_asm[xaxes[x].trim()], 'Active BINOME': active_binome[xaxes[x].trim()], 'Inactive BINOME': inactive_binome[xaxes[x].trim()] });
+
+	}
+    
+	
+    var store = Ext.create('Ext.data.JsonStore', {
+        fields: ['month', 'Active ASM', 'Active BINOME', 'Inactive ASM', 'Inactive BINOME'],
+        data: data_m
+    });
+//alert(data_m);
+//alert(xaxes[0]);
+var store1 = Ext.create('Ext.data.JsonStore', {
+        fields: ['name', 'data1'],
+        data: [{name: 'Active ASM', data1: active_asm[xaxes[0].trim()]},
+		{name: 'Active BINOME', data1: active_binome[xaxes[0].trim()]},
+		{name: 'Inactive ASM', data1: inactive_asm[xaxes[0].trim()]},
+		{name: 'Inactive BINOME', data1: inactive_binome[xaxes[0].trim()]}]
+    });
+
+var piechart = Ext.create('Ext.chart.Chart', {
+            xtype: 'chart',
+            id: 'chartCmp',
+	    background: {
+                fill: 'rgb(255, 255, 255)'
+            },
+            animate: true,
+            store: store1,
+            shadow: true,
+            legend: {
+                position: 'right'
+            },
+            insetPadding: 60,
+            theme: 'Base:gradients',
+            series: [{
+                type: 'pie',
+                field: 'data1',
+                showInLegend: true,
+                donut: false,
+                tips: {
+                  trackMouse: true,
+                  width: 140,
+                  height: 28,
+                  renderer: function(storeItem, item) {
+                    //calculate percentage.
+                    var total = 0;
+                    store1.each(function(rec) {
+                        total += rec.get('data1');
+                    });
+                    this.setTitle(storeItem.get('name') + ': ' + Math.round(storeItem.get('data1') / total * 100) + '%');
+                  }
+                },
+                highlight: {
+                  segment: {
+                    margin: 20
+                  }
+                },
+                label: {
+                    field: 'name',
+                    display: 'rotate',
+                    contrast: true,
+                    font: '18px Arial'
+                }
+            }]
+        });
+
+
+
+var chart = Ext.create('Ext.chart.Chart', {
+            xtype: 'chart',
+            animate: true,
+            shadow: true,
+	    background: {
+                fill: 'rgb(255, 255, 255)'
+            },
+            store: store,
+            legend: {
+                position: 'bottom'
+            },
+            axes: [{
+                type: 'Numeric',
+                position: 'left',
+                fields: ['Active ASM', 'Active BINOME', 'Inactive ASM', 'Inactive BINOME'],
+                title: 'Number of CHWs',
+                grid: true,
+                label: {
+                    renderer: function(v) {
+                        return String(v);
+                    }
+                },
+                roundToDecimal: false
+            }, {
+                type: 'Category',
+                position: 'bottom',
+                fields: ['month'],
+                title: '{{report_type.axe}}'
+            }],
+            series: [{
+                type: 'column',
+                axis: 'bottom',
+                gutter: 80,
+                xField: 'month',
+                yField: ['Active ASM', 'Active BINOME', 'Inactive ASM', 'Inactive BINOME'],
+                stacked: false,
+		
+                tips: {
+                    trackMouse: true,
+                    width: 65,
+                    height: 28,
+                    renderer: function(storeItem, item) {
+                        this.setTitle(String(item.value[1]));
+                    }
+                }
+            }]
+        });
+
+   if (xaxes.length == 1) chart = piechart;
+
+    var panel1 = Ext.create('widget.panel', {
+        width: '100%',
+        height: 500,
+        title: '{{report_type.title}} CHWs ACTIVITY -- CHART',
+        renderTo: 'stats',
+        layout: 'fit',
+	border: false,
+	tbar: [{
+            text: 'Save Chart',
+            handler: function() {
+                Ext.MessageBox.confirm('Confirm Download', 'Would you like to download the chart as an image?', function(choice){
+                    if(choice == 'yes'){
+                        chart.save({
+                            type: 'image/png'
+                        });
+                    }
+                });
+            }
+        }],
+
+        items:chart
+    });
+});
+
+
+
+/**/
+
+
+
+/**/
+
+
+
+
+/*
+
+Ext.require('Ext.chart.*');
+Ext.require(['Ext.Window', 'Ext.layout.container.Fit', 'Ext.fx.target.Sprite', 'Ext.window.MessageBox']);
+
+Ext.onReady(function () {
+    //store1.loadData(generateData(5, 0));
+    store1 = Ext.create('Ext.data.JsonStore', {fields: ['name', 'data1'], data: [
+{ name : "JAN", data1 : 10},
+{ name : "FEB", data1 : 20},
+{ name : "MAR", data1 : 30},
+{ name : "APR", data1 : 40},
+{ name : "MAY", data1 : 50},
+{ name : "JUNE", data1 : 60},
+]});
+
+    var colors = ['url(#v-1)',
+                  'url(#v-2)',
+                  'url(#v-3)',
+                  'url(#v-4)',
+                  'url(#v-5)'];
+    
+    var baseColor = '#266E99';
+    
+    Ext.define('Ext.chart.theme.Fancy', {
+        extend: 'Ext.chart.theme.Base',
+        
+        constructor: function(config) {
+            this.callParent([Ext.apply({
+                axis: {
+                    fill: baseColor,
+                    stroke: baseColor
+                },
+                axisLabelLeft: {
+                    fill: baseColor
+                },
+                axisLabelBottom: {
+                    fill: baseColor
+                },
+                axisTitleLeft: {
+                    fill: baseColor
+                },
+                axisTitleBottom: {
+                    fill: baseColor
+                },
+                colors: colors
+            }, config)]);
+        }
+    });
+
+    var chart = Ext.create('Ext.chart.Chart', {
+            id: 'chartCmp',
+            xtype: 'chart',
+            theme: 'Fancy',
+            animate: {
+                easing: 'bounceOut',
+                duration: 750
+            },
+            store: store1,
+            background: {
+                fill: 'rgb(255, 255, 255)'
+            },
+            gradients: [
+            {
+                'id': 'v-1',
+                'angle': 0,
+                stops: {
+                    0: {
+                        color: 'rgb(212, 40, 40)'
+                    },
+                    100: {
+                        color: 'rgb(117, 14, 14)'
+                    }
+                }
+            },
+            {
+                'id': 'v-2',
+                'angle': 0,
+                stops: {
+                    0: {
+                        color: 'rgb(180, 216, 42)'
+                    },
+                    100: {
+                        color: 'rgb(94, 114, 13)'
+                    }
+                }
+            },
+            {
+                'id': 'v-3',
+                'angle': 0,
+                stops: {
+                    0: {
+                        color: 'rgb(43, 221, 115)'
+                    },
+                    100: {
+                        color: 'rgb(14, 117, 56)'
+                    }
+                }
+            },
+            {
+                'id': 'v-4',
+                'angle': 0,
+                stops: {
+                    0: {
+                        color: 'rgb(45, 117, 226)'
+                    },
+                    100: {
+                        color: 'rgb(14, 56, 117)'
+                    }
+                }
+            },
+            {
+                'id': 'v-5',
+                'angle': 0,
+                stops: {
+                    0: {
+                        color: 'rgb(187, 45, 222)'
+                    },
+                    100: {
+                        color: 'rgb(85, 10, 103)'
+                    }
+                }
+            }],
+            axes: [{
+                type: 'Numeric',
+                position: 'left',
+                fields: ['data1'],
+                minimum: 0,
+                maximum: 100,
+                label: {
+                    renderer: Ext.util.Format.numberRenderer('0,0')
+                },
+                title: 'Number of Hits',
+                grid: {
+                    odd: {
+                        stroke: '#555'
+                    },
+                    even: {
+                        stroke: '#555'
+                    }
+                }
+            }, {
+                type: 'Category',
+                position: 'bottom',
+                fields: ['name'],
+                title: 'Month of the Year'
+            }],
+            series: [{
+                type: 'column',
+                axis: 'left',
+                highlight: true,
+                label: {
+                  display: 'insideEnd',
+                  'text-anchor': 'middle',
+                    field: 'data1',
+                    orientation: 'horizontal',
+                    fill: '#fff',
+                    font: '17px Arial'
+                },
+                renderer: function(sprite, storeItem, barAttr, i, store) {
+                    barAttr.fill = colors[i % colors.length];
+                    return barAttr;
+                },
+                style: {
+                    opacity: 0.95
+                },
+                xField: 'name',
+                yField: 'data1'
+            }]
+        });
+
+ 
+    new Ext.Panel({
+        width: 800,
+        height: 600,
+        minHeight: 400,
+        minWidth: 550,
+        hidden: false,
+        maximizable: true,
+        title: 'Column Chart',
+        renderTo: "stats",
+        layout: 'fit',
+        tbar: [{
+            text: 'Save Chart',
+            handler: function() {
+                Ext.MessageBox.confirm('Confirm Download', 'Would you like to download the chart as an image?', function(choice){
+                    if(choice == 'yes'){
+                        chart.save({
+                            type: 'image/png'
+                        });
+                    }
+                });
+            }
+        }, {
+            text: 'Reload Data',
+            handler: function() {
+                store1.loadData(generateData(5, 0));
+            }
+        }],
+        items: chart
+    });
+});
+
+*/
+</script>
+
+{% endblock %}
+{% block content %}
+
+<div>
+    <form class="topstrip">
+        <h2>Filtering</h2>
+        <table width="100%">
+            <thead>
+                <tr><th colspan="2">Period</th><th>Location</th><th></th><th></th><th></th><th></th></tr>
+                <tr><th>Start</th><th>End</th><th>Province</th><th>District</th><th>Health
+                        Centre</th><th></th><th></th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+            <input style="background-color: white"  type="text" id="pickstartdate" value="{{ start_date }}"  name="start_date" 					readonly="readonly"  onFocus="displayCalendar(form.start_date,'dd.mm.yyyy',this)" size = "10"/></td>
+        <td><input style="background-color: white" type="text" id="pickenddate" value="{{ end_date }}"  name="end_date" 					readonly="readonly"  onFocus="displayCalendar(form.end_date,'dd.mm.yyyy',this)" size = "10" />
+                    </td>
+                    <td>
+            <select name="province" id="provchoose"><option></option>
+                {%  for loc in filters.province %}<option value="{{ loc.id }}" {% if loc.selected and request.GET.province %} selected="selected"{% endif %}>{{ loc.name }}</option>{%  endfor %}
+            </select>
+                    </td>
+                    <td>
+            <select name="district" id="distchoose"><option></option>
+                {%  for loc in filters.district %}<option value="{{ loc.id }}"{% if loc.selected and request.GET.district %} selected="selected"{% endif %}>{{ loc.name }}</option>{%  endfor %}
+            </select>
+                    </td>
+                    <td>
+            <select name="location" id="locchoose"><option></option>
+                {%  for loc in filters.location %}<option value="{{ loc.id }}"{% if loc.selected and request.GET.location %} selected="selected"{% endif %}>{{ loc.name }}</option>{%  endfor %}
+            </select>
+                    </td>
+                    <td>
+            <input type="button" value="Update Filters"  onClick="return deroulement(this.form);"/>
+                    </td><td></td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+    <div class="clear-hack"></div>
+</div>
+
+<div id="stats" width="100%"></div>
+
+<div id="table">
+
+<h2>{{report_type.title}} CHWs ACTIVITY -- TABLE</h2>
+
+<table width="100%"> 
+<thead>
+<tr>
+    <th>{{report_type.axe}}</th>
+    <th>Active ASM</th>
+    <th>ACTIVE BINOME</th>
+    <th>INACTIVE ASM</th>
+    <th>INACTIVE BINOME</th>
+    
+</tr>
+<tbody>
+
+{% for mykey,myvalue in reporters.items|diksort %}
+
+<tr>
+	<td>{{mykey}}</td> <td><a href="{{request.url}}?dat={{mykey}}&gr=active_asm{%if postqn%}&{{postqn}}{%endif%}">{{myvalue.active_asm.count}}</a></td><td><a href="{{request.url}}?dat={{mykey}}&gr=active_binome{%if postqn%}&{{postqn}}{%endif%}">{{myvalue.active_binome.count}}</a></td><td><a href="{{request.url}}?dat={{mykey}}&gr=inactive_asm{%if postqn%}&{{postqn}}{%endif%}">{{myvalue.inactive_asm.count}}</a></td><td><a href="{{request.url}}?dat={{mykey}}&gr=inactive_binome{%if postqn%}&{{postqn}}{%endif%}">{{myvalue.inactive_binome.count}}</a></td>
+	
+</tr>
+
+{% endfor %}
+</tbody>
+</thead>    
+</table>
+</div>
+<!--
+{% for mykey,myvalue in reporters.items|diksort %}
+
+{% for r in myvalue.active_asm.object_list %}
+<div id="{{mykey}}">
+
+<h2>ACTIVE ASM {{mykey}}</h2>
+
+<table width="100%"> 
+<thead>
+<tr>
+    <th>Name</th>
+    <th>National ID</th>
+    <th>Telephone</th>
+    <th>Village</th>
+    <th>Cell</th>
+    <th>Sector</th>
+    <th>District</th>
+    <th>Province</th>
+    
+</tr>
+<tbody>
+<tr>
+	<td>{{r.surname}} {{r.given_name}}</td> <td>{{r.national_id}}</td><td>{{r.telephone_moh}}</td><td>{{r.village}}</td><td>{{r.cell}}</td><td>{{r.sector}}</td><td>{{r.district}}</td><td>{{r.province}}</td>
+	
+</tr>
+</tbody>
+</thead>    
+</table>
+</div>
+{% endfor %}
+
+
+{%endfor%}
+
+-->
+
+</div>
+
+{% endblock %}
