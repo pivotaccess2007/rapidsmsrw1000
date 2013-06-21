@@ -299,9 +299,10 @@ class Reporter(models.Model):
             on any Connection. Before displaying in the WebUI, the output
            should be run through the XXX  filter, to make it prettier."""
 
-        cnx = Connection.objects.filter(contact__name=self.national_id)
-        messages = Message.objects.filter(connection__in=cnx)
-        timedates = messages.values_list('date', flat=True)
+        #cnx = Connection.objects.filter(contact__name=self.national_id)
+        #messages = Message.objects.filter(connection__in=cnx)
+        #timedates = messages.values_list('date', flat=True)
+        timedates = self.reportreporter.all().values_list('created', flat=True)
         # return the latest, or none, if they've
         # has never been seen on ANY connection
         return max(timedates) if timedates else None
@@ -350,7 +351,9 @@ class Reporter(models.Model):
 
     #Expired reporter
     def is_expired(self):
-        if not self.last_seen() or self.last_seen().date() < datetime.date.today()-datetime.timedelta(30):
+        #if not self.last_seen() or self.last_seen().date() < datetime.date.today()-datetime.timedelta(30):
+        #    return True
+        if self.reportreporter.filter(created__gte = datetime.date.today()-datetime.timedelta(14)).count() <= 0:
             return True
         return False
 

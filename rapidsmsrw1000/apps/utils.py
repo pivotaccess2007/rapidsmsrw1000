@@ -12,6 +12,11 @@ from django.shortcuts import get_object_or_404
 
 from rapidsmsrw1000.apps.chws.models import *
 from rapidsmsrw1000.apps.ubuzima.models import *
+from rapidsmsrw1000.apps.enum import *
+import calendar
+import json
+from django.utils.safestring import SafeString
+from dateutil import rrule
 
 #wbk = xlwt.Workbook()
 #sheet.write(0,0,"ReportID")
@@ -37,6 +42,32 @@ from rapidsmsrw1000.apps.ubuzima.models import *
 #  row = row+1
 
 #wbk.save('xlwt.xls')####This allows the workbook to be saved on the disk
+
+def months_between(start,end):
+    months = []
+    cursor = start
+
+    while cursor <= end:
+        m="%d-%d"%(cursor.month,cursor.year)
+        if m not in months:
+            months.append(m)
+        cursor += timedelta(weeks=1)
+
+    return months
+
+def days_between(start,end):
+    days = []
+    cursor = start
+
+    for dt in rrule.rrule(rrule.DAILY, dtstart = start, until = end):
+        days.append(dt.date())
+
+    return days
+
+def months_enum():
+    months=Enum('Months',JAN = 1, FEB = 2, MAR = 3, APR = 4, MAY = 5, JUN = 6, JUL = 7, AUG = 8, SEP = 9, OCT = 10, NOV = 11, DEC = 12)
+    return months
+
 
 def create_workbook():
 
@@ -459,6 +490,7 @@ def paginated(req, data):
 
 @permission_required('ubuzima.can_view')
 def get_user_location(req):
+    req.base_template = "webapp/layout.html"
     uloc = get_object_or_404(UserLocation, user=req.user)
     return uloc
 

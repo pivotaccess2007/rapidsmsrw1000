@@ -3,11 +3,11 @@ $(function()
 {
     //$('#pickstartdate').datepick({dateFormat:'dd.mm.yyyy'});
     //$('#pickenddate').datepick({dateFormat:'dd.mm.yyyy'});
-
+	
     $('#navlocation').change(function(evt)
     {	
 	var loc = $(this).attr('value').split('.')[1];
-	if ( loc == 'Health Centre') loc = "Location";
+	if ( loc == 'HealthCentre') loc = "Location";
         if ($(this).attr('value') != ''){window.location = (window.location.pathname + '?'+loc.toLowerCase()+'=' +
         $(this).attr('value').split('.')[0] + '&start_date=' +
         $('#pickstartdate').attr('value') + '&end_date=' + $('#pickenddate').attr('value'));

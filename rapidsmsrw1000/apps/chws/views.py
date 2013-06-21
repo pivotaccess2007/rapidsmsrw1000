@@ -38,6 +38,7 @@ from django.conf import settings
 from rapidsms.router import send
 from rapidsms.models import Connection,Backend
 
+
 def forward (identity, text):
     try:
         if text and identity:
@@ -989,29 +990,152 @@ def view_inactive_reporters(req,**flts):
 def activity_statistics(req):
 
     filters = {'period':default_period(req),
-             'location':default_location(req),
-             'province':default_province(req),
-             'district':default_district(req)}
-
+                 'location':default_location(req),
+                 'province':default_province(req),
+                 'district':default_district(req)}
+        
+    rez = matching_filters(req,filters)
+    pst = reporter_fresher(req)
+        
     lox, lxn = 0, location_name(req)
 
-    start = datetime.date.today() - datetime.timedelta(days = 60)
-    end = datetime.date.today()
+    start = filters['period']['start']
+    end = filters['period']['end']
 
-    messages = Message.objects.filter(direction = 'I', date__gte = start , date__lte = end).exclude(contact = None)
-    reports = Report.objects.filter(created__gte = start, created__lte = end)
+    report_type = {}
+    days = (end - start).days
+    
 
-    contacts_from_messages = [ s[0] for s in set(messages.values_list('contact__name')) ]
+    #messages = Message.objects.filter(direction = 'I', date__gte = start , date__lte = end).exclude(contact = None)
+    reports = Report.objects.filter(created__gte = start - datetime.timedelta(days = 14), created__lte = end - datetime.timedelta(days = 14))
+
+    #contacts_from_messages = [ s[0] for s in set(messages.values_list('contact__name')) ]
     reportes_from_reports = [ s[0] for s in set(reports.values_list('reporter__id')) ] 
 
-    active_reporters = Reporter.objects.filter(id__in = reportes_from_reports, national_id__in = contacts_from_messages)
-    inactive_reporters = Reporter.objects.all().exclude(id__in = active_reporters.values_list('pk'))
+    #active_reporters = Reporter.objects.filter(id__in = reportes_from_reports, national_id__in = contacts_from_messages, **rez).filter(**pst)
+    #inactive_reporters = Reporter.objects.filter(**rez).filter(**pst).exclude(id__in = active_reporters.values_list('pk'))
+    active_reporters = Reporter.objects.filter(id__in = reportes_from_reports, **rez).filter(**pst)
+    inactive_reporters = Reporter.objects.filter(**rez).filter(**pst).exclude(id__in = active_reporters.values_list('pk'))
 
+    xaxes = []
+    if days <= 7:
+        report_type = {'title':'Daily','axe':'Day'}
+        xaxes  = days_between(start, end)
+        tracks = chws_attendance_daily(req,rez, pst, xaxes)
+    elif days > 7 :
+        report_type = {'title':'Monthly','axe':'Month - Year'}
+        xaxes = months_between(start, end)
+        tracks = chws_attendance_monthly(req,rez, pst, xaxes)
+ 
+    if req.REQUEST.has_key('dat') and req.REQUEST.has_key('gr'):
+
+        tracks = tracks['reporters'][req.REQUEST['dat']]
+        title = req.REQUEST['gr'].replace('_'," ").upper()
+
+        if req.REQUEST.has_key('format'):
+            if req.REQUEST['format'] == 'excel':
+                return excel_chws(tracks[req.REQUEST['gr']])    
+        else:
+
+            return render_to_response(
+            "chws/reporter.html", {
+            "reporters": paginated(req, tracks[req.REQUEST['gr']]), 'title': title,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+             'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
+              }, context_instance=RequestContext(req))
+        
     return render_to_response(
-        "chws/dashboard.html", {
-        "reporters": paginated(req, active_reporters),'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
-         'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
+        "chws/dashboard.html",
+        {'reporters':  tracks['reporters'], 'tracks': SafeString(json.dumps(tracks['total'])), 'report_type': report_type, 'xaxes': [str(x) for x in xaxes],'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'), 'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
           }, context_instance=RequestContext(req))
+
+
+def chws_attendance_monthly(req, rez, pst, months_between):
+
+    ans = {}; total = {}; reporters = {}
+    total['active_asm'] = {}
+    total['active_binome'] = {}
+    total['inactive_asm'] = {}
+    total['inactive_binome'] = {}
+
+    reporters ={}
+    
+    for m in months_between:
+        s = m.split('-')
+        rang = calendar.monthrange(int(s[1]),int(s[0]))
+        start = date(int(s[1]), int(s[0]), 1)
+        end = date(int(s[1]), int(s[0]), rang[1]) #; print "START: %s , END: %s" % (start, end)
+        #messages = Message.objects.filter(direction = 'I', date__gte = start - datetime.timedelta(days = 14) , date__lte = end - datetime.timedelta(days = 14)).exclude(contact = None)
+        reports = Report.objects.filter(created__gte = start - datetime.timedelta(days = 14), created__lte = end - datetime.timedelta(days = 14))
+        #contacts_from_messages = [ s[0] for s in set(messages.values_list('contact__name')) ]
+        reportes_from_reports = [ s[0] for s in set(reports.values_list('reporter__id')) ]
+        #active_reporters = Reporter.objects.filter(id__in = reportes_from_reports, national_id__in = contacts_from_messages, **rez).filter(**pst)
+        #inactive_reporters = Reporter.objects.filter(**rez).filter(**pst).exclude(id__in = active_reporters.values_list('pk'))
+        active_reporters = Reporter.objects.filter(id__in = reportes_from_reports, **rez).filter(**pst)
+        inactive_reporters = Reporter.objects.filter(**rez).filter(**pst).exclude(id__in = active_reporters.values_list('pk'))
+        
+
+        total['active_asm'][m] = active_reporters.filter(role__code = 'asm').count()
+        
+        total['active_binome'][m] = active_reporters.filter(role__code = 'binome').count()
+        
+        total['inactive_asm'][m] = inactive_reporters.filter(role__code = 'asm').count()
+        
+        total['inactive_binome'][m] = inactive_reporters.filter(role__code = 'binome').count()
+       
+
+        reporters[m] = {'active_asm': active_reporters.filter(role__code = 'asm'),
+                        'active_binome': active_reporters.filter(role__code = 'binome'),
+                        'inactive_asm': inactive_reporters.filter(role__code = 'asm'),
+                         'inactive_binome': inactive_reporters.filter(role__code = 'binome')}
+
+    #print rez, pst, total,reporters
+    ans = {'total': total, 'reporters': reporters}
+
+    return ans 
+
+def chws_attendance_daily(req, rez, pst, days_b):
+
+    ans = {}; total = {}; reporters = {}
+    total['active_asm'] = {}
+    total['active_binome'] = {}
+    total['inactive_asm'] = {}
+    total['inactive_binome'] = {}
+
+    reporters ={}
+    
+    for day in days_b:
+        d = str(day)#; print d
+        start = day - datetime.timedelta(days = 14)
+        end = day
+        #messages = Message.objects.filter(direction = 'I', date__gte = start , date__lte = end).exclude(contact = None)
+        reports = Report.objects.filter(created__gte = start, created__lte = end)
+        #contacts_from_messages = [ s[0] for s in set(messages.values_list('contact__name')) ]
+        reportes_from_reports = [ s[0] for s in set(reports.values_list('reporter__id')) ]
+        #active_reporters = Reporter.objects.filter(id__in = reportes_from_reports, national_id__in = contacts_from_messages, **rez).filter(**pst)
+        #inactive_reporters = Reporter.objects.filter(**rez).filter(**pst).exclude(id__in = active_reporters.values_list('pk'))
+        
+        active_reporters = Reporter.objects.filter(id__in = reportes_from_reports, **rez).filter(**pst)
+        inactive_reporters = Reporter.objects.filter(**rez).filter(**pst).exclude(id__in = active_reporters.values_list('pk'))
+
+        
+        total['active_asm'][d] = active_reporters.filter(role__code = 'asm').count()
+        
+        total['active_binome'][d] = active_reporters.filter(role__code = 'binome').count()
+        
+        total['inactive_asm'][d] = inactive_reporters.filter(role__code = 'asm').count()
+        
+        total['inactive_binome'][d] = inactive_reporters.filter(role__code = 'binome').count()
+       
+
+        reporters[d] = {'active_asm': active_reporters.filter(role__code = 'asm'),
+                        'active_binome':  active_reporters.filter(role__code = 'binome'),
+                        'inactive_asm':  inactive_reporters.filter(role__code = 'asm'),
+                         'inactive_binome':  inactive_reporters.filter(role__code = 'binome')}
+
+    #print rez, pst, total,reporters
+    ans = {'total': total, 'reporters': reporters}
+
+    return ans
 
 #####END OF INACTIVITY
 
