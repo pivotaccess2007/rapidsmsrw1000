@@ -346,7 +346,7 @@ def default_period(req):
     if req.REQUEST.has_key('start_date') and req.REQUEST.has_key('end_date'):
         return {'start':cut_date(req.REQUEST['start_date']),
                   'end':cut_date(req.REQUEST['end_date'])}
-    return {'start':date.today()-timedelta(days = datetime.datetime.today().day - 1), 'end':date.today()}#In production
+    return {'start':date.today()-timedelta(days = datetime.datetime.today().day - 1), 'end':date.today() + timedelta(hours = 23,seconds = 59)}#In production
     #return {'start':date.today() - timedelta(date.today().day), 'end':date.today()}#locally
 
 
