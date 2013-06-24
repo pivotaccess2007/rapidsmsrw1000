@@ -376,6 +376,45 @@ def import_monitors_evaluators(filepath = "rapidsmsrw1000/apps/chws/xls/datamana
             print e
             pass
 
+
+def import_hospital_directors(filepath = "rapidsmsrw1000/apps/chws/xls/hospitaldirectors.xls", sheetname = "HD"):
+    book = open_workbook(filepath)
+    sheet = book.sheet_by_name(sheetname)
+    
+    for row_index in range(sheet.nrows):
+        if row_index < 1: continue   
+        try:
+            names = "%s %s" % (str(sheet.cell(row_index,0).value), str(sheet.cell(row_index,1).value))
+            email = sheet.cell(row_index,2).value
+            telephone = sheet.cell(row_index,3).value
+            district = sheet.cell(row_index,4).value
+            hosp = sheet.cell(row_index,5).value
+                        
+            try:
+                district = District.objects.filter(name = district.strip())
+                hospital = Hospital.objects.filter(name__icontains = hosp.strip(), district = district);print district,hospital,district[0].province,names
+                
+                if hospital.exists():
+                    dh, created = HospitalDirector.objects.get_or_create(telephone_moh = parse_phone_number(telephone), referral_hospital = hospital[0],\
+                                                                                email = email.strip(), area_level = 'hd', district = district[0])    
+            
+                    if dh.national_id is None:  dh.national_id = "%s%s" % ( dh.telephone_moh[3:] , str(random_with_N_digits(6)))
+                    dh.names = names
+                    dh.district = district[0]
+                    dh.province = district[0].province
+                    dh.nation = district[0].nation
+                    dh.language = dh.language_kinyarwanda
+                    dh.save()
+                    
+            except Exception, e:
+                print e
+                pass 
+            print "\nNames : %s\n DOB : %s\n Health Centre : %s\n Hospital : %s\n Telephone : %s\n Email: %s\n District : %s\n"\
+                 % (dh.names, dh.dob, dh.health_centre, dh.referral_hospital, dh.telephone_moh, dh.email, dh.district)
+        except Exception, e:
+            print e
+            pass
+
 def import_facilitystaff(filepath = "rapidsmsrw1000/apps/chws/xls/facilitystaff.xls", sheetname = "facilitystaff"):
     book = open_workbook(filepath)
     sheet = book.sheet_by_name(sheetname)

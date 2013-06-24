@@ -151,6 +151,11 @@ class MonitorEvaluatorAdmin(admin.ModelAdmin):
     list_display = ('names', 'telephone_moh', 'dob', 'national_id', 'email', 'village', 'cell', 'sector', 'health_centre', 'referral_hospital', 'district', 'province')
     search_fields = ('telephone_moh', 'email', 'names', 'village__name', 'cell__name', 'sector__name', 'health_centre__name', 'referral_hospital__name', 'district__name', 'province__name')
 
+class HospitalDirectorAdmin(admin.ModelAdmin):
+    actions = (export_model_as_csv,export_model_as_excel)
+    list_display = ('names', 'telephone_moh', 'dob', 'national_id', 'email', 'village', 'cell', 'sector', 'health_centre', 'referral_hospital', 'district', 'province')
+    search_fields = ('telephone_moh', 'email', 'names', 'village__name', 'cell__name', 'sector__name', 'health_centre__name', 'referral_hospital__name', 'district__name', 'province__name')
+
 
 admin.site.register(Role)
 admin.site.register(Reporter, CHWAdmin)
@@ -167,5 +172,6 @@ admin.site.register(Supervisor, SupervisorAdmin)
 admin.site.register(FacilityStaff, FacilityStaffAdmin)
 admin.site.register(DataManager, DataManagerAdmin)
 admin.site.register(MonitorEvaluator, MonitorEvaluatorAdmin)
+admin.site.register(HospitalDirector, HospitalDirectorAdmin)
 
 
