@@ -1,5 +1,5 @@
 {% extends request.base_template %}
-{% load diksort%}
+{% load diksort twof %}
 {% block title %}CHWs -Statistics{% endblock %}
 {% block javascripts %}
 <script type="text/javascript" src="/static/webapp/javascripts/jquery.flot.js"></script>
@@ -495,7 +495,7 @@ Ext.onReady(function () {
 {% for mykey,myvalue in reporters.items|diksort %}
 
 <tr>
-	<td>{{mykey}}</td> <td><a href="{{request.url}}?dat={{mykey}}&gr=active_asm{%if postqn%}&{{postqn}}{%endif%}">{{myvalue.active_asm.count}}</a></td><td><a href="{{request.url}}?dat={{mykey}}&gr=active_binome{%if postqn%}&{{postqn}}{%endif%}">{{myvalue.active_binome.count}}</a></td><td><a href="{{request.url}}?dat={{mykey}}&gr=inactive_asm{%if postqn%}&{{postqn}}{%endif%}">{{myvalue.inactive_asm.count}}</a></td><td><a href="{{request.url}}?dat={{mykey}}&gr=inactive_binome{%if postqn%}&{{postqn}}{%endif%}">{{myvalue.inactive_binome.count}}</a></td>
+	<td>{{mykey}}</td> <td><a href="{{request.url}}?dat={{mykey}}&gr=active_asm{%if postqn%}&{{postqn}}{%endif%}">{{myvalue.active_asm.count}}({{myvalue.active_asm_percent|twof}}%)</a></td><td><a href="{{request.url}}?dat={{mykey}}&gr=active_binome{%if postqn%}&{{postqn}}{%endif%}">{{myvalue.active_binome.count}}({{myvalue.active_binome_percent|twof}}%)</a></td><td><a href="{{request.url}}?dat={{mykey}}&gr=inactive_asm{%if postqn%}&{{postqn}}{%endif%}">{{myvalue.inactive_asm.count}}({{myvalue.inactive_asm_percent|twof}}%)</a></td><td><a href="{{request.url}}?dat={{mykey}}&gr=inactive_binome{%if postqn%}&{{postqn}}{%endif%}">{{myvalue.inactive_binome.count}}({{myvalue.inactive_binome_percent|twof}}%)</a></td>
 	
 </tr>
 

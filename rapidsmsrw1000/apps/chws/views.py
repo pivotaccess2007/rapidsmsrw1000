@@ -1058,6 +1058,7 @@ def chws_attendance_monthly(req, rez, pst, months_between):
     total['inactive_binome'] = {}
 
     reporters ={}
+    asm = Reporter.objects.filter(role__code = 'asm')
     
     for m in months_between:
         s = m.split('-')
@@ -1102,7 +1103,9 @@ def chws_attendance_daily(req, rez, pst, days_b):
     total['inactive_binome'] = {}
 
     reporters ={}
-    
+    asm = Reporter.objects.filter(role__code = 'asm').count()    
+    binome = Reporter.objects.filter(role__code = 'binome').count()    
+
     for day in days_b:
         d = str(day)#; print d
         start = day - datetime.timedelta(days = 14)
@@ -1118,19 +1121,23 @@ def chws_attendance_daily(req, rez, pst, days_b):
         inactive_reporters = Reporter.objects.filter(**rez).filter(**pst).exclude(id__in = active_reporters.values_list('pk'))
 
         
-        total['active_asm'][d] = active_reporters.filter(role__code = 'asm').count()
+        total['active_asm'][d] =  float(active_reporters.filter(role__code = 'asm').count())*100/asm
         
-        total['active_binome'][d] = active_reporters.filter(role__code = 'binome').count()
+        total['active_binome'][d] = float(active_reporters.filter(role__code = 'binome').count())*100/binome
         
-        total['inactive_asm'][d] = inactive_reporters.filter(role__code = 'asm').count()
+        total['inactive_asm'][d] = float(inactive_reporters.filter(role__code = 'asm').count())*100/asm
         
-        total['inactive_binome'][d] = inactive_reporters.filter(role__code = 'binome').count()
+        total['inactive_binome'][d] = float(inactive_reporters.filter(role__code = 'binome').count())*100/binome
        
 
         reporters[d] = {'active_asm': active_reporters.filter(role__code = 'asm'),
                         'active_binome':  active_reporters.filter(role__code = 'binome'),
                         'inactive_asm':  inactive_reporters.filter(role__code = 'asm'),
-                         'inactive_binome':  inactive_reporters.filter(role__code = 'binome')}
+                         'inactive_binome':  inactive_reporters.filter(role__code = 'binome'),
+                            'active_asm_percent': float(active_reporters.filter(role__code = 'asm').count())*100/asm,
+                            'active_binome_percent': float(active_reporters.filter(role__code = 'binome').count())*100/binome,
+                            'inactive_asm_percent': float(inactive_reporters.filter(role__code = 'asm').count())*100/asm,
+                            'inactive_binome_percent': float(inactive_reporters.filter(role__code = 'binome').count())*100/binome,}
 
     #print rez, pst, total,reporters
     ans = {'total': total, 'reporters': reporters}
