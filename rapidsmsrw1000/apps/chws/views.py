@@ -1018,11 +1018,11 @@ def activity_statistics(req):
     inactive_reporters = Reporter.objects.filter(**rez).filter(**pst).exclude(id__in = active_reporters.values_list('pk'))
 
     xaxes = []
-    if days <= 7:
+    if days <= 28:
         report_type = {'title':'Daily','axe':'Day'}
         xaxes  = days_between(start, end)
         tracks = chws_attendance_daily(req,rez, pst, xaxes)
-    elif days > 7 :
+    elif days > 28 :
         report_type = {'title':'Monthly','axe':'Month - Year'}
         xaxes = months_between(start, end)
         tracks = chws_attendance_monthly(req,rez, pst, xaxes)
