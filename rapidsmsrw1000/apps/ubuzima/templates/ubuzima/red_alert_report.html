@@ -464,7 +464,7 @@ var pats_m_c =[] , alts_m_c = [], rpats_m_c = [], ticks_m  = [], yalts_m_c =[], 
 
 		if (alts_l_tot > 0)yalts_l_totp = Math.round((yalts_l_tot*100/alts_l_tot)* Math.pow(10,0))/Math.pow(10,0), palts_l_totp = Math.round((palts_l_tot*100/alts_l_tot)* Math.pow(10,0))/Math.pow(10,0); 
 
-		tdata_l += "<tr><td><b>TOTAL</b></td>"+"<!--<td><b>"+globaltot_l+"</b></td>"+"<td><b>"+pats_l_tot+"</b></td>-->"+"<td><b>"+alts_l_tot+"</b></td>"+"<td><b>"+rpats_l_tot+"</b></td>"+"<td><b>"+yalts_l_tot+"</b></td>"+"<td><b>"+palts_l_tot+"</b></td>"+"<!--<td><b>"+alts_l_totp+"</b></td><td><b>"+pats_l_totp+"</b></td>"+"<td><b>"+rpats_l_totp+"</b></td>"+"<td><b>"+yalts_l_totp+"</b></td><td><b>"+palts_l_totp+"</b></td>--></tr></tbody>";
+		tdata_l += "<tr><td><b>TOTAL</b></td>"+"<!--<td><b>"+globaltot_l+"</b></td>"+"<td><b>"+pats_l_tot+"</b></td>-->"+"<td><b>"+alts_l_tot+"</b></td>"+"<td><b>"+rpats_l_tot+"</b></td>"+"<td><a href={{url.path}}?cat=res&{%if postqn%}&{{postqn}}{%endif%}><b>"+yalts_l_tot+"</b></td>"+"<td><b>"+palts_l_tot+"</b></td>"+"<!--<td><b>"+alts_l_totp+"</b></td><td><b>"+pats_l_totp+"</b></td>"+"<td><b>"+rpats_l_totp+"</b></td>"+"<td><b>"+yalts_l_totp+"</b></td><td><b>"+palts_l_totp+"</b></td>--></tr></tbody>";
 		
 		str_l += theader_l + tdata_l +"</table><div ><form> <p style ='display:none'><label for='filename_l' >Filename</label><br></br> <input type='text' name='filename_l' value='exportfile_l.xls' id='filename_l' > </p> <p id='downloadify_l' style='margin-bottom:5px;'> You must have Flash 10 installed to download this file. </p> </form></div>";
 		

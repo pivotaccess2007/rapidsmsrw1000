@@ -70,36 +70,51 @@ Ext.onReady(function () {
 	
 	//alert("ACTIVE ASM: "+active_asm + ", INACTIVE ASM:"+ inactive_asm + ", ACTIVE BINOME:" + active_binome+", INACTIVE BINOME:"+ inactive_binome);
 	
-    var data_l = [], data_m = [], data_p =[];
+    var data_l = [], data_asm_m = [], data_binome_m = [], data_p =[];
 	
 	for (var x in xaxes){
-	 data_m.push({ 'month': xaxes[x].trim(), 'Active ASM': active_asm[xaxes[x].trim()], 'Inactive ASM': inactive_asm[xaxes[x].trim()], 'Active BINOME': active_binome[xaxes[x].trim()], 'Inactive BINOME': inactive_binome[xaxes[x].trim()] });
+	 data_asm_m.push({ 'month': xaxes[x].trim(), 'Active ASM': active_asm[xaxes[x].trim()], 'Inactive ASM': inactive_asm[xaxes[x].trim()] });
+
+	}
+
+	for (var x in xaxes){
+	 data_binome_m.push({ 'month': xaxes[x].trim(),  'Active BINOME': active_binome[xaxes[x].trim()], 'Inactive BINOME': inactive_binome[xaxes[x].trim()] });
 
 	}
     
 	
-    var store = Ext.create('Ext.data.JsonStore', {
-        fields: ['month', 'Active ASM', 'Active BINOME', 'Inactive ASM', 'Inactive BINOME'],
-        data: data_m
+    var store_asm = Ext.create('Ext.data.JsonStore', {
+        fields: ['month', 'Active ASM', 'Inactive ASM'],
+        data: data_asm_m
     });
+
+    var store_binome = Ext.create('Ext.data.JsonStore', {
+        fields: ['month', 'Active BINOME', 'Inactive BINOME'],
+        data: data_binome_m
+    });
+
 //alert(data_m);
 //alert(xaxes[0]);
-var store1 = Ext.create('Ext.data.JsonStore', {
+var store1_asm = Ext.create('Ext.data.JsonStore', {
         fields: ['name', 'data1'],
         data: [{name: 'Active ASM', data1: active_asm[xaxes[0].trim()]},
-		{name: 'Active BINOME', data1: active_binome[xaxes[0].trim()]},
-		{name: 'Inactive ASM', data1: inactive_asm[xaxes[0].trim()]},
+		{name: 'Inactive ASM', data1: inactive_asm[xaxes[0].trim()]}]
+    });
+
+var store1_binome = Ext.create('Ext.data.JsonStore', {
+        fields: ['name', 'data1'],
+        data: [{name: 'Active BINOME', data1: active_binome[xaxes[0].trim()]},
 		{name: 'Inactive BINOME', data1: inactive_binome[xaxes[0].trim()]}]
     });
 
-var piechart = Ext.create('Ext.chart.Chart', {
+var piechart_asm = Ext.create('Ext.chart.Chart', {
             xtype: 'chart',
-            id: 'chartCmp',
+            id: 'chartasm',
 	    background: {
                 fill: 'rgb(255, 255, 255)'
             },
             animate: true,
-            store: store1,
+            store: store1_asm,
             shadow: true,
             legend: {
                 position: 'right'
@@ -116,12 +131,7 @@ var piechart = Ext.create('Ext.chart.Chart', {
                   width: 140,
                   height: 28,
                   renderer: function(storeItem, item) {
-                    //calculate percentage.
-                    var total = 0;
-                    store1.each(function(rec) {
-                        total += rec.get('data1');
-                    });
-                    this.setTitle(storeItem.get('name') + ': ' + Math.round(storeItem.get('data1') / total * 100) + '%');
+                    this.setTitle(storeItem.get('name') + ': ' + Math.round(storeItem.get('data1') ) + '%');
                   }
                 },
                 highlight: {
@@ -139,23 +149,64 @@ var piechart = Ext.create('Ext.chart.Chart', {
         });
 
 
+var piechart_binome = Ext.create('Ext.chart.Chart', {
+            xtype: 'chart',
+            id: 'chartbinome',
+	    background: {
+                fill: 'rgb(255, 255, 255)'
+            },
+            animate: true,
+            store: store1_binome,
+            shadow: true,
+            legend: {
+                position: 'right'
+            },
+            insetPadding: 60,
+            theme: 'Base:gradients',
+            series: [{
+                type: 'pie',
+                field: 'data1',
+                showInLegend: true,
+                donut: false,
+                tips: {
+                  trackMouse: true,
+                  width: 140,
+                  height: 28,
+                  renderer: function(storeItem, item) {
+                    this.setTitle(storeItem.get('name') + ': ' + Math.round(storeItem.get('data1')) + '%');
+                  }
+                },
+                highlight: {
+                  segment: {
+                    margin: 20
+                  }
+                },
+                label: {
+                    field: 'name',
+                    display: 'rotate',
+                    contrast: true,
+                    font: '18px Arial'
+                }
+            }]
+        });
 
-var chart = Ext.create('Ext.chart.Chart', {
+
+var chart_asm = Ext.create('Ext.chart.Chart', {
             xtype: 'chart',
             animate: true,
             shadow: true,
 	    background: {
                 fill: 'rgb(255, 255, 255)'
             },
-            store: store,
+            store: store_asm,
             legend: {
                 position: 'bottom'
             },
             axes: [{
                 type: 'Numeric',
                 position: 'left',
-                fields: ['Active ASM', 'Active BINOME', 'Inactive ASM', 'Inactive BINOME'],
-                title: 'Number of CHWs',
+                fields: ['Active ASM','Inactive ASM'],
+                title: 'Number of ASM',
                 grid: true,
                 label: {
                     renderer: function(v) {
@@ -174,7 +225,7 @@ var chart = Ext.create('Ext.chart.Chart', {
                 axis: 'bottom',
                 gutter: 80,
                 xField: 'month',
-                yField: ['Active ASM', 'Active BINOME', 'Inactive ASM', 'Inactive BINOME'],
+                yField: ['Active ASM','Inactive ASM'],
                 stacked: false,
 		
                 tips: {
@@ -188,13 +239,64 @@ var chart = Ext.create('Ext.chart.Chart', {
             }]
         });
 
-   if (xaxes.length == 1) chart = piechart;
+var chart_binome = Ext.create('Ext.chart.Chart', {
+            xtype: 'chart',
+            animate: true,
+            shadow: true,
+	    background: {
+                fill: 'rgb(255, 255, 255)'
+            },
+            store: store_binome,
+            legend: {
+                position: 'bottom'
+            },
+            axes: [{
+                type: 'Numeric',
+                position: 'left',
+                fields: ['Active BINOME','Inactive BINOME'],
+                title: 'Number of BINOME',
+                grid: true,
+                label: {
+                    renderer: function(v) {
+                        return String(v);
+                    }
+                },
+                roundToDecimal: false
+            }, {
+                type: 'Category',
+                position: 'bottom',
+                fields: ['month'],
+                title: '{{report_type.axe}}'
+            }],
+            series: [{
+                type: 'column',
+                axis: 'bottom',
+                gutter: 80,
+                xField: 'month',
+                yField: ['Active BINOME','Inactive BINOME'],
+                stacked: false,
+		
+                tips: {
+                    trackMouse: true,
+                    width: 65,
+                    height: 28,
+                    renderer: function(storeItem, item) {
+                        this.setTitle(String(item.value[1]));
+                    }
+                }
+            }]
+        });
 
-    var panel1 = Ext.create('widget.panel', {
+   if (xaxes.length == 1) {
+				chart_asm = piechart_asm;
+				chart_binome = piechart_binome;
+			}
+
+    var panel_asm = Ext.create('widget.panel', {
         width: '100%',
         height: 500,
-        title: '{{report_type.title}} CHWs ACTIVITY -- CHART',
-        renderTo: 'stats',
+        title: '{{report_type.title}} ASM ACTIVITY -- CHART',
+        renderTo: 'stats_asm',
         layout: 'fit',
 	border: false,
 	tbar: [{
@@ -210,10 +312,33 @@ var chart = Ext.create('Ext.chart.Chart', {
             }
         }],
 
-        items:chart
+        items:chart_asm
+    });
+
+
+var panel_binome = Ext.create('widget.panel', {
+        width: '100%',
+        height: 500,
+        title: '{{report_type.title}} BINOME ACTIVITY -- CHART',
+        renderTo: 'stats_binome',
+        layout: 'fit',
+	border: false,
+	tbar: [{
+            text: 'Save Chart',
+            handler: function() {
+                Ext.MessageBox.confirm('Confirm Download', 'Would you like to download the chart as an image?', function(choice){
+                    if(choice == 'yes'){
+                        chart.save({
+                            type: 'image/png'
+                        });
+                    }
+                });
+            }
+        }],
+
+        items:chart_binome
     });
 });
-
 
 
 /**/
@@ -474,7 +599,8 @@ Ext.onReady(function () {
     <div class="clear-hack"></div>
 </div>
 
-<div id="stats" width="100%"></div>
+<div id="stats_asm" width="100%"></div>
+<div id="stats_binome" width="100%"></div>
 
 <div id="table">
 
