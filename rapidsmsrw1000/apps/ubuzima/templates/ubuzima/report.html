@@ -74,7 +74,7 @@
     	{% for field in report.fields.all %}
             <tr>
             	<td>{{field.type.description}}</a></td>
-                <td>{{field.value}}</td>
+                <td>{% if field.value %}{{field.value}}{%endif%}</td>
             </tr>
         {% endfor %}
     </tbody>

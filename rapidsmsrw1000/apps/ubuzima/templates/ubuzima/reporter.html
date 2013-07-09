@@ -94,6 +94,6 @@ else {
     <div class="clear-hack"></div>
 </div>
 
-<h2>Reports by {{reporter.alias}} <p style=" text-align:center; ">{{locationname}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p></h2> 
+<h2>Reports by <a href="/admin/chws/reporter/{{reporter.pk}}"> <font color=white>{{reporter.national_id}}</font></a> [{{reporter.telephone_moh}}] <p style=" text-align:center; ">{{locationname}} {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p></h2> 
 {% include 'ubuzima/report_table.html' %} 
 {% endblock %}

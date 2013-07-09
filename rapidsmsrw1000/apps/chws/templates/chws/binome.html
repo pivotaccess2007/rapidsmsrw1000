@@ -120,7 +120,7 @@ function condDisableLocations()
     	{% for p in binomes.object_list %}
             <tr>
             	
-                <td>{{p.national_id}}</td>
+                <td><a href="/admin/chws/reporter/{{p.pk}}">{{p.national_id}}</a></td>
                 <td>{{p.telephone_moh}}</td>
 		<td>{{p.surname}} {{p.given_name}}</td>
 		<td>{{p.village.name}}</td>

@@ -78,8 +78,15 @@ class ReminderAdmin(admin.ModelAdmin):
     list_display = ('name', 'message_en', 'message_fr', 'message_kw')
     search_fields = ('name',)
 
+class FieldCategoryAdmin(admin.ModelAdmin):
+    actions = (export_model_as_excel, )
+    exportable_fields = ('name',)
+    list_display = ('name', )
+    search_fields = ('name',)
 
 class FieldTypeAdmin(admin.ModelAdmin):
+    actions = (export_model_as_excel, )
+    exportable_fields = ('key', 'description',)
     list_display = ('key', 'description', 'category')
     search_fields = ('key', 'description')
 
@@ -100,6 +107,7 @@ class UserLocationAdmin(admin.ModelAdmin):
 
 admin.site.register(TriggeredText, TriggerAdmin)
 admin.site.register(FieldType, FieldTypeAdmin)
+admin.site.register(FieldCategory, FieldCategoryAdmin)
 admin.site.register(ReminderType, ReminderAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(Field, FieldAdmin)

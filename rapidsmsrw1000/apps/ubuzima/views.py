@@ -1683,10 +1683,10 @@ def get_my_child_zscores(child):
 
 @permission_required('ubuzima.can_view')
 def view_nutrition_charts(req):
-    return HttpResponse(json.dumps(growth_chart_data()), content_type='application/json')
+    return HttpResponse(json.dumps(growth_chart_data(req)), content_type='application/json')
 
 
-def growth_chart_data():
+def growth_chart_data(req):
     reps = Report.objects.filter(type__pk=3)
     boys = []
     girls = []
