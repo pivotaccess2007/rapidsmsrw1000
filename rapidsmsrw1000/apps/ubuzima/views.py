@@ -1692,7 +1692,7 @@ def growth_chart_data(req):
     pst = my_report_filters(req, flts)
     locz = my_report_loc(req,flts)
     reps = Report.objects.filter(type__pk=3, **pst).filter(**locz[0]).filter(**locz[1])
-    print pst, locz[0], locz[1], reps.count()
+    #print pst, locz[0], locz[1], reps.count()
     boys = []
     girls = []
     unknown = []
