@@ -222,12 +222,12 @@ def by_type(req, pk, **flts):
                     title   = "Pregnant Women on %d/%d/%d" % (end.day, end.month, end.year)
                 elif req.REQUEST['cat'] == 'edd_2_w':
                     title   = "Pregnant Women Expected to deliver next two weeks from %d/%d/%d" % (end.day, end.month, end.year)
-                    reports = Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = end + timedelta(days = 14) , \
-                                                                                edd_date__lte = end + timedelta(days = 28)).filter(** rez)
+                    reports = Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = end , \
+                                                                                edd_date__lte = end + timedelta(days = 14)).filter(** rez)
                 elif req.REQUEST['cat'] == 'hedd_2_w':
                     title   = "High Risk Pregnant Women Expected to deliver next two weeks from %d/%d/%d" % (end.day, end.month, end.year)
-                    reports = fetch_high_risky_preg(Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = end + timedelta(days = 14) , \
-                                                                                edd_date__lte = end + timedelta(days = 28)).filter(** rez))   
+                    reports = fetch_high_risky_preg(Report.objects.filter(type__name = 'Pregnancy', edd_date__gte = end , \
+                                                                                edd_date__lte = end + timedelta(days = 14)).filter(** rez))   
             elif req.REQUEST['cat'] == 'edd':
                 resp=pull_req_with_filters(req)
                 end = resp['filters']['period']['end']
@@ -582,7 +582,7 @@ def preg_report(req):
     edd = fetch_edd( start, end).filter(** rez)
     resp['reports'] = paginated(req, preg)
     if preg.exists() or edd.exists(): 
-        preg_l, preg_risk_l, edd_l, edd_risk_l, pre_w, edd_2_w = preg.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(preg).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), edd.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(edd).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) ,pregnant_women.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), pregnant_women.filter(edd_date__gte = end + timedelta(days = 14) , edd_date__lte = end + timedelta(days = 28)).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
+        preg_l, preg_risk_l, edd_l, edd_risk_l, pre_w, edd_2_w = preg.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(preg).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), edd.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(edd).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) ,pregnant_women.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), pregnant_women.filter(edd_date__gte = end , edd_date__lte = end + timedelta(days = 14)).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
         
         hedd_2_w = fetch_high_risky_preg(edd_2_w).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
     
@@ -1687,7 +1687,12 @@ def view_nutrition_charts(req):
 
 
 def growth_chart_data(req):
-    reps = Report.objects.filter(type__pk=3)
+    resp=pull_req_with_filters(req)
+    flts = resp['filters']
+    pst = my_report_filters(req, flts)
+    locz = my_report_loc(req,flts)
+    reps = Report.objects.filter(type__pk=3, **pst).filter(**locz[0]).filter(**locz[1])
+    print pst, locz[0], locz[1], reps.count()
     boys = []
     girls = []
     unknown = []
@@ -1814,9 +1819,7 @@ def view_nutrition(req, indic, format = 'html'):
 @permission_required('ubuzima.can_view')
 def nutrition(req):
     resp=pull_req_with_filters(req)
-    hindics = nutrition_indicators(req,resp['filters'])
-    resp['hindics'] = paginated(req, hindics['home'])
-    resp['chart_data'] = growth_chart_data()
+    resp['chart_data'] = growth_chart_data(req)
     return render_to_response("ubuzima/nutrition_dash.html", resp, context_instance=RequestContext(req))
 
 permission_required('ubuzima.can_view')
@@ -1824,7 +1827,6 @@ def nutrition_data(req):
     resp=pull_req_with_filters(req)
     hindics = nutrition_indicators(req,resp['filters'])
     resp['hindics'] = paginated(req, hindics['home'])
-    #resp['chart_data'] = growth_chart_data()
     return render_to_response("ubuzima/nutrition_data.html", resp, context_instance=RequestContext(req))
 ###END OF NUTRITION TABLES, CHARTS, MAP
 
