@@ -398,14 +398,14 @@ var pts_m_c =[] , ticks_m  = [], globaltot_m=0, pts_m_tot=0, pts_m_totp=0;
 			globaltot_l += tot_l_n, pts_l_tot += pts_l_n;
 				//alert(month_names[months_b[s].trim().split("-")[0]]);//+"-"+months_b[s+1].split("-")[1]);
 				//if (l%2 == 0){trc="even";} else {trc="odd";}
-	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td><td>"+pts_l_n+"</td><td></td></tr>";
+	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td><td>"+pts_l_n+"</td><!--<td></td>--></tr>";
 	
 	
 			
 			}
 		if (globaltot_l > 0)pts_l_totp = Math.round((pts_l_tot * 100/globaltot_l)* Math.pow(10,2))/Math.pow(10,2); 
 
-		tdata_l += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+pts_l_tot+"</b></td><td>{{track.indicator.deno}}</td></tr></tbody>";
+		tdata_l += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+pts_l_tot+"</b></td><!--<td>{{track.indicator.deno}}</td>--></tr></tbody>";
 		
 		str_l += theader_l + tdata_l +"</table><div ><form> <p style ='display:none'><label for='filename_l' >Filename</label><br></br> <input type='text' name='filename_l' value='exportfile_l.xls' id='filename_l' > </p> <p id='downloadify_l' style='margin-bottom:5px;'> You must have Flash 10 installed to download this file. </p> </form></div>";
 	
@@ -433,14 +433,14 @@ var pts_m_c =[] , ticks_m  = [], globaltot_m=0, pts_m_tot=0, pts_m_totp=0;
 			globaltot_m += tot_m_n, pts_m_tot += pts_m_n;
 			//if (s%2 == 0){trc="even";} else {trc="odd";}	
 
-	tdata_m += "<tr class="+trc+"><td>"+month_n+"</td>"+"<td>"+pts_m_n+"</td><td></td></tr>";
+	tdata_m += "<tr class="+trc+"><td>"+month_n+"</td>"+"<td>"+pts_m_n+"</td><!--<td></td>--></tr>";
 	
 	
 			
 			}
 		if (globaltot_m > 0) pts_m_totp = Math.round((pts_m_tot * 100/globaltot_m)* Math.pow(10,2))/Math.pow(10,2); 
 
-		tdata_m += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+pts_m_tot+"</b></td><td>{{track.indicator.deno}}</td></tr></tbody>";
+		tdata_m += "<tr><td><b>TOTAL</b></td>"+"<td><b>"+pts_m_tot+"</b></td><!--<td>{{track.indicator.deno}}</td>--></tr></tbody>";
 		
 		str_m += theader_m + tdata_m +"</table><div><form> <p style ='display:none'><label for='filename_m' >Filename</label><br></br> <input type='text' name='filename_m' value='exportfile_m.xls' id='filename_m' > </p> <p id='downloadify_m' style='margin-bottom:5px;'> You must have Flash 10 installed to download this file. </p> </form></div>";
 		

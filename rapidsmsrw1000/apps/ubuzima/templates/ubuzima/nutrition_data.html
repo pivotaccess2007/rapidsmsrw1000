@@ -224,9 +224,9 @@ function showPopup(id) {
 		
                 {% for hind in hindics.object_list %}
                 <tr><td><a
-                        href="/nutrition/{{hind.desc.id}}/html?start_date={{start_date}}&end_date={{end_date}}{% if request.GET.province %}&province={{sel.id}}{% endif %}{% if request.GET.district %}&district={{sel.id}}{% endif %}{% if request.GET.location %}&location={{sel.id}}{% endif %}">{{hind.desc.desc}}</a></td><td>{%if not hind.fs%}0{%endif%}{%for v in  hind.fs %}{{v.tot}}{%endfor%}<!--{{hind.deno}}--></td><td>
+                        href="/ubuzima/nutrition/{{hind.desc.id}}/html?start_date={{start_date}}&end_date={{end_date}}{% if request.GET.province %}&province={{sel.id}}{% endif %}{% if request.GET.district %}&district={{sel.id}}{% endif %}{% if request.GET.location %}&location={{sel.id}}{% endif %}">{{hind.desc.desc}}</a></td><td>{%if not hind.fs%}0{%endif%}{%for v in  hind.fs %}{{v.tot}}{%endfor%}<!--{{hind.deno}}--></td><td>
 
-[<a href="/nutrition/{{hind.desc.id}}/csv?start_date={{start_date}}&end_date={{end_date}}{% if request.GET.province %}&province={{sel.id}}{% endif %}{% if request.GET.district %}&district={{sel.id}}{% endif %}{% if request.GET.location %}&location={{sel.id}}{% endif %}">export</a>]</td></tr>
+[<a href="/ubuzima/nutrition/{{hind.desc.id}}/csv?start_date={{start_date}}&end_date={{end_date}}{% if request.GET.province %}&province={{sel.id}}{% endif %}{% if request.GET.district %}&district={{sel.id}}{% endif %}{% if request.GET.location %}&location={{sel.id}}{% endif %}">export</a>]</td></tr>
                 {% endfor %}
             </tbody>
             <tfoot>

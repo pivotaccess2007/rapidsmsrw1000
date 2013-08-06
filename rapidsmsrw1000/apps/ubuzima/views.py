@@ -117,48 +117,6 @@ def index(req,**flts):
 
 
 
-def matching_reports(req, diced, alllocs = False):
-    rez = {}
-    pst = {}
-    level = get_level(req)
-    try:
-        rez['created__gte'] = diced['period']['start']
-        rez['created__lte'] = diced['period']['end']+timedelta(1)
-    except KeyError:
-        pass
-
-
-
-    try:
-        loc = int(req.REQUEST['location'])
-        rez['location__id'] = loc
-
-    except KeyError:
-        try:
-            dst=int(req.REQUEST['district'])
-            rez['district__id'] = dst
-        except KeyError:
-            try:
-                dst=int(req.REQUEST['province'])
-                rez['province__id'] = dst
-            except KeyError:    pass
-
-    if level['level'] == 'Nation':  pst['nation__id'] = level['uloc'].nation.id
-    elif level['level'] == 'Province':  pst['province__id'] = level['uloc'].province.id
-    elif level['level'] == 'District':  pst['district__id'] = level['uloc'].district.id
-    elif level['level'] == 'HealthCentre':  pst['location__id'] = level['uloc'].health_centre.id
-
-    if rez:
-        ans = Report.objects.filter(**rez).order_by("-created")
-    else:
-       ans = Report.objects.all().order_by("-created")
-
-    if pst:
-        ans = ans.filter(**pst).order_by("-created")
-    return ans
-
-
-
 @permission_required('ubuzima.can_view')
 @require_http_methods(["GET"])
 def by_patient(req, pk):
@@ -573,7 +531,7 @@ def preg_report(req):
     resp['reports']=matching_reports(req,resp['filters'])
     end = resp['filters']['period']['end']
     start = resp['filters']['period']['start']
-    preg = resp['reports'].filter(type__name = 'Pregnancy', created__gte = start, created__lte = end )
+    preg = resp['reports'].filter(type__name = 'Pregnancy')
     pregnant_women = Report.objects.filter( type__name = 'Pregnancy' , edd_date__gte = end )
     annot = resp['annot_l']
     locs = resp['locs']
