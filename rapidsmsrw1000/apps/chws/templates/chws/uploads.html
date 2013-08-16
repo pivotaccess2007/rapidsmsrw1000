@@ -120,8 +120,8 @@ function condDisableLocations()
 	{% for rep in reporters %}
         		<tr>
             	
-                		<th ><a href="/admin/chws/reporter">{{rep.role__name}}</a></th>
-				<th  ><a href="/admin/chws/reporter">{{rep.total}}</a></th>
+                		<th ><!--<a href="/admin/chws/reporter">--> {{rep.role__name}}<!--</a>--></th>
+				<th  ><!--<a href="/admin/chws/reporter">-->{{rep.total}}<!--</a>--></th>
 				<th>&nbsp;</th>
 				<th>&nbsp;</th>
             			<th>&nbsp;</th>
@@ -130,8 +130,8 @@ function condDisableLocations()
 	{% if sup %}
 			<tr>
             	
-                		<th ><a href="/admin/chws/supervisor">Supervisor</a></th>
-				<th ><a href="/admin/chws/supervisor">{{sup.count}}</a></th>
+                		<th ><!--<a href="/admin/chws/supervisor">-->Supervisor<!--</a>--></th>
+				<th ><!--<a href="/admin/chws/supervisor">-->{{sup.count}}<!--</a>--></th>
 				<th>&nbsp;</th>
 				<th>&nbsp;</th>
             			<th>&nbsp;</th>

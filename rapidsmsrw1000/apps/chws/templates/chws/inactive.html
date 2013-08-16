@@ -95,6 +95,6 @@ else {
     </form>
     <div class="clear-hack"></div>
 </div>
-<h2>All Inactive {{request.GET.group|upper}} {%if not locationname %}<p style=" text-align:center; ">Nation Wide, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%else%}<p style=" text-align:center; ">{{locationname}}, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}</p>{%endif%}</h2>
+<h2>All Inactive {{request.GET.group|upper}} {%if not locationname %}<p style=" text-align:center; ">Nation Wide<!--, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}--></p>{%else%}<p style=" text-align:center; ">{{locationname}}<!--, {{filters.period.start|date:"d/M/Y"}} - {{filters.period.end|date:"d/M/Y"}}--></p>{%endif%}</h2>
 {% include 'chws/inactive_reporter.html' %}
 {% endblock %}
