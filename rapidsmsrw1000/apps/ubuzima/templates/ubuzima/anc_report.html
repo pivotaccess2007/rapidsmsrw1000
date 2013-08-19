@@ -286,25 +286,25 @@ function fetch_stats_indics(indic){
             </thead>
             <tbody>
         <tr>	<td colspan="6">
-		<a href={{request.path}}>Rwanda</a>
+		<a href={{request.path}}?start_date={{start_date}}&end_date={{end_date}}>Rwanda</a>
 		{% if prv %}
-		&nbsp;&gt;<a href={{request.path}}?province={{prv.id}}>{{ prv.name }}&nbsp;{{ prv|to_class_name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?province={{prv.id}}&start_date={{start_date}}&end_date={{end_date}}>{{ prv.name }}&nbsp;{{ prv|to_class_name }}</a>
 		{% else %}
-			{% if dst %}&nbsp;&gt;<a href={{request.path}}?province={{dst.province.id}} >{{ dst.province.name }}&nbsp;{{ dst.province|to_class_name }}</a> 
+			{% if dst %}&nbsp;&gt;<a href={{request.path}}?province={{dst.province.id}}&start_date={{start_date}}&end_date={{end_date}}>{{ dst.province.name }}&nbsp;{{ dst.province|to_class_name }}</a> 
 			{% else %}
-			{% if lxn %}&nbsp;&gt;<a href={{request.path}}?province={{lxn.province.id}} >{{ lxn.province.name }}&nbsp;{{ lxn.province|to_class_name }}</a>			{% endif %}
+			{% if lxn %}&nbsp;&gt;<a href={{request.path}}?province={{lxn.province.id}}&start_date={{start_date}}&end_date={{end_date}}>{{ lxn.province.name }}&nbsp;{{ lxn.province|to_class_name }}</a>			{% endif %}
 			{% endif %}
 		{% endif %}
 
 		{% if dst %}
-		&nbsp;&gt;<a href={{request.path}}?district={{dst.id}}>{{ dst.name }}&nbsp;{{ dst|to_class_name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?district={{dst.id}}&start_date={{start_date}}&end_date={{end_date}}>{{ dst.name }}&nbsp;{{ dst|to_class_name }}</a>
 		{% else %}
-		{% if lxn %}&nbsp;&gt;<a href={{request.path}}?district={{lxn.district.id}} >{{ lxn.district.name }}&nbsp;{{ lxn.district|to_class_name }}</a>
+		{% if lxn %}&nbsp;&gt;<a href={{request.path}}?district={{lxn.district.id}}&start_date={{start_date}}&end_date={{end_date}}>{{ lxn.district.name }}&nbsp;{{ lxn.district|to_class_name }}</a>
 		{% endif %}
 		{% endif %}
 		
 		{% if lxn %}
-		&nbsp;&gt;<a href={{request.path}}?location={{lxn.id}}>{{ lxn.name }}&nbsp;{{ lxn|to_class_name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?location={{lxn.id}}&start_date={{start_date}}&end_date={{end_date}}>{{ lxn.name }}&nbsp;{{ lxn|to_class_name }}</a>
 		{% endif %}
 		
             	<td> <!-- <input type="button" value="Update Filters"  onClick="return deroulement(this.form);"/> --> </td>
@@ -593,7 +593,7 @@ var anc1_c_m =[] , anc2_c_m = [], ticks_m  = [], anc3_c_m = [], anc4_c_m = [],gl
 			globaltot += tot_n, anc1_tot += anc1_n, anc2_tot += anc2_n, anc3_tot += anc3_n , anc4_tot += anc4_n/*, eddanc2_tot +=eddanc2_n, eddanc3_tot +=eddanc3_n, eddanc4_tot +=eddanc4_n*/;
 				//alert(month_names[months_b[s].trim().split("-")[0]]);//+"-"+months_b[s+1].split("-")[1]);
 
-	tdata1 += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td>"+"<td>"+anc1_n+"</td>"+"<td>"+anc2_n+"</td>"+"<td>"+anc3_n+"</td>"+"<td>"+anc4_n+"</td>"+"<td>"+tot_n+"</td>"+"<!--<td>"+anc1_np+"</td>"+"<td>"+anc2_np+"</td>"+"<td>"+anc3_np+"</td>"+"<td>"+anc4_np+"</td>--></tr>";
+	tdata1 += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"&start_date={{start_date}}&end_date={{end_date}}>"+loc_n+"</a></td>"+"<td>"+anc1_n+"</td>"+"<td>"+anc2_n+"</td>"+"<td>"+anc3_n+"</td>"+"<td>"+anc4_n+"</td>"+"<td>"+tot_n+"</td>"+"<!--<td>"+anc1_np+"</td>"+"<td>"+anc2_np+"</td>"+"<td>"+anc3_np+"</td>"+"<td>"+anc4_np+"</td>--></tr>";
 
 	//tdata2 += "<tr><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td>"+"<td>"+eddanc2_np+"</td>"+"<td>"+eddanc2_dop+"</td>"+"<td>"+eddanc3_np+"</td>"+"<td>"+eddanc3_dop+"</td>"+"<td>"+eddanc3_pnp+"</td>"+"<td>"+eddanc3_pdop+"</td>"+"<td>"+eddanc4_np+"</td>"+"<td>"+eddanc4_dop+"</td>"+"<td>"+eddanc4_pnp+"</td>"+"<td>"+eddanc4_pdop+"</td></tr>";
 

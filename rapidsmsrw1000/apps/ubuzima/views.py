@@ -1247,6 +1247,7 @@ def red_alert_report(req):
     resp['reports'] = reports
     qryset = reports.filter(type__name = "Red Alert")#(fields__in = Field.objects.filter(type__in = Field.get_risk_fieldtypes()))
     results = reports.filter(type__name = "Red Alert Result")
+    patients, po_alerts = [], []
     allpatients = Patient.objects.filter( id__in = reports.values('patient'))
     end = resp['filters']['period']['end']
     start = resp['filters']['period']['start']

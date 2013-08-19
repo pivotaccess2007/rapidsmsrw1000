@@ -22,7 +22,7 @@
             	<td><a href="/ubuzima/report/{{report.pk}}">{{report.pk}}</a></td>
                 <td>{{report.date|date:"d.m.Y"}}</td>
                 <td><a href="/ubuzima/location/{{report.location.pk}}">{{report.location.name}}</a></td>
-                <td><a href="ubuzima/dash/chi/{{report.pk}}" onclick="return popitup('/ubuzima/dash/chi/{{report.pk}}')">{{report.get_child_id.chino}}</a></td>
+                <td><a href="/ubuzima/dash/chi/{{report.pk}}" onclick="return popitup('/ubuzima/dash/chi/{{report.pk}}')">{{report.get_child_id.chino}}</a></td>
                 <td><a href="/ubuzima/patient/{{report.patient.pk}}">{{report.patient.national_id}}</a></td>
 		<td>{{report.get_child.birth.sex}}</td>                
 		<td>{{report.get_child.birth.weight.value|floatformat:"2"}}</td>

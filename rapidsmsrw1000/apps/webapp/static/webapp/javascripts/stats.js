@@ -25,7 +25,8 @@ $(function()
         if ($(this).attr('value') != ''){window.location = window.location.pathname + group + '&province=' +
         $(this).attr('value') + '&start_date=' +  $('#pickstartdate').attr('value') + '&end_date=' + $('#pickenddate').attr('value');
 	} else {
-			window.location = window.location.pathname + group;			
+			window.location = window.location.pathname + group + '&start_date=' + $('#pickstartdate').attr('value') + '&end_date=' +
+        $('#pickenddate').attr('value');			
 			}
 	
     });

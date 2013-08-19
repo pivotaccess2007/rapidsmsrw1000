@@ -64,14 +64,20 @@ jQuery(function() {
 });
 function deroulement(form)
   {
-	path=document.URL	
+	var path=document.URL;	
 
 if ((form.province.value=="") || (form.district.value=="") || (form.location.value==""))
-	{
+		{
+
 		if (path.indexOf("?") < 0 && path.indexOf("start_date") <0 ){ window.location=path+'?start_date='+form.start_date.value+'&end_date='+form.end_date.value;
-	}
 		
-		else {
+		}
+		
+		else if (path.indexOf("start_date") <0 ){
+
+		window.location=path+'&start_date='+form.start_date.value+'&end_date='+form.end_date.value;	
+		} 
+		else	{
 			path=path.replace(/(start_date=)[^\&]+/, '$1' + form.start_date.value);
 			path=path.replace(/(end_date=)[^\&]+/, '$1' + form.end_date.value);
 			window.location=path;
@@ -179,17 +185,17 @@ text-decoration:none;
         <td><input style="background-color: white" type="text" id="pickenddate" value="{{ end_date }}"  name="end_date" 					readonly="readonly"  onFocus="displayCalendar(form.end_date,'dd.mm.yyyy',this)" size = "10" />
                     </td>
                     <td>
-            <select name="province" id="provchoose"><option></option>
+            <select name="province" id="provchoose"><option value=""></option>
                 {%  for loc in filters.province %}<option value="{{ loc.id }}" {% if loc.selected and request.GET.province %} selected="selected"{% endif %}>{{ loc.name }}</option>{%  endfor %}
             </select>
                     </td>
                     <td>
-            <select name="district" id="distchoose"><option></option>
+            <select name="district" id="distchoose"><option value=""></option>
                 {%  for loc in filters.district %}<option value="{{ loc.id }}"{% if loc.selected and request.GET.district %} selected="selected"{% endif %}>{{ loc.name }}</option>{%  endfor %}
             </select>
                     </td>
                     <td>
-            <select name="location" id="locchoose"><option></option>
+            <select name="location" id="locchoose"><option value=""></option>
                 {%  for loc in filters.location %}<option value="{{ loc.id }}"{% if loc.selected and request.GET.location %} selected="selected"{% endif %}>{{ loc.name }}</option>{%  endfor %}
             </select>
                     </td>

@@ -206,25 +206,25 @@ function fetch_stats_indics(indic){
             </thead>
             <tbody>
         <tr>	<td colspan="6">
-		<a href={{request.path}}>Rwanda</a>
+		<a href={{request.path}}?start_date={{start_date}}&end_date={{end_date}}>Rwanda</a>
 		{% if prv %}
-		&nbsp;&gt;<a href={{request.path}}?province={{prv.id}}>{{ prv.name }}&nbsp;{{ prv|to_class_name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?province={{prv.id}}&start_date={{start_date}}&end_date={{end_date}}>{{ prv.name }}&nbsp;{{ prv|to_class_name }}</a>
 		{% else %}
-			{% if dst %}&nbsp;&gt;<a href={{request.path}}?province={{dst.province.id}} >{{ dst.province.name }}&nbsp;{{ dst.province|to_class_name }}</a> 
+			{% if dst %}&nbsp;&gt;<a href={{request.path}}?province={{dst.province.id}}&start_date={{start_date}}&end_date={{end_date}}>{{ dst.province.name }}&nbsp;{{ dst.province|to_class_name }}</a> 
 			{% else %}
-			{% if lxn %}&nbsp;&gt;<a href={{request.path}}?province={{lxn.province.id}} >{{ lxn.province.name }}&nbsp;{{ lxn.province|to_class_name }}</a>			{% endif %}
+			{% if lxn %}&nbsp;&gt;<a href={{request.path}}?province={{lxn.province.id}}&start_date={{start_date}}&end_date={{end_date}}>{{ lxn.province.name }}&nbsp;{{ lxn.province|to_class_name }}</a>			{% endif %}
 			{% endif %}
 		{% endif %}
 
 		{% if dst %}
-		&nbsp;&gt;<a href={{request.path}}?district={{dst.id}}>{{ dst.name }}&nbsp;{{ dst|to_class_name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?district={{dst.id}}&start_date={{start_date}}&end_date={{end_date}}>{{ dst.name }}&nbsp;{{ dst|to_class_name }}</a>
 		{% else %}
-		{% if lxn %}&nbsp;&gt;<a href={{request.path}}?district={{lxn.district.id}} >{{ lxn.district.name }}&nbsp;{{ lxn.district|to_class_name }}</a>
+		{% if lxn %}&nbsp;&gt;<a href={{request.path}}?district={{lxn.district.id}}&start_date={{start_date}}&end_date={{end_date}}>{{ lxn.district.name }}&nbsp;{{ lxn.district|to_class_name }}</a>
 		{% endif %}
 		{% endif %}
 		
 		{% if lxn %}
-		&nbsp;&gt;<a href={{request.path}}?location={{lxn.id}}>{{ lxn.name }}&nbsp;{{ lxn|to_class_name }}</a>
+		&nbsp;&gt;<a href={{request.path}}?location={{lxn.id}}&start_date={{start_date}}&end_date={{end_date}}>{{ lxn.name }}&nbsp;{{ lxn|to_class_name }}</a>
 		{% endif %}
 		
             	<td> <!-- <input type="button" value="Update Filters"  onClick="return deroulement(this.form);"/> --> </td>
@@ -396,7 +396,7 @@ var pts_m_c =[] , ticks_m  = [], globaltot_m=0, pts_m_tot=0, pts_m_totp=0;
 			globaltot_l += tot_l_n, pts_l_tot += pts_l_n;
 				//alert(month_names[months_b[s].trim().split("-")[0]]);//+"-"+months_b[s+1].split("-")[1]);
 				if (l%2 == 0){trc="even";} else {trc="odd";}
-	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+">"+loc_n+"</a></td>"+"<td>"+pts_l_n+"</td></tr>";
+	tdata_l += "<tr class="+trc+"><td><a href={{url.path}}?"+loc_t.toLowerCase()+"="+loc_id+"{%if postqn%}&{{postqn}}{%endif%}>"+loc_n+"</a></td>"+"<td>"+pts_l_n+"</td></tr>";
 	
 	
 			

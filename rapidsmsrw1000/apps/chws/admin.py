@@ -121,8 +121,8 @@ class VillageAdmin(admin.ModelAdmin):
 class CHWAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
     exportable_fields = ('surname', 'given_name', 'role', 'sex', 'education_level', 'date_of_birth', 'join_date', 'national_id', 'telephone_moh', 'village', 'cell', 'sector', 'health_centre', 'referral_hospital', 'district', 'province')
-    list_display = ('surname', 'given_name', 'national_id', 'telephone_moh', 'village', 'health_centre')
-    list_filter = ('is_active', 'role__name',)
+    list_display = ('surname', 'given_name', 'national_id', 'telephone_moh', 'village', 'health_centre', 'role')
+    list_filter = ('is_active', 'role__name', 'deactivated')
     search_fields = ('national_id','telephone_moh', 'village__name', 'cell__name', 'sector__name', 'health_centre__name', 'referral_hospital__name', 'district__name', 'province__name')
 
 class RegistrationConfirmationAdmin(admin.ModelAdmin):

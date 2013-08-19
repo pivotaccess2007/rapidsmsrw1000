@@ -72,6 +72,15 @@ class PreHandler (KeywordHandler):
         handwash = m.group(11)
         telephone = m.group(12)
         
+
+        if gravity < parity:
+            message.respond(_("Parity cannot be larger than Gravidity."))
+            return True
+
+        if ibibazo.lower().find('rm') >= 0 and int(gravity) == int(parity)+1:
+            message.respond(_("Gravidity and Parity numbers are showing zero miscarriages."))
+            return True 
+        
         try:
             last_menses = parse_dob(lmp)
         except Exception, e:
