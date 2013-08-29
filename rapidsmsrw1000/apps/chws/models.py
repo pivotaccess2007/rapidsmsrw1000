@@ -49,6 +49,7 @@ class Province(models.Model):
     code 	= models.CharField(max_length=10, unique = True,  blank=True, null=True,\
 				    help_text="Province Own code in ISO Coding SYSTEM....")
     nation 	= models.ForeignKey(Nation, related_name="province_nation", null=True, blank=True, help_text=" The country the province is from")
+    minaloc_approved = models.BooleanField(default=False)
 
     class Meta:
         # define a permission for this app to use the @permission_required
@@ -67,6 +68,7 @@ class District(models.Model):
 				    help_text="District Own code in  ISO Coding SYSTEM .....")
     nation 	 = models.ForeignKey(Nation, related_name="district_nation", null=True, blank=True, help_text=" The country the district is from")
     province = models.ForeignKey(Province, related_name="ditrict_province", null=True, blank=True, help_text=" The province the district is from")
+    minaloc_approved = models.BooleanField(default=False)
 
     class Meta:
         # define a permission for this app to use the @permission_required
@@ -86,6 +88,7 @@ class Sector(models.Model):
     nation 	 = models.ForeignKey(Nation, related_name="sector_nation", null=True, blank=True, help_text=" The country the sector is from")
     province = models.ForeignKey(Province, related_name="sector_province", null=True, blank=True, help_text=" The province the sector is from")
     district		= models.ForeignKey(District, related_name="sector_district", null=True, blank=True, help_text=" The district the sector is from")
+    minaloc_approved = models.BooleanField(default=False)
 
     class Meta:
         # define a permission for this app to use the @permission_required
@@ -106,6 +109,7 @@ class Cell(models.Model):
     province = models.ForeignKey(Province, related_name="cell_province", null=True, blank=True, help_text=" The province the cell is from")
     district		= models.ForeignKey(District, related_name="cell_district", null=True, blank=True, help_text=" The cell the cell is from")
     sector			= models.ForeignKey(Sector, related_name="cell_sector", null=True, blank=True, help_text=" The sector the cell is from")
+    minaloc_approved = models.BooleanField(default=False)
 
     class Meta:
         # define a permission for this app to use the @permission_required
@@ -127,6 +131,7 @@ class Village(models.Model):
     district		= models.ForeignKey(District, related_name="village_district", null=True, blank=True, help_text=" The cell the village is from")
     sector			= models.ForeignKey(Sector, related_name="village_sector", null=True, blank=True, help_text=" The sector the village is from")
     cell			= models.ForeignKey(Cell, related_name="village_cell", null=True, blank=True, help_text=" The cell the village is from")
+    minaloc_approved = models.BooleanField(default=False)
 
     class Meta:
         # define a permission for this app to use the @permission_required

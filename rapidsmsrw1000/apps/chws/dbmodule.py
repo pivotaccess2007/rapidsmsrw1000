@@ -31,6 +31,208 @@ def build_chws():
     except Exception, e:
         print e
         return False
+
+"""After modifying models by adding the following line to Province, District, Sector, Cell and Village models:
+minaloc_approved = models.BooleanField(default=False)
+
+Execute the minaloc.sql file to reflect changes in the DB
+
+Then call the following build_minaloc_list function
+
+"""
+def build_minaloc_list(filepath = "rapidsmsrw1000/apps/chws/xls/Rwanda_Delimitation-Revised.xls", sheetname = "Delimitation", startrow = 1, maxrow = 14838,\
+                             codeprv = 0, nameprv = 1, codedis = 2, namedis = 3, codesec = 4, namesec = 5, \
+                            codecel = 6, namecel = 7, codevil = 8, namevil = 9):    
+    
+    book = open_workbook(filepath)
+    sheet = book.sheet_by_name(sheetname)
+    unreg_prvs = []; unreg_diss = []; unreg_secs = []; unreg_cels = []; unreg_vils = []
+            
+    row = startrow
+
+    while (row < maxrow):
+
+        ##print book, sheet, row, maxrow, sheet.cell(row, codeprv).value, sheet.cell(row, codedis).value, sheet.cell(row, codesec).value, sheet.cell(row, codecel).value, sheet.cell(row, codevil).value
+        #if row == 100:   break
+        try:
+            codeprvv = sheet.cell(row, codeprv).value
+            nameprvv = sheet.cell(row, nameprv).value
+            codedisv = sheet.cell(row, codedis).value
+            namedisv = sheet.cell(row, namedis).value
+            codesecv = sheet.cell(row, codesec).value
+            namesecv = sheet.cell(row, namesec).value
+            codecelv = sheet.cell(row, codecel).value
+            namecelv = sheet.cell(row, namecel).value
+            codevilv = sheet.cell(row, codevil).value
+            namevilv = sheet.cell(row, namevil).value
+
+            prv = None; dis = None; sec = None; cel = None; vil = None
+            nation = Nation.objects.get(name = 'Rwanda')
+        
+            try:
+                prv = Province.objects.get(code = codeprvv)
+                prv.name = nameprvv#.upper()
+                prv.nation = nation
+                prv.minaloc_approved = True
+                prv.save()
+            except Province.DoesNotExist, e:
+                print e, row, codeprvv, nameprvv
+                unreg_prvs.append([codeprvv, nameprvv])
+                try:
+                    prv = Province(code = codeprvv, name = nameprvv, nation = nation, minaloc_approved = True)
+                    prv.save()
+                except Exception, e:
+                    print e                    
+                    break
+            
+            try:
+                dis = District.objects.get(code = codedisv, province = prv)
+                dis.name = namedisv#.upper()
+                dis.nation = nation
+                dis.province = prv
+                dis.minaloc_approved = True
+                dis.save()
+            except District.DoesNotExist, e:
+                print e, row, codedisv, namedisv
+                unreg_diss.append([codedisv, namedisv])
+                try:
+                    dis = District(code = codedisv, name = namedisv, nation = nation, province = prv, minaloc_approved = True)
+                    dis.save()
+                except Exception, e:
+                    print e                    
+                    break
+
+            try:
+                sec = Sector.objects.get(code = codesecv, district = dis)
+                sec.name = namesecv#.upper()
+                sec.nation = nation
+                sec.province = prv
+                sec.district = dis
+                sec.minaloc_approved = True
+                sec.save()
+            except Sector.DoesNotExist, e:
+                print e, row, codesecv, namesecv
+                unreg_secs.append([codesecv, namesecv])
+                try:
+                    sec = Sector(code = codesecv, name = namesecv, nation = nation, province = prv, district = dis, minaloc_approved = True)
+                    sec.save()
+                except Exception, e:
+                    print e                    
+                    break
+
+            try:
+                cel = Cell.objects.get(code = codecelv, sector = sec)
+                cel.name = namecelv#.upper()
+                cel.nation = nation
+                cel.province = prv
+                cel.district = dis
+                cel.sector = sec
+                cel.minaloc_approved = True
+                cel.save()
+            except Cell.DoesNotExist, e:
+                print e, row, codecelv, namecelv
+                unreg_cels.append([codecelv, namecelv])
+                try:
+                    cel = Cell(code = codecelv, name = namecelv, nation = nation, province = prv, district = dis, sector = sec, minaloc_approved = True)
+                    cel.save()
+                except Exception, e:
+                    print e                    
+                    break
+
+            try:
+                vil = Village.objects.get(code = codevilv, cell = cel)
+                vil.name = namevilv#.upper()
+                vil.nation = nation
+                vil.province = prv
+                vil.district = dis
+                vil.sector = sec
+                vil.cell = cel
+                vil.minaloc_approved = True
+                vil.save()
+            except Village.DoesNotExist, e:
+                print e, row, codevilv, namevilv
+                unreg_vils.append([codevilv, namevilv])
+                try:
+                    vil = Village(code = codevilv, name = namevilv, province = prv, district = dis, sector = sec, cell = cel, nation = nation, minaloc_approved = True)
+                    vil.save()
+                except Exception, e:
+                    print e                    
+                    break
+            
+            #print row, codeprvv, nameprvv, codedisv, namedisv, codesecv, namesecv, codecelv, namecelv, codevilv, namevilv
+            print row, prv, dis, sec, cel, vil
+            row = row + 1
+        except Exception ,e:
+            print e           
+            continue
+
+    print unreg_prvs, unreg_diss, unreg_secs, unreg_cels, unreg_vils
+            
+    return True
+
+def clean_db_after_minaloc_list_build():
+
+    unp = Province.objects.filter(minaloc_approved = False).exclude(name = "TEST")
+    und = District.objects.filter(minaloc_approved = False).exclude(name = "TEST")
+    uns = Sector.objects.filter(minaloc_approved = False).exclude(name = "TEST")
+    unc = Cell.objects.filter(minaloc_approved = False).exclude(name = "TEST")
+    unv = Village.objects.filter(minaloc_approved = False).exclude(name = "TEST")
+
+    objs = []
+
+    for v in unv:
+        chws_count = v.chw_village.all().count()
+        correct_village = None
+        if chws_count > 0:
+            try:    correct_village = Village.objects.get(name = v.name, cell = v.name, minaloc_approved = True)
+            except Exception, e:
+                
+                try:
+                    correct_village = Village.objects.get(name = v.name,sector = v.sector, minaloc_approved = True)
+                except:
+                    print e
+                    pass
+
+        if correct_village:
+            
+            for chw in v.chw_village.all(): objs.append(chw)
+            for dtm in v.datamanager_set.all(): objs.append(dtm)
+            for dep in v.depvillage.all(): objs.append(dep)
+            for err in v.errorvillage.all(): objs.append(err)
+            for fct in v.facilitystaff_set.all(): objs.append(fct)
+            for fld in v.fieldvillage.all(): objs.append(fld)
+            for hsd in v.hospitaldirector_set.all(): objs.append(hsd)
+            for mne in v.monitorevaluator_set.all(): objs.append(mne)
+            for pat in v.patvillage.all(): objs.append(pat)
+            for ref in v.refusalvillage.all(): objs.append(ref)
+            for rem in v.remindervillage.all(): objs.append(rem)
+            for rpt in v.reportvillage.all(): objs.append(rpt)
+            for sup in v.supervisor_set.all(): objs.append(sup)
+            for trg in v.triggervillage.all(): objs.append(trg)
+            for usr in v.uservillage.all(): objs.append(usr)
+            
+            for obj in objs:
+                obj.village = correct_village
+                obj.cell = correct_village.cell
+                obj.sector = correct_village.sector
+                obj.district = correct_village.district
+                obj.province = correct_village.province
+                obj.nation = correct_village.nation
+                try:
+                    obj.save()
+                except Exception, e:
+                    print e, v.code, v.name, correct_village.code, correct_village.name
+                    continue
+        
+        v.delete()
+        
+    unp.delete()
+    und.delete()
+    uns.delete()
+    unc.delete()
+    
+
+    return True
     
 def create_nation(name = "Rwanda", code = '00'):
     try:
@@ -465,12 +667,16 @@ def import_facilitystaff(filepath = "rapidsmsrw1000/apps/chws/xls/facilitystaff.
                 stf.service = service.lower()
                 stf.email = email
                 stf.save()
+                
+            
                     
             except Exception, e:
-                print e, area, service, email,area_level, district, stf.service, stf.area_level
+                #print e, area, service, email,area_level, district, stf.service, stf.area_level
                 pass
-            #print "\nNames : %s\n DOB : %s\n Health Centre : %s\n Hospital : %s\n Telephone : %s\n Email: %s\n District : %s\n"\
-                 #% (stf.names,stf.dob,stf.health_centre,stf.referral_hospital,stf.telephone_moh,stf.email,stf.district)
+            
+            print "\nNames : %s\n DOB : %s\n Health Centre : %s\n Hospital : %s\n Telephone : %s\n Email: %s\n District : %s\n"\
+                 % (stf.names,stf.dob,stf.health_centre,stf.referral_hospital,stf.telephone_moh,stf.email,stf.district)
+            
         except Exception, e:
             #print e
             pass
