@@ -17,6 +17,7 @@ import calendar
 import json
 from django.utils.safestring import SafeString
 from dateutil import rrule
+from random import randint
 
 #wbk = xlwt.Workbook()
 #sheet.write(0,0,"ReportID")
@@ -42,6 +43,12 @@ from dateutil import rrule
 #  row = row+1
 
 #wbk.save('xlwt.xls')####This allows the workbook to be saved on the disk
+
+def random_with_N_digits(n):
+    range_start = 10**(n-1)
+    range_end = (10**n)-1
+    return randint(range_start, range_end)
+
 
 def months_between(start,end):
     months = []

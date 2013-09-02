@@ -522,6 +522,41 @@ def get_important_stats(req, flts):
 
 #View Stats by reports and on Graph view
 
+###START OF FLASH REPORT
+
+@permission_required('ubuzima.can_view')
+def flash_report(req):
+    
+    resp=pull_req_with_filters(req)
+    resp['reports']=matching_reports(req,resp['filters'])
+    end = resp['filters']['period']['end']
+    start = resp['filters']['period']['start']
+    preg = resp['reports'].filter(type__name = 'Pregnancy')
+    pregnant_women = Report.objects.filter( type__name = 'Pregnancy' , edd_date__gte = end )
+    annot = resp['annot_l']
+    locs = resp['locs']
+    ans_l, ans_m, rez = {}, {}, {}
+    rez['%s__in'%annot.split(',')[1]] = [l.pk for l in locs]
+    edd = fetch_edd( start, end).filter(** rez)
+    resp['reports'] = paginated(req, preg)
+    if preg.exists() or edd.exists(): 
+        preg_l, preg_risk_l, edd_l, edd_risk_l, pre_w, edd_2_w = preg.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(preg).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), edd.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), fetch_high_risky_preg(edd).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]) ,pregnant_women.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0]), pregnant_women.filter(edd_date__gte = end , edd_date__lte = end + timedelta(days = 14)).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
+        
+        hedd_2_w = fetch_high_risky_preg(edd_2_w).values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])
+    
+        ans_l = {'pre' : preg_l, 'prehr' : preg_risk_l, 'edd': edd_l, 'eddhr': edd_risk_l, 'pre_w' : pre_w, 'edd_2_w' : edd_2_w, 'hedd_2_w' : hedd_2_w}
+        
+        preg_m, preg_risk_m, edd_m, edd_risk_m = preg.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), fetch_high_risky_preg(preg).extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), edd.extra(select={'year': 'EXTRACT(year FROM edd_date)','month': 'EXTRACT(month FROM edd_date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'),fetch_high_risky_preg(edd).extra(select={'year': 'EXTRACT(year FROM edd_date)','month': 'EXTRACT(month FROM edd_date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
+
+        ans_m = {'pre' : preg_m, 'prehr' : preg_risk_m, 'edd': edd_m, 'eddhr': edd_risk_m}
+        
+    resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'months_edd' : months_between(start,end)}
+    resp['report_type'] = ReportType.objects.get(name = 'Pregnancy')
+    if req.REQUEST.has_key('csv') or req.REQUEST.has_key('excel'):  return reports_to_excel(resp['reports'])  
+    else:   return render_to_response('ubuzima/flash_report.html',
+           resp, context_instance=RequestContext(req))
+##END OF FLASH REPORT
+
 
 ##START OF PREGNANCY TABLES, CHARTS, MAP
 @permission_required('ubuzima.can_view')
@@ -825,8 +860,8 @@ def remlog_by_type(req,pk,**flts):
     lox, lxn = 0, location_name(req)
     if req.REQUEST.has_key('location') and req.REQUEST['location'] != '0':
         lox = int(req.REQUEST['location'])
-        lxn = Location.objects.get(id = lox)
-        lxn=lxn.name+' '+lxn.type.name+', '+lxn.parent.parent.name+' '+lxn.parent.parent.type.name+', '+lxn.parent.parent.parent.name+' '+lxn.parent.parent.parent.type.name
+        lxn = HealthCentre.objects.get(id = lox)
+        lxn=lxn.name+' , '+lxn.district.name+' , '+lxn.province.name
     template_name="ubuzima/remlog.html"
     rem_type=ReminderType.objects.get(pk=pk)
     rez=match_filters(req,filters)

@@ -109,7 +109,7 @@ else {
         {% for reminder in remts %}
             <tr>
                 <td></td>
-                <td><a href="/ubuzima/reminders/type/{{reminder.type.pk}}">{{reminder.type.name}}</a></td>
+                <td><a href="/ubuzima/reminders/type/{{reminder.type.pk}}{%if postqn%}?{{postqn}}{%endif%}">{{reminder.type.name}}</a></td>
                 <td></td>
                 <td>{{reminder.number}}</td>
                 <td></td>
@@ -139,8 +139,8 @@ else {
         {% for reminder in reminders.object_list %}
             <tr>
                 <td>{{reminder.date|date:"d-M-Y H:m:s"}}</td>
-                <td><a href="/ubuzima/reminders/type/{{reminder.type.id}}">{{reminder.type}}</a></td>
-                <td><a href="/ubuzima/patient/{{reminder.report.patient.id}}">{{reminder.report.patient}}</a></td>
+                <td><a href="/ubuzima/reminders/type/{{reminder.type.id}}{%if postqn%}?{{postqn}}{%endif%}">{{reminder.type}}</a></td>
+                <td><a href="/ubuzima/patient/{{reminder.report.patient.id}}{%if postqn%}?{{postqn}}{%endif%}">{{reminder.report.patient}}</a></td>
 		<td>{{reminder.report.show_edd}}</td>
                 <td><!--<a href="/ubuzima/location/{{reminder.reporter.location.id}}">-->{{reminder.location.name}}--{{reminder.location.district.name}}<!--</a>--></td>
                 <td><!--<a href="/ubuzima/reporter/{{reminder.reporter.id}}">-->{{ reminder.reporter.connection.identity}}<!--</a>--></td>
