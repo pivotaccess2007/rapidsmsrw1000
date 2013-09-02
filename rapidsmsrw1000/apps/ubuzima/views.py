@@ -852,6 +852,7 @@ def view_delivery_nots(req, **flts):
         return render_to_response(template_name, { "reminders": paginated(req, reminders), 'remts': rems_by_type,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
              'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 
+@permission_required('ubuzima.can_view')
 def remlog_by_type(req,pk,**flts):
     filters = {'period':default_period(req),
              'location':default_location(req),
@@ -921,6 +922,7 @@ def view_alerts(req, **flts):
         return render_to_response(template_name, { "alerts": paginated(req, alertlogs.filter(**pst)),'triggers': triggers,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),'usrloc':UserLocation.objects.get(user=req.user),
              'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 
+@permission_required('ubuzima.can_view')
 def alerts_by_type(req,pk,**flts):
     filters = {'period':default_period(req),
              'location':default_location(req),
