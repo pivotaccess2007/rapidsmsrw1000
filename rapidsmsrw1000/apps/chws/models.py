@@ -675,7 +675,7 @@ class FacilityStaff(models.Model):
     language_french		= 'fr'
     language_kinyarwanda	= 'rw'
 
-    health_centre = 'hc'
+    ref_health_centre = 'hc'
     district_hospital = 'hd'
     district = 'ds'
 
@@ -690,7 +690,7 @@ class FacilityStaff(models.Model):
                 (language_french, "French"),
                 (language_kinyarwanda, "Kinyarwanda"))
 
-    AREA_CHOICES = ( (health_centre, "Health Centre"),
+    AREA_CHOICES = ( (ref_health_centre, "Health Centre"),
                         (district_hospital, "District Hospital"))
 
     SERVICE_CHOICES = ( (chief_of_supervisors, 'Chief of Supervisors'),

@@ -11,6 +11,7 @@ from rapidsms.models import *
 from random import randint
 from django.conf import settings
 import datetime
+from decimal import *
 
 def build_chws():
     try:
@@ -629,33 +630,40 @@ def import_facilitystaff(filepath = "rapidsmsrw1000/apps/chws/xls/facilitystaff.
             area = sheet.cell(row_index,2).value
             area_level = sheet.cell(row_index,3).value
             service = sheet.cell(row_index,4).value
-            telephone = sheet.cell(row_index,5).value
+            telephone = str(Decimal(sheet.cell(row_index,5).value))
             email = sheet.cell(row_index,6).value
             district = sheet.cell(row_index,7).value
 
+            #print names, dob, area, area_level, service, telephone, email, district
+            
             try:
                 district = District.objects.filter(name__icontains = district.strip())[0]
+                if area_level.upper().strip() == 'HC':  loc = HealthCentre.objects.filter(name__icontains = area.strip(), district = district)[0]
+                elif area_level.upper().strip() == 'HOSPITAL':  loc = Hospital.objects.filter(name__icontains = area, district = district)[0]
                 telephone = parse_phone_number(telephone)
-                national_id = "%s%s" % ( telephone[3:] , str(random_with_N_digits(6)))
-                if area_level.upper().strip() == 'HC':
-                    loc = HealthCentre.objects.filter(name__icontains = area.strip(), district = district)[0]
-                    if len(email.strip()) <= 0:
-                        stf, created = FacilityStaff.objects.get_or_create(telephone_moh = telephone , health_centre = loc,
+                try:
+                    stf = FacilityStaff.objects.get(national_id__contains = telephone[3:])    
+                except:
+                    national_id = "%s%s" % ( telephone[3:] , str(random_with_N_digits(6)))
+                    if area_level.upper().strip() == 'HC':
+                        
+                        if len(email.strip()) <= 0:
+                            stf, created = FacilityStaff.objects.get_or_create(telephone_moh = telephone , health_centre = loc,
+                                                        national_id = national_id)
+                        else:
+                            stf, created = FacilityStaff.objects.get_or_create(telephone_moh = telephone , health_centre = loc, \
+                                                email = email.strip(), area_level = 'hc', national_id = national_id)
+                        stf.area_level = stf.ref_health_centre
+        
+                    elif area_level.upper().strip() == 'HOSPITAL':
+                        
+                        if len(email.strip()) <= 0:
+                            stf, created = FacilityStaff.objects.get_or_create(telephone_moh = telephone, referral_hospital = loc,\
                                                     national_id = national_id)
-                    else:
-                        stf, created = FacilityStaff.objects.get_or_create(telephone_moh = telephone , health_centre = loc, \
-                                            email = email.strip(), area_level = 'hc', national_id = national_id)
-                    stf.area_level = stf.health_centre
-    
-                elif area_level.upper().strip() == 'HOSPITAL':
-                    loc = Hospital.objects.filter(name__icontains = area, district = district)[0]
-                    if len(email.strip()) <= 0:
-                        stf, created = FacilityStaff.objects.get_or_create(telephone_moh = telephone, referral_hospital = loc,\
-                                                national_id = national_id)
-                    else:
-                        stf, created = FacilityStaff.objects.get_or_create(telephone_moh = telephone, referral_hospital = loc,\
-                                 email = email.strip(), area_level = 'hd', national_id = national_id) 
-                    stf.area_level = stf.district_hospital
+                        else:
+                            stf, created = FacilityStaff.objects.get_or_create(telephone_moh = telephone, referral_hospital = loc,\
+                                     email = email.strip(), area_level = 'hd', national_id = national_id) 
+                        stf.area_level = stf.district_hospital
 
                 stf.names = names
                 stf.dob = get_date(dob)
@@ -665,20 +673,20 @@ def import_facilitystaff(filepath = "rapidsmsrw1000/apps/chws/xls/facilitystaff.
                 stf.nation = loc.nation
                 stf.language = stf.language_kinyarwanda
                 stf.service = service.lower()
-                stf.email = email
+                
                 stf.save()
                 
             
                     
             except Exception, e:
-                #print e, area, service, email,area_level, district, stf.service, stf.area_level
+                print e, row_index#, area, service, email,area_level, district, stf.service, stf.area_level
                 pass
             
             print "\nNames : %s\n DOB : %s\n Health Centre : %s\n Hospital : %s\n Telephone : %s\n Email: %s\n District : %s\n"\
                  % (stf.names,stf.dob,stf.health_centre,stf.referral_hospital,stf.telephone_moh,stf.email,stf.district)
             
         except Exception, e:
-            #print e
+            print e, row_index
             pass
 
 def import_testers(filepath = "rapidsmsrw1000/apps/chws/xls/Testers.xls", sheetname = "testers"):
