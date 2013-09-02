@@ -158,7 +158,7 @@ def by_type(req, pk, **flts):
              'district':default_district(req)}
     reports = matching_reports(req,filters).filter(type=report_type).order_by("-created")
     lox, lxn, title = 0, location_name(req), report_type
-
+    
     if req.REQUEST.has_key('cat'):
 
         try:
@@ -485,7 +485,7 @@ def fetch_vaccinated_stats(reps):
     return track
 
 def fetch_high_risky_preg(qryset):    
-    return qryset.filter(fields__type__key__in = ['gs','rm','ol','yg','mu'])
+    return qryset.filter(fields__type__key__in = ['gs','rm','ol','yg','mu']).distinct()
 
 def fetch_without_toilet(qryset):
     return qryset.filter(fields__in = Field.objects.filter(type = FieldType.objects.get(key ='nt')))
