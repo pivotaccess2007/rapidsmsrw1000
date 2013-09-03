@@ -38,6 +38,7 @@ from rapidsmsrw1000.apps.ubuzima.get_data import get_red_alert_data
 
 
 ### START OF HELPERS
+@permission_required('ubuzima.can_view')
 def paginated(req, data):
     req.base_template = "webapp/layout.html"
     paginator = Paginator(data, 20)
@@ -150,6 +151,7 @@ def by_national_id(req, national_id):
                                                         "reminders":  reminders ,'postqn':(req.get_full_path().split('?', 2) + [''])[1]}, context_instance=RequestContext(req))
 
 @require_http_methods(["GET"])
+@permission_required('ubuzima.can_view')
 def by_type(req, pk, **flts):
     report_type = get_object_or_404(ReportType, pk=pk)
     filters = {'period':default_period(req),
@@ -238,6 +240,7 @@ def by_type(req, pk, **flts):
 
 
 @require_http_methods(["GET"])
+@permission_required('ubuzima.can_view')
 def view_report(req, pk):
     report = get_object_or_404(Report, pk=pk)
     req.base_template = "webapp/layout.html"
@@ -245,6 +248,7 @@ def view_report(req, pk):
 
 
 @require_http_methods(["GET"])
+@permission_required('ubuzima.can_view')
 def by_reporter(req, pk, **flts):
     reporter = Reporter.objects.get(pk=pk)
     filters = {'period':default_period(req),
@@ -260,6 +264,8 @@ def by_reporter(req, pk, **flts):
     return render_to_response("ubuzima/reporter.html", { "reports":    paginated(req, reports),
                                                          "reporter":   reporter,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
          'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1] }, context_instance=RequestContext(req))
+
+@permission_required('ubuzima.can_view')
 @require_http_methods(["GET"])
 def by_location(req, pk, **flts):
     location = get_object_or_404(HealthCentre, pk=pk)
@@ -494,6 +500,7 @@ def fetch_without_toilet(qryset):
 def fetch_without_hw(qryset):
     return qryset.filter(fields__in = Field.objects.filter(type = FieldType.objects.get(key ='nh')))
 
+@permission_required('ubuzima.can_view')
 def get_important_stats(req, flts):
     resp=pull_req_with_filters(req)
     annot = resp['annot_l']
@@ -735,6 +742,7 @@ def community_report(req):
 
 
 #Reminders Logs! Ceci interroger la base de donnees et presenter a la page nommee remlog.html, toutes les rappels envoyes par le systeme!
+@permission_required('ubuzima.can_view')
 def match_filters(req,diced,alllocs=False):
     rez = {}
     pst = None
@@ -758,6 +766,7 @@ def match_filters(req,diced,alllocs=False):
 
     return rez
 
+@permission_required('ubuzima.can_view')
 def match_filters_fresher(req):
     pst={}
     try:
@@ -1000,6 +1009,7 @@ def view_indicator(req, indic, format = 'html'):
     resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'indicator': indicator}
     return render_to_response('ubuzima/indicator.html', resp, context_instance=RequestContext(req))
 
+@permission_required('ubuzima.can_view')
 def my_filters(req,diced,alllocs=False):
     rez = {}
     pst = None
@@ -1022,6 +1032,7 @@ def my_filters(req,diced,alllocs=False):
                 pass
 
     return rez
+
 @permission_required('ubuzima.can_view')
 def ibibari_indicators(req, flts):
     rez = my_filters(req, flts)
@@ -1032,6 +1043,7 @@ def ibibari_indicators(req, flts):
         stats.append({'type' : ft , 'total' : fields.filter(type = ft).count()})
     #print stats
     return stats
+
 @permission_required('ubuzima.can_view')
 def ibibari(req):
     resp=pull_req_with_filters(req)
@@ -1437,7 +1449,7 @@ def admin_report(req):
 ##END OF ADMIN TABLES, CHARTS, MAP
 
 ###START NUTRITION TABLES, CHARTS, MAP
-
+@permission_required('ubuzima.can_view')
 def my_report_loc(req,diced,alllocs=False):
     rez = {}
     pst = {}
@@ -1464,6 +1476,8 @@ def my_report_loc(req,diced,alllocs=False):
     elif level['level'] == 'HealthCentre':  pst['location__id'] = level['uloc'].health_centre.id
 
     return [rez,pst]
+
+@permission_required('ubuzima.can_view')
 def my_field_loc(req,diced,alllocs=False):
     rez = {}
     pst = {}
@@ -1491,6 +1505,7 @@ def my_field_loc(req,diced,alllocs=False):
 
     return [rez,pst]
 
+@permission_required('ubuzima.can_view')
 def my_report_loc(req,diced,alllocs=False):
     rez = {}
     pst = {}
@@ -1518,6 +1533,7 @@ def my_report_loc(req,diced,alllocs=False):
 
     return [rez,pst]
 
+@permission_required('ubuzima.can_view')
 def my_report_filters(req,diced,alllocs=False):
     rez = {}
     pst = None
@@ -1829,6 +1845,7 @@ def nutrition_data(req):
 
 
 ###VIEW UBUZIMA EMERGENCY ROOM####
+@permission_required('ubuzima.can_view')
 def emergency_room(req):
     resp=pull_req_with_filters(req)
     resp['filters']['period']['end'] = datetime.date.today()
@@ -1891,7 +1908,7 @@ def json_response(func):
         return decorator
     except Exception, e:    print e
 
-
+@permission_required('ubuzima.can_view')
 def pregnancy_calendar_data(request):
     
     showdate_str = request.POST['showdate']###in the form mm/dd/year
@@ -1932,6 +1949,7 @@ def pregnancy_calendar_data(request):
     #print pdata, "\n\n", data, st, et
     return HttpResponse(json.dumps(pdata), "application/json")
 
+@permission_required('ubuzima.can_view')
 def pregnancy_calendar(req):
     resp=pull_req_with_filters(req)
     
