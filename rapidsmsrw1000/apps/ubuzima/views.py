@@ -288,6 +288,7 @@ def child_locs(loc,filters):
     elif type(loc) == District: return filters['location'] if filters['location'] else HealthCentre.objects.filter(district = loc).order_by('name')
     elif type(loc) == HealthCentre: return filters['location'] if filters['location'] else HealthCentre.objects.filter(id = loc.id).order_by('name')
 
+@permission_required('ubuzima.can_view')
 def pull_req_with_filters(req):
     try:
         p = get_user_location(req)
@@ -1681,7 +1682,7 @@ def get_my_child_zscores(child):
 def view_nutrition_charts(req):
     return HttpResponse(json.dumps(growth_chart_data(req)), content_type='application/json')
 
-
+@permission_required('ubuzima.can_view')
 def growth_chart_data(req):
     resp=pull_req_with_filters(req)
     flts = resp['filters']
@@ -1818,7 +1819,7 @@ def nutrition(req):
     resp['chart_data'] = growth_chart_data(req)
     return render_to_response("ubuzima/nutrition_dash.html", resp, context_instance=RequestContext(req))
 
-permission_required('ubuzima.can_view')
+@permission_required('ubuzima.can_view')
 def nutrition_data(req):
     resp=pull_req_with_filters(req)
     hindics = nutrition_indicators(req,resp['filters'])
