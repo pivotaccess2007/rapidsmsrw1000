@@ -73,8 +73,8 @@ class PreHandler (KeywordHandler):
         telephone = m.group(12)
         
 
-        if gravity < parity:
-            message.respond(_("Parity cannot be larger than Gravidity."))
+        if gravity <= parity:
+            message.respond(_("Parity cannot be greater or equal to Gravidity."))
             return True
 
         if ibibazo.lower().find('rm') >= 0 and int(gravity) == int(parity)+1:
