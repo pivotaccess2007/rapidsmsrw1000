@@ -317,8 +317,8 @@ class Report(models.Model):
         # replacing it with some fancy SQL
         for report in Report.objects.filter(date__gte=start, date__lte=end, type=preg_type):
             if not report.reminders.filter(type=reminder_type) \
-               and not Report.objects.filter( date__gte=start, date__lte=end, type__name = 'Birth', patient = report.patient)\
-                 and not Field.objects.filter(report__patient = report.patient, type__key = 'mc'):
+               and not Report.objects.filter( date__gte=report.date, date__lte=report.edd_date, type__name = 'Birth', patient = report.patient)\
+                 and not Field.objects.filter(creation__gte=report.date, creation__lte=report.edd_date, report__patient = report.patient, type__key = 'mc'):
                 reports[report.patient.national_id] = report
 
         return reports.values()
