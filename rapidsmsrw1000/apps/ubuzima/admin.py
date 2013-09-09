@@ -56,7 +56,7 @@ def export_model_as_excel(modeladmin, request, queryset):
 export_model_as_excel.short_description = _('Export to EXCEL')
 
 admin.site.register(ReportType)
-admin.site.register(Patient)
+
 admin.site.register(Reminder)
 admin.site.register(TriggeredAlert)
 admin.site.register(ErrorType)
@@ -105,6 +105,11 @@ class UserLocationAdmin(admin.ModelAdmin):
     list_display = ('user', 'village', 'cell', 'sector', 'health_centre', 'referral_hospital', 'district', 'province', 'nation')
     search_fields = ('user__username',)
 
+class PatientAdmin(admin.ModelAdmin):
+    list_filter = ('province', 'district',)
+    list_display = ('id', 'national_id', 'telephone', 'province', 'district', 'sector', 'cell','village',)
+    search_fields = ('national_id','telephone',)
+
 admin.site.register(TriggeredText, TriggerAdmin)
 admin.site.register(FieldType, FieldTypeAdmin)
 admin.site.register(FieldCategory, FieldCategoryAdmin)
@@ -112,6 +117,8 @@ admin.site.register(ReminderType, ReminderAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(Field, FieldAdmin)
 admin.site.register(UserLocation, UserLocationAdmin)
+admin.site.register(Patient, PatientAdmin)
+
 
 
 
