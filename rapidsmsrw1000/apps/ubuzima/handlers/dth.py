@@ -107,7 +107,7 @@ class DthHandler (KeywordHandler):
         for field in fields:
             if field:
                 try:
-                    if field.type.key == 'cd' and (d.created.date() - d.date).days < 42: field.type = FieldType.objects.get(key = 'nd')
+                    if field.type.key == 'cd' and (report.created.date() - report.date).days < 42: field.type = FieldType.objects.get(key = 'nd')
                 except:
                     pass
                 field.report = report
