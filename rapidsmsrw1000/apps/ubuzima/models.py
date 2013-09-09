@@ -174,7 +174,7 @@ class Report(models.Model):
         return cp
     def has_dups(self):
         if settings.TRAINING_ENV == False:
-            return Report.objects.filter(type=self.type,patient=self.patient,date=self.date, reporter = self.reporter).exists()
+            return Report.objects.filter(type=self.type,patient=self.patient,date=self.date).exists()#, reporter = self.reporter).exists()
         else:
             return False
     def rep_fields(self):
@@ -368,7 +368,7 @@ class Report(models.Model):
         """
         Passed in a day (of today), figures out the range for the menses dates for
         our reminder.  The ``days`` variable is the number of days before delivery
-        we want to figure out the date for.  (bracketed by 2 days each way)
+        we want to figure out the date for.  ####(bracketed by 2 days each way -----No longer in use)
 
         """
         # figure out the expected delivery date
@@ -378,8 +378,8 @@ class Report(models.Model):
         last_menses = cls.calculate_last_menses(edd)
 
         # bracket in either direction
-        start = last_menses - datetime.timedelta(2)
-        end = last_menses + datetime.timedelta(2)
+        start = last_menses #- datetime.timedelta(2)
+        end = last_menses #+ datetime.timedelta(2)
 
         return (start, end)
 
