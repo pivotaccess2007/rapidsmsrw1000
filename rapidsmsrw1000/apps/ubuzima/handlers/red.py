@@ -72,6 +72,15 @@ class RedHandler (KeywordHandler):
         # read our fields
         try:
             (fields, dob) = read_fields(ibibazo, False, True)
+
+            fields.append(read_weight(weight, weight_is_mothers=True))
+            fields.append(read_key(location))
+
+            is_red = check_is_red(fields)
+            if is_red == False:
+                message.respond(_("Invalid report syntax, please check to report this case."))
+                return True
+
         except Exception, e:
             # there were invalid fields, respond and exit
             message.respond("%s" % e)
@@ -87,11 +96,8 @@ class RedHandler (KeywordHandler):
         report.save()
         
 	    # then associate all our fields with it
-        fields.append(read_weight(weight, weight_is_mothers=True))
-        fields.append(read_key(location))
-
         for field in fields:
-            if field:
+            if valid_red_field(field, report):
                 field.report = report
                 field.save()
                 report.fields.add(field)

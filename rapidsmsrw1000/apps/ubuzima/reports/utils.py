@@ -588,3 +588,24 @@ def random_with_N_digits(n):
     range_end = (10**n)-1
     return randint(range_start, range_end)
 
+def valid_red_field(f, report):
+
+    if f.type.key == 'np' or f.type.key == 'aa' or f.type.key == 'hp' or f.type.key == 'cl': return False
+    
+    elif report.type.name == 'Red Alert':
+        if f.type.key == 'mw' or f.type.key == 'cw' or f.type.key == 'ms' or f.type.key == 'cs' : return False
+                
+    if report.type.name == 'Red Alert Result':
+        if f.type.key == 'mw' and 'ms' in [j.type.key for j in report.fields.all()]: return False
+        elif f.type.key == 'ms' and 'mw' in [j.type.key for j in report.fields.all()]: return False
+        elif f.type.key == 'cw' and 'cs' in [j.type.key for j in report.fields.all()]: return False
+        elif f.type.key == 'cs' and 'cw' in [j.type.key for j in report.fields.all()]: return False
+
+    return True
+
+def check_is_red(fields):
+    cats = [f.type.category for f in fields]    
+    if FieldCategory.objects.get(name = 'Red Alert Codes') in cats:
+        return True    
+    return False
+
