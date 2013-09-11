@@ -234,6 +234,40 @@ def clean_db_after_minaloc_list_build():
     
 
     return True
+
+def migrate_chws(sector, health_centre):
+
+    chws = Reporter.objects.filter(sector = sector)
+
+    for chw in chws:
+        objs = []
+        chw.health_centre = health_centre
+        for rpt in chw.reportreporter.all():
+            objs.append(rpt)
+            for fld in rpt.fields.all(): objs.append(fld)   
+        for ref in chw.refusalreporter.all(): objs.append(ref)
+        for dep in chw.depmother.all(): objs.append(dep)
+        for alt in chw.alertreporter.all(): objs.append(alt)
+        for err in chw.erringreporter.all(): objs.append(err)
+        for rem in chw.reminderreporter.all(): objs.append(rem)
+        #for fld in chw.fieldreporter.all(): objs.append(fld)
+                
+        for obj in objs:
+            obj.village = chw.village
+            obj.cell = chw.cell
+            obj.location = chw.health_centre
+            obj.sector = chw.sector
+            obj.district = chw.district
+            obj.province = chw.province
+            obj.nation = chw.nation
+            try:
+                obj.save()
+            except Exception, e:
+                print e, chw.given_name, chw.surname, chw.health_centre, chw.village
+                continue
+    return True
+    
+
     
 def create_nation(name = "Rwanda", code = '00'):
     try:
