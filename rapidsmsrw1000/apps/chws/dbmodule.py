@@ -242,6 +242,7 @@ def migrate_chws(sector, health_centre):
     for chw in chws:
         objs = []
         chw.health_centre = health_centre
+        chw.save()
         for rpt in chw.reportreporter.all():
             objs.append(rpt)
             for fld in rpt.fields.all(): objs.append(fld)   
