@@ -7,4 +7,5 @@ xlrd==0.9.0
 xlwt==0.7.4
 hl7
 pycurl
-python-dateutil --upgrade
+python-dateutil
+django-piston
