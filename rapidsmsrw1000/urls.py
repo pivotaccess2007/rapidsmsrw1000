@@ -31,6 +31,7 @@ urlpatterns = patterns('',
     #(r'^reporters/', include('rapidsmsrw1000.apps.reporters.urls')),
     (r'^chws/', include('rapidsmsrw1000.apps.chws.urls')),
     (r'^ambulances/', include('rapidsmsrw1000.apps.ambulances.urls')),
+    (r'^rhea/', include('rapidsmsrw1000.apps.api.rhea.urls')),
 
     url(r"^backend/kannel-smpp/$",
         KannelBackendView.as_view(backend_name="kannel-smpp")),

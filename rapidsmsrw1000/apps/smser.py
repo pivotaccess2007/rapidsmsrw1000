@@ -28,7 +28,7 @@ class Smser(object):
             # do things at a reasonable pace
             time.sleep(.2)
             return True
-        except KeyError:
+        except Exception, e:
             return False
 
 
