@@ -595,7 +595,7 @@ def preg_report(req):
         
     resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end), 'months_edd' : months_between(start,end)}
     resp['report_type'] = ReportType.objects.get(name = 'Pregnancy')
-    if req.REQUEST.has_key('csv') or req.REQUEST.has_key('excel'):  return reports_to_excel(resp['reports'])  
+    if req.REQUEST.has_key('csv') or req.REQUEST.has_key('excel'):  return reports_to_excel(preg)  
     else:   return render_to_response('ubuzima/preg_report.html',
            resp, context_instance=RequestContext(req))
 ##END OF PREGNANCY TABLES, CHARTS, MAP
@@ -639,7 +639,10 @@ def pnc_report(req):
 
 
     resp['track'] = {'items':ans_l, 'items_m':ans_m, 'months' : months_between(start,end)}
-    return render_to_response('ubuzima/pnc_report.html',resp, context_instance=RequestContext(req))
+
+    if req.REQUEST.has_key('csv') or req.REQUEST.has_key('excel'):  return reports_to_excel(qryset)  
+    else:   return render_to_response('ubuzima/pnc_report.html',
+           resp, context_instance=RequestContext(req))
 
 ###END OF PNC TABLES, CHARTS, MAP
 
@@ -676,7 +679,7 @@ def newborn_report(req):
 
         nbc1_c, nbc2_c, nbc3_c = nbc1_m.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), nbc2_m.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month'), nbc3_m.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')
 
-        ans_m = {'nbc1_m' : nbc1_c, 'nbc2_m' : nbc2_c, 'ncb3_m': nbc3_c ,'tot_m': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
+        ans_m = {'nbc1_m' : nbc1_c, 'nbc2_m' : nbc2_c, 'nbc3_m': nbc3_c ,'tot_m': qryset.extra(select={'year': 'EXTRACT(year FROM created)','month': 'EXTRACT(month FROM created)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
 
 
 
@@ -688,8 +691,10 @@ def newborn_report(req):
         ans_l = {'nbc1' : nbc1_l, 'nbc2' : nbc2_l, 'nbc3': nbc3_l, 'tot':qryset.values(annot.split(',')[0],annot.split(',')[1]).annotate(number=Count('id')).order_by(annot.split(',')[0])}
 
 
-    resp['track'] = {'items':ans_l, 'items_m':ans_m, 'months' : months_between(start,end)}
-    return render_to_response('ubuzima/newborn_report.html',resp, context_instance=RequestContext(req))
+    resp['track'] = {'items':ans_l, 'items_m':ans_m, 'months' : months_between(start,end)}#; print resp['track']
+    if req.REQUEST.has_key('csv') or req.REQUEST.has_key('excel'):  return reports_to_excel(qryset)  
+    else:   return render_to_response('ubuzima/newborn_report.html',
+           resp, context_instance=RequestContext(req))
 ###END OF NEWBORN TABLES, CHARTS, MAP
 
 
@@ -734,7 +739,9 @@ def community_report(req):
 
 
     resp['track'] = {'items':ans_l, 'items_m':ans_m, 'months' : months_between(start,end)}
-    return render_to_response('ubuzima/community_report.html',resp, context_instance=RequestContext(req))
+    if req.REQUEST.has_key('csv') or req.REQUEST.has_key('excel'):  return reports_to_excel(qryset)  
+    else:   return render_to_response('ubuzima/community_report.html',
+           resp, context_instance=RequestContext(req))
 
 ###END OF CCM TABLES, CHARTS, MAP
 
@@ -1132,7 +1139,8 @@ def anc_report(req):
 
 
     resp['track'] = {'items':ans_l, 'items_m':ans_m, 'months' : months_between(start,end)}
-    return render_to_response('ubuzima/anc_report.html',
+    if req.REQUEST.has_key('csv') or req.REQUEST.has_key('excel'):  return reports_to_excel(qryset)  
+    else:   return render_to_response('ubuzima/anc_report.html',
            resp, context_instance=RequestContext(req))
 
 ###END OF ANC TABLES, CHARTS, MAP
@@ -1167,7 +1175,8 @@ def birth_report(req):
         ans_m = {'fac' : fac_m, 'route' : route_m, 'home': home_m, 'tot': qryset.extra(select={'year': 'EXTRACT(year FROM date)','month': 'EXTRACT(month FROM date)'}).values('year', 'month').annotate(number=Count('id')).order_by('year','month')}
 
     resp['track'] = {'items_l':ans_l, 'items_m':ans_m, 'months' : months_between(start,end)}
-    return render_to_response('ubuzima/birth_report.html',
+    if req.REQUEST.has_key('csv') or req.REQUEST.has_key('excel'):  return reports_to_excel(qryset)  
+    else:   return render_to_response('ubuzima/birth_report.html',
            resp, context_instance=RequestContext(req))
 ##END OF BIRTH TABLES, CHARTS, MAP
 
@@ -1214,7 +1223,8 @@ def death_report(req):
             return render_to_response('ubuzima/type.html', resp, context_instance=RequestContext(req))
         
 
-    return render_to_response('ubuzima/death_report.html',
+    if req.REQUEST.has_key('csv') or req.REQUEST.has_key('excel'):  return reports_to_excel(qryset)  
+    else:   return render_to_response('ubuzima/death_report.html',
            resp, context_instance=RequestContext(req))
 
 ###END OF DEATH TABLES, CHARTS, MAP
@@ -1284,8 +1294,9 @@ def risk_report(req):
             return render_to_response('ubuzima/patients.html', resp, context_instance=RequestContext(req))
         
 
-    return render_to_response('ubuzima/risk_report.html', resp, context_instance=RequestContext(req))
-
+    if req.REQUEST.has_key('csv') or req.REQUEST.has_key('excel'):  return reports_to_excel(qryset)  
+    else:   return render_to_response('ubuzima/risk_report.html',
+           resp, context_instance=RequestContext(req))
 ###END OF RISK TABLES, CHARTS, MAP
 
 ###START RED ALERTS TABLES, CHARTS, MAP
@@ -1334,7 +1345,8 @@ def red_alert_report(req):
             resp['reports'] = paginated(req, po_alerts)
             return render_to_response('ubuzima/type.html', resp, context_instance=RequestContext(req))
         
-    return render_to_response('ubuzima/red_alert_report.html',
+    if req.REQUEST.has_key('csv') or req.REQUEST.has_key('excel'):  return reports_to_excel(qryset)  
+    else:   return render_to_response('ubuzima/red_alert_report.html',
            resp, context_instance=RequestContext(req))
 
 ###END OF RED ALERTS TABLES, CHARTS, MAP
