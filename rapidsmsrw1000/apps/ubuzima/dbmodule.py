@@ -390,6 +390,44 @@ def update_locations():
 			continue
 
 	return locs
+
+
+def export_patients():
+    import xlwt
+    wbk = xlwt.Workbook()
+    pts = Patient.objects.all()
+    nsheets = pts.count()/65536
+    if pts.count()%65536 != 0:
+        nsheets = nsheets+1
+    for n in range(nsheets):
+        ans = pts[n*65536: (n+1)*65536]
+        sheet = wbk.add_sheet("Patient List %d " % n) 
+        sheet.write(0,0,"National ID")
+        sheet.write(0,1,"Village")
+        sheet.write(0,2,"Cell")
+        sheet.write(0,3,"Sector")
+        sheet.write(0,4,"District")
+        sheet.write(0,5,"Province")
+        row = 1
+        for pt in ans:
+            try: sheet.write(row,0,pt.national_id)
+            except: continue
+            try: sheet.write(row,1,pt.village.name)
+            except: pass
+            try: sheet.write(row,2,pt.cell.name)
+            except: pass
+            try: sheet.write(row,3,pt.sector.name)
+            except: pass
+            try: sheet.write(row,4,pt.district.name)
+            except: pass
+            try: sheet.write(row,5,pt.province.name)
+            except: pass
+            row = row+1
+    today = datetime.date.today()
+    wbk.save('patients_%s_%s_%s.xls' % (today.day, today.month, today.year))
+    return True
+
+
 ###Retrieve all reporters in traning db module		
 #def reporters_in_training():
 #	reps_training_nid = []	
