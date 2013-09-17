@@ -89,6 +89,7 @@ class FieldTypeAdmin(admin.ModelAdmin):
     exportable_fields = ('key', 'description',)
     list_display = ('key', 'description', 'category')
     search_fields = ('key', 'description')
+    list_filter = ('category',)
 
 
 class ReportAdmin(admin.ModelAdmin):
@@ -106,6 +107,8 @@ class UserLocationAdmin(admin.ModelAdmin):
     search_fields = ('user__username',)
 
 class PatientAdmin(admin.ModelAdmin):
+    actions = (export_model_as_excel, )
+    exportable_fields = ('id', 'national_id', 'village', 'cell', 'sector', 'district', 'province')
     list_filter = ('province', 'district',)
     list_display = ('id', 'national_id', 'telephone', 'province', 'district', 'sector', 'cell','village',)
     search_fields = ('national_id','telephone',)
