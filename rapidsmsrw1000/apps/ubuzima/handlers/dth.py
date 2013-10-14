@@ -49,20 +49,28 @@ class DthHandler (KeywordHandler):
 
         m = re.search("dth\s+(\d+)\s([0-9]+)\s([0-9.]+)\s(hp|cl|or|ho)\s(nd|cd|md)\s?(.*)", message.text, re.IGNORECASE)
         
-        if not m:
-            message.respond(_("The correct format message is: DTH MOTHER_ID CHILD_NUMBER DATE_OF_BIRTH DEATH_CODE"))
-            return True
+        if not m:           
+            m = re.search("dth\s+(\d+)\s(hp|cl|or|ho)\s(nd|cd|md)\s?(.*)", message.text, re.IGNORECASE) 
+            if not m:
+                message.respond(_("The correct format message is: DTH MOTHER_ID CHILD_NUMBER DATE_OF_BIRTH DEATH_CODE"))
+                return True
 
         try:    nid = read_nid(message, m.group(1))
         except Exception, e:
             # there were invalid fields, respond and exit
             message.respond("%s" % e)
             return True
-
-        number = m.group(2)
-        chidob = m.group(3)
-        location = m.group(4)
-        death = m.group(5)
+        
+        if len(m.groups()) > 5:
+            number = m.group(2)
+            chidob = m.group(3)
+            location = m.group(4)
+            death = m.group(5)
+        else:
+            number = None
+            chidob = None
+            location = m.group(2)
+            death = m.group(3)    
 
         ibibazo = "%s %s" % ( location, death)            
             
