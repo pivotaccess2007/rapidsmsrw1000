@@ -439,16 +439,17 @@ class Supervisor(models.Model):
     language_french		= 'fr'
     language_kinyarwanda	= 'rw'
 
-    health_centre = 'hc'
-    district_hospital = 'hd'
-    district = 'ds'
+    health_centre_level = 'hc'
+    district_hospital_level = 'hd'
+    district_level = 'ds'
 
     LANGUAGE_CHOICES = ( (language_english, "English"),
                 (language_french, "French"),
                 (language_kinyarwanda, "Kinyarwanda"))
 
-    AREA_CHOICES = ( (health_centre, "Health Centre"),
-                        (district_hospital, "District Hospital"))
+    AREA_CHOICES = ( (health_centre_level, "Health Centre"),
+                        (district_hospital_level, "District Hospital"),
+                        (district_level, "District"))
 
 
     names = models.EmailField(max_length=150, null=True, blank=True)
@@ -556,16 +557,17 @@ class DataManager(models.Model):
     language_french		= 'fr'
     language_kinyarwanda	= 'rw'
 
-    health_centre = 'hc'
-    district_hospital = 'hd'
-    district = 'ds'
+    health_centre_level = 'hc'
+    district_hospital_level = 'hd'
+    district_level = 'ds'
 
     LANGUAGE_CHOICES = ( (language_english, "English"),
                 (language_french, "French"),
                 (language_kinyarwanda, "Kinyarwanda"))
 
-    AREA_CHOICES = ( (health_centre, "Health Centre"),
-                        (district_hospital, "District Hospital"))
+    AREA_CHOICES = ( (health_centre_level, "Health Centre"),
+                        (district_hospital_level, "District Hospital"),
+                        (district_level, "District"))
 
 
 
@@ -675,9 +677,9 @@ class FacilityStaff(models.Model):
     language_french		= 'fr'
     language_kinyarwanda	= 'rw'
 
-    ref_health_centre = 'hc'
-    district_hospital = 'hd'
-    district = 'ds'
+    health_centre_level = 'hc'
+    district_hospital_level = 'hd'
+    district_level = 'ds'
 
     chief_of_supervisors = 'csup'
     chief_of_drivers = 'cdrv'
@@ -690,8 +692,9 @@ class FacilityStaff(models.Model):
                 (language_french, "French"),
                 (language_kinyarwanda, "Kinyarwanda"))
 
-    AREA_CHOICES = ( (ref_health_centre, "Health Centre"),
-                        (district_hospital, "District Hospital"))
+    AREA_CHOICES = ( (health_centre_level, "Health Centre"),
+                        (district_hospital_level, "District Hospital"),
+                        (district_level, "District"))
 
     SERVICE_CHOICES = ( (chief_of_supervisors, 'Chief of Supervisors'),
                             (chief_of_drivers, 'Chief of Drivers'),
@@ -812,17 +815,17 @@ class MonitorEvaluator(models.Model):
     language_french		= 'fr'
     language_kinyarwanda	= 'rw'
 
-    health_centre = 'hc'
-    district_hospital = 'hd'
-    district = 'ds'
+    health_centre_level = 'hc'
+    district_hospital_level = 'hd'
+    district_level = 'ds'
 
     LANGUAGE_CHOICES = ( (language_english, "English"),
                 (language_french, "French"),
                 (language_kinyarwanda, "Kinyarwanda"))
 
-    AREA_CHOICES = ( (health_centre, "Health Centre"),
-                        (district_hospital, "District Hospital"),
-                        (district, "District"))
+    AREA_CHOICES = ( (health_centre_level, "Health Centre"),
+                        (district_hospital_level, "District Hospital"),
+                        (district_level, "District"))
 
 
 
@@ -934,15 +937,17 @@ class HospitalDirector(models.Model):
     language_french		= 'fr'
     language_kinyarwanda	= 'rw'
 
-    district_hospital = 'hd'
-    district = 'ds'
+    health_centre_level = 'hc'
+    district_hospital_level = 'hd'
+    district_level = 'ds'
 
     LANGUAGE_CHOICES = ( (language_english, "English"),
                 (language_french, "French"),
                 (language_kinyarwanda, "Kinyarwanda"))
 
-    AREA_CHOICES = ( (district_hospital, "District Hospital"),
-                        (district, "District"))
+    AREA_CHOICES = ( (health_centre_level, "Health Centre"),
+                        (district_hospital_level, "District Hospital"),
+                        (district_level, "District"))
 
 
 
@@ -1114,6 +1119,7 @@ post_save.connect(assign_login, sender = DataManager)
 post_save.connect(assign_login, sender = FacilityStaff)
 post_save.connect(assign_login, sender = MonitorEvaluator)
 post_save.connect(assign_login, sender = HospitalDirector)
+post_save.connect(assign_login, sender = Supervisor)
 post_save.connect(ensure_connections_exists, sender = DataManager)
 post_save.connect(ensure_connections_exists, sender = FacilityStaff)
 post_save.connect(ensure_connections_exists, sender = MonitorEvaluator)

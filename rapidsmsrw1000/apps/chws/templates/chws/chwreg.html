@@ -10,6 +10,25 @@
     <script type="text/javascript" src="{{uiurl}}/extjs/ext-all-debug.js"></script>
 
     <script type="text/javascript" src="/static/webapp/javascripts/chwreg.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/static/webapp/javascripts/facebox/autocomplete.css" />
+<link href="/static/webapp/javascripts/facebox/facebox.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="/static/webapp/javascripts/facebox/jquery.js"></script>
+<script type='text/javascript' src='/static/webapp/javascripts/facebox/autocomplete.js'></script>
+<script type="text/javascript" src="/static/webapp/javascripts/facebox/facebox.js"></script>
+<script type="text/javascript">
+
+jQuery(document).ready(function($) {
+      $('a[rel*=facebox]').facebox({
+        loading_image : '/static/webapp/javascripts/facebox/loading.gif',
+        close_image   : '/static/webapp/javascripts/facebox/closelabel.gif'
+      }) 
+    })
+
+
+</script>   
+
+
     <link type="text/css" rel="stylesheet" href="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.css"></link>
     <script type="text/javascript" src="/static/webapp/javascripts/calendar/dhtmlgoodies_calendar.js"></script>
 
@@ -29,8 +48,9 @@ $(function()
 
 $('#provchoose').change(function(evt)
     {	
-        if ($(this).attr('value') != ''){window.location = window.location.pathname + '?province=' +
-        $(this).attr('value');
+        if ($(this).attr('value') != null){
+	if ($("#reporter").attr('value') != null) window.location = window.location.pathname + '?province=' +$(this).attr('value')+'&reporter=' +$("#reporter").attr('value');
+	else window.location = window.location.pathname + '?province=' +$(this).attr('value');
 	} else {
 			window.location = window.location.pathname;			
 			}
@@ -39,8 +59,10 @@ $('#provchoose').change(function(evt)
 
 $('#distchoose').change(function()
     {
-        if ($(this).attr('value') != ''){ window.location = window.location.pathname + '?district=' +
-        $(this).attr('value') + '&province=' + $('#provchoose').attr('value');
+        if ($(this).attr('value') != null){ 
+
+	if ($("#reporter").attr('value') != null) window.location = window.location.pathname + '?district=' + $(this).attr('value') + '&province=' +$('#provchoose').attr('value')+'&reporter=' +$("#reporter").attr('value') ;
+	else window.location = window.location.pathname + '?district=' + $(this).attr('value') + '&province=' + $('#provchoose').attr('value');
 	}
 		else {
 			window.location = window.location.pathname + '?'+ '&province=' + $('#provchoose').attr('value');			
@@ -50,9 +72,17 @@ $('#distchoose').change(function()
 
 $('#locchoose').change(function()
     {
-       if ($(this).attr('value') != '') { window.location = window.location.pathname + '?location=' +
+       if ($(this).attr('value') != null) { 
+
+	if ($("#reporter").attr('value') != null) window.location = window.location.pathname + '?location=' +
+        $(this).attr('value') + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value')+'&reporter=' +$("#reporter").attr('value') ;
+
+	
+	else window.location = window.location.pathname + '?location=' +
         $(this).attr('value') + '&province=' + $('#provchoose').attr('value') +
         '&district=' + $('#distchoose').attr('value') ;
+
 	} 
 		else{
 			window.location = window.location.pathname + '?' + '&province=' + $('#provchoose').attr('value') +
@@ -64,9 +94,14 @@ $('#locchoose').change(function()
 
 $('#secchoose').change(function()
     {
-       if ($(this).attr('value') != '') { window.location = window.location.pathname + '?sector=' +
+       if ($(this).attr('value') != null) { 
+
+	if ($("#reporter").attr('value') != null) window.location = window.location.pathname + '?sector=' +
         $(this).attr('value') + '&location=' +  $('#locchoose').attr('value') + '&province=' + $('#provchoose').attr('value') +
-        '&district=' + $('#distchoose').attr('value') ;
+        '&district=' + $('#distchoose').attr('value')+'&reporter=' +$("#reporter").attr('value') ;
+	else window.location = window.location.pathname + '?sector=' +
+        $(this).attr('value') + '&location=' +  $('#locchoose').attr('value') + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value');
 	} 
 		else{
 			window.location = window.location.pathname + '?' + '&province=' + $('#provchoose').attr('value') +
@@ -78,10 +113,17 @@ $('#secchoose').change(function()
 
 $('#celchoose').change(function()
     {
-       if ($(this).attr('value') != '') { window.location = window.location.pathname + '?cell=' +
+       if ($(this).attr('value') != null) { 
+
+	if ($("#reporter").attr('value') != null) window.location = window.location.pathname + '?cell=' +
         $(this).attr('value') + '&sector=' +
         $("#secchoose").attr('value') + '&location=' +  $('#locchoose').attr('value') + '&province=' + $('#provchoose').attr('value') +
-        '&district=' + $('#distchoose').attr('value') ;
+        '&district=' + $('#distchoose').attr('value')+'&reporter=' +$("#reporter").attr('value') ;
+
+	else window.location = window.location.pathname + '?cell=' +
+        $(this).attr('value') + '&sector=' +
+        $("#secchoose").attr('value') + '&location=' +  $('#locchoose').attr('value') + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value');
 	} 
 		else{
 			window.location = window.location.pathname + '?' + '&province=' + $('#provchoose').attr('value') +
@@ -91,10 +133,17 @@ $('#celchoose').change(function()
 
 $('#vilchoose').change(function()
     {
-       if ($(this).attr('value') != '') { window.location = window.location.pathname + '?village=' +
+       if ($(this).attr('value') != null) { 
+
+	if ($("#reporter").attr('value') != null) window.location = window.location.pathname + '?village=' +
         $(this).attr('value') + '&cell=' +   $('#celchoose').attr('value') + '&sector=' +
         $("#secchoose").attr('value') + '&location=' +  $('#locchoose').attr('value') + '&province=' + $('#provchoose').attr('value') +
-        '&district=' + $('#distchoose').attr('value') ;
+        '&district=' + $('#distchoose').attr('value')+'&reporter=' +$("#reporter").attr('value') ;
+
+	else window.location = window.location.pathname + '?village=' +
+        $(this).attr('value') + '&cell=' +   $('#celchoose').attr('value') + '&sector=' +
+        $("#secchoose").attr('value') + '&location=' +  $('#locchoose').attr('value') + '&province=' + $('#provchoose').attr('value') +
+        '&district=' + $('#distchoose').attr('value');
 	} 
 		else{
 			window.location = window.location.pathname + '?' + '&province=' + $('#provchoose').attr('value') +
@@ -105,6 +154,69 @@ $('#vilchoose').change(function()
 });
 
 
+//CHW autocomplete
+$().ready(function() {
+function formatItem(row) {
+		return "<tr><td width=90>" + row[0] + "</td><td width=90>" + row[1] + "</td><td width=90>" + row[2] + "</td><td width=90>" + row[3] + "</td><td width=90>" + row[4] + "</td><td width=90>" + row[5] + "</td><td width=90>" + row[6] + "</td><td width=90>" + row[7] + "</td></tr>";
+	}
+	function formatResultNID(row) {
+		$("#pk").val(row[8]);
+		$("#info").val(row[0] + " "+ row[1] + "(National ID: " + row[2] + ", Telephone MoH: " +row[3] + ", Village: " + row[4] + ", Cell: " +row[5] + ", Sector: " +row[6] + ", District: " +row[7]+")");
+		return row[2].replace(/(<.+?>)/gi, '');
+	}
+	function formatResultPhone(row) {
+		$("#pk").value = row[8];
+		return row[3].replace(/(<.+?>)/gi, '');
+	}
+
+	
+$("#national_id").autocomplete('search.chw', {
+		width: 600,
+		minChars: 15,
+		multiple: false,
+		matchContains: true,
+		formatItem: formatItem,
+		formatResult: formatResultNID
+		});
+
+
+$("#telephone_moh").autocomplete('search.chw', {
+		width: 600,
+		minChars: 9,
+		multiple: false,
+		matchContains: true,
+		formatItem: formatItem,
+		formatResult: formatResultPhone
+		});
+
+$("#search_national_id").autocomplete('search.chw', {
+		width: 600,
+		minChars: 15,
+		multiple: false,
+		matchContains: true,
+		formatItem: formatItem,
+		formatResult: formatResultNID
+		});
+
+
+$("#search_telephone_moh").autocomplete('search.chw', {
+		width: 600,
+		minChars: 9,
+		multiple: false,
+		matchContains: true,
+		formatItem: formatItem,
+		formatResult: formatResultPhone
+		});
+
+
+});
+
+function chwRegEdit(reporter, info){
+
+			window.location = window.location.pathname +'?reporter=' + reporter;
+		}
+
+// end of CHW autocomplete
 
 </script>
 
@@ -116,6 +228,171 @@ $('#vilchoose').change(function()
 <form enctype="multipart/form-data" action="{% url reg_chws %}" method="POST">
 {% csrf_token %}
 <table>
+
+<tr> 
+
+<td style ="background:#266E99;color:#fff;"> SEARCH & EDIT</td> 
+<td>
+<label id = "search_nid">By National ID</label><input type="text" name="search_national_id" id="search_national_id" value="" />
+</td>
+<td>
+<label id = "search_tel">By Telephone MoH</label><input type="text" name="search_telephone_moh" id="search_telephone_moh" value="" />
+</td>
+
+<td>
+<input type="hidden" name="pk" id="pk" value="" /><input type="hidden" name="info" id="info" value="" />
+<input style ="background:#266E99;color:#fff;" type="button" value="Edit" onclick="chwRegEdit(this.form.pk.value, this.form.info.value);" />
+</td>
+
+		
+
+</tr>
+</table>
+
+</form>
+
+
+<form enctype="multipart/form-data" action="{% url reg_chws %}" method="POST">
+{% csrf_token %}
+<table>
+
+{%if results %}
+
+<tr>			                    
+<td>
+<label id = "prv">Province</label></br>
+<select name="province" id="provchoose"><option value ={{results.province.id}}> {{results.province.name}}</option>
+{%  for prv in prvs %}<option value="{{prv.id}}" {% if prv.selected  %} selected="selected"{% endif %}>{{ prv.name }}</option>{%  endfor %}
+</select>
+</td>
+<td>
+<label id = "dst">District</label></br>
+<select name="district" id="distchoose"><option value ={{results.district.id}}> {{results.district.name}}</option>
+{%  for dst in dsts %}<option value="{{dst.id}}" {% if dst.selected  %} selected="selected"{% endif %}>{{ dst.name }}</option>{%  endfor %}  
+</select>
+</td>
+<td>
+<label id = "hc">Health Centre</label></br>
+<select name="location" id="locchoose"><option value ={{results.health_centre.id}}> {{results.health_centre.name}}</option>
+{%  for hc in hcs %}<option value="{{hc.id}}" {% if hc.selected  %} selected="selected"{% endif %}>{{ hc.name }}</option>{%  endfor %}  
+</select>
+</td>
+<td>
+<label id = "sc">Sector</label></br>
+<select name="sector" id="secchoose"><option value ={{results.sector.id}}> {{results.sector.name}}</option>
+{%  for sc in scs %}<option value="{{sc.id}}" {% if sc.selected  %} selected="selected"{% endif %}>{{ sc.name }}</option>{%  endfor %}  
+</select>
+</td>
+
+<td>
+<label id = "cl">Cell</label></br>
+<select name="cell" id="celchoose"><option value ={{results.cell.id}}> {{results.cell.name}}</option>
+{%  for cl in clls %}<option value="{{cl.id}}" {% if cl.selected  %} selected="selected"{% endif %}>{{ cl.name }}</option>{%  endfor %}  
+</select>
+</td>
+
+<td>
+<label id = "vl">Village</label></br>
+<select name="village" id="vilchoose"><option value ={{results.village.id}}> {{results.village.name}}</option>
+{%  for vl in vlls %}<option value="{{vl.id}}" {% if vl.selected  %} selected="selected"{% endif %}>{{ vl.name }}</option>{%  endfor %}  
+</select>
+</td><td></td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "sur">Surname</label></td><td colspan=2><input type="text" name="surname" value="{{results.surname}}" />
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "gn">Given Name</label></td><td colspan=2><input type="text" name="given_name" value="{{results.given_name}}" />
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "sex">Sex</label></td><td colspan=2>
+<select name="sex" id="sexchoose"><option value = {{results.sex}}> {{results.get_sex_display}}</option>
+<option value="M" >Male</option>
+<option value="F" >Female</option>   
+</select>
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "role">Role</label></td><td colspan=2>
+<select name="role" id="rolechoose"><option value = {{results.role.code}}> {{results.role.name}}</option>
+<option value="asm" >ASM</option>
+<option value="binome" >Binome</option>   
+</select>
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "edu">Educational Level</label></td><td colspan=2>
+<select name="edu_level" id="educhoose"> <option value = {{results.education_level}}> {{results.get_education_level_display}}</option>
+<option value="P" >Primaire</option>
+<option value="S" >Secondaire</option>
+<option value="U" >University</option>  
+</select>
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "dob">Date of Birth</label></td><td colspan=2><input style="background-color: white" type="text" id="dob" value="{{results.date_of_birth}}"  name="dob" 					readonly="readonly"  onFocus="displayCalendar(form.dob,'dd/mm/yyyy',this)" onchange="return deroulement(this.form);"/>
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "jod">Joining Date</label></td><td colspan=2><input style="background-color: white" type="text" id="jod" value="{{results.join_date}}"  name="jod" 					readonly="readonly"  onFocus="displayCalendar(form.jod,'dd/mm/yyyy',this)"/>
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "hp">Referral Hospital</label></td><td colspan=2>
+<select name="hospital" id="hpchoose"><option value = "{{results.referral_hospital.id}}">{{results.referral_hospital.name}}</option>
+{%  for hp in hps %}<option value="{{hp.id}}" {% if hp.selected  %} selected="selected"{% endif %}>{{ hp.name }}</option>{%  endfor %}  
+</select>
+</td>
+
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "nid">National ID</label></td><td colspan=2><input type="text" name="nid" id="national_id" value="{{results.national_id}}" />
+</td>
+</tr>
+
+<tr><td colspan = 4></td>
+<td>
+<label id = "tel">Telephone MoH</label></td><td colspan=2><input type="text" name="telephone_moh" id="telephone_moh" value="{{results.telephone_moh}}" />
+</td>
+</tr>
+
+
+
+<tr><td colspan = 6></td>
+<td>
+<input type="hidden" name="up_reporter" id="reporter" value ="{{results.pk}}" /> <input type="submit" value="Update" />
+</td>
+</tr>
+
+
+
+
+
+
+
+{% else %}
+
+
 <tr>			                    
 <td>
 <label id = "prv">Province</label></br>
@@ -224,15 +501,17 @@ $('#vilchoose').change(function()
 
 <tr><td colspan = 4></td>
 <td>
-<label id = "nid">National ID</label></td><td colspan=2><input type="text" name="nid" value="" />
+<label id = "nid">National ID</label></td><td colspan=2><input type="text" name="nid" id="national_id" value="" />
 </td>
 </tr>
 
 <tr><td colspan = 4></td>
 <td>
-<label id = "tel">Telephone MoH</label></td><td colspan=2><input type="text" name="telephone_moh" value="" />
+<label id = "tel">Telephone MoH</label></td><td colspan=2><input type="text" name="telephone_moh" id="telephone_moh" value="" />
 </td>
 </tr>
+
+
 
 <tr><td colspan = 6></td>
 <td>
@@ -240,7 +519,7 @@ $('#vilchoose').change(function()
 </td>
 </tr>
 
-
+{%endif%}
 
 </table>
 </form>

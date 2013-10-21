@@ -25,6 +25,7 @@ urlpatterns = patterns('',
     url(r'^datamanager$',             views.view_datamanager),
     url(r'^facilitystaff$',             views.view_facilitystaff),
     url(r'^chwreg$',             views.chwreg, name='reg_chws'),
+    url(r'^search.chw$',             views.chwsearch, name='search_chw'),
     url(r'^stats$',             views.activity_statistics, name='stats_chws'),
     
     

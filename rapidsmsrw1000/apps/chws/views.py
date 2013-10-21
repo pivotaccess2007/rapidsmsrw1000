@@ -89,8 +89,24 @@ def index(request):
 
 
 
+@permission_required('chws.can_view')
+def chwsearch(request):
+    request.base_template = "webapp/layout.html"
+    results = None
+    if request.REQUEST.has_key("q"): 
+        results = Reporter.objects.filter(national_id__contains = request.GET['q'])
+        if results.exists():
+            pass
+        else:
+            results = Reporter.objects.filter(telephone_moh__contains = request.GET['q'])
+
+    #print results
+    return render_to_response("chws/search.html", dict(results = results,user=request.user), context_instance=RequestContext(request)) 
+    
+
 	
 @permission_required('chws.can_view')
+@transaction.autocommit
 def chwreg(request):
     """CHW reg"""
     request.base_template = "webapp/layout.html"
@@ -98,11 +114,17 @@ def chwreg(request):
     e = ""
     prvs = default_province(request)#;print prvs
     uloc = get_user_location(request)
-    try:
+
+    
+    try:        
+        
         if uloc.health_centre or uloc.district:
             hcs = default_location(request)
             dsts = default_district(request)
-            scs = Sector.objects.filter(district__in = dsts).order_by('-name')        
+            scs = Sector.objects.filter(district__in = dsts).order_by('-name')
+
+         
+        
         if request.REQUEST.has_key('province'):    dsts = default_district(request).filter(province__id = int(request.REQUEST['province']))
         if request.REQUEST.has_key('district'):
             hcs = default_location(request).filter(district__id = int(request.REQUEST['district']))
@@ -116,6 +138,14 @@ def chwreg(request):
             clls = clls.extra(select = {'selected':'id = %d' % (int(request.REQUEST['cell']),)})
         if request.REQUEST.has_key('village'):
             vlls = Village.objects.filter(cell__id = int(request.REQUEST['cell'])).extra(select = {'selected':'id = %d' % (int(request.REQUEST['village']),)}).order_by('-name')
+            
+       
+                
+        if request.REQUEST.has_key('reporter'):
+            results = Reporter.objects.get(pk = request.GET['reporter'])
+            return render_to_response("chws/chwreg.html", dict(results = results, dsts = dsts, error = e, hcs = hcs, hps = hps, prvs = prvs, scs = scs, \
+                                                                    clls = clls, vlls = vlls, user=request.user), context_instance=RequestContext(request))        
+                    
         
             #hps = Hospital.objects.filter(district__id = int(request.REQUEST['district'])).order_by('-name')    
         if request.REQUEST.has_key("nid") or request.REQUEST.has_key("telephone_moh"): 
@@ -123,17 +153,19 @@ def chwreg(request):
             try:
                 try:    reporter, created = Reporter.objects.get_or_create( national_id = parse_alias(request.POST['nid']), telephone_moh = parse_phone_number(request.POST['telephone_moh']))
                 except Exception,  e:
-                    e = e
-                    try:    reporter, created = Reporter.objects.get_or_create( national_id = parse_alias(request.POST['nid']))
+                    e = e;print "1:", e;
+                    try:
+                        reporter = Reporter.objects.get(national_id = parse_alias(request.POST['nid']))
+                        reporter.telephone_moh = parse_phone_number(request.POST['telephone_moh'])
                     except Exception, e:
-                        e = e
-                        try:    reporter, created = Reporter.objects.get_or_create( telephone_moh = parse_phone_number(request.POST['telephone_moh']))
+                        e = e;print "2:", e;
+                        try:
+                            reporter = Reporter.objects.get(telephone_moh = parse_phone_number(request.POST['telephone_moh']))
+                            reporter.national_id = parse_alias(request.POST['nid'])
                         except Exception, e:
-                            e = e
-                            reporter = Reporter( national_id = parse_alias(request.POST['nid']), telephone_moh = parse_phone_number(request.POST['telephone_moh']))
+                            e = e;print "3:", e;    
 
-                reporter.national_id =  parse_alias(request.POST['nid'])
-                reporter.telephone_moh =  parse_phone_number(request.POST['telephone_moh'])        
+                print reporter.national_id, reporter.telephone_moh
                 reporter.surname         = get_name(parse_name(request.POST['surname']))
                 reporter.given_name      = get_name(parse_name(request.POST['given_name']))
                 reporter.role            = get_role(request.POST['role'])
@@ -153,30 +185,50 @@ def chwreg(request):
                 reporter.village		=   Village.objects.get(pk = int(request.POST['village']))
                 reporter.updated		= timezone.localtime(timezone.now())
                 reporter.language       = reporter.language_kinyarwanda
+                
+                ###Before we save reporter  we need to check all connections occupied by any person with this reporter telephone number, or contact.
+                #cont = Contact.objects.filter(name = reporter.national_id)
+                #conn = Connection.objects.get(identity = reporter.telephone_moh)
+                #if conn:
+                #    old_reporter = Reporter.objects.get(telephone_moh = conn.identity)
+                #    if old_reporter.national_id != parse_alias(request.POST['nid']):
+                #        pass#replace_reporter(old_reporter, nid = parse_alias(request.POST['nid']), tel = parse_phone_number(request.POST['telephone_moh']))      
+                #if cont.exists():
+                #    old_reporter = Reporter.objects.get(national_id = cont[0].name)
+                #    if old_reporter.telephone_moh != parse_phone_number(request.POST['telephone_moh']):                        
+                #        pass#replace_reporter(old_reporter, nid = parse_alias(request.POST['nid']), tel = parse_phone_number(request.POST['telephone_moh']))  
+                ##If the connections exist please check someone using them and deactivate him/her and so that the connection will used by this new reporter.
+                ### END of connections checks
+                #print "WE ARE THERE", old_reporter.national_id, old_reporter.telephone_moh
                 reporter.save()
 
                 confirm, created = RegistrationConfirmation.objects.get_or_create(reporter = reporter)
                 confirm.save()
                 contact, created = Contact.objects.get_or_create(name = reporter.national_id)
                 contact.language = reporter.language#; print settings.PRIMARY_BACKEND
+                contact.save()
+                
                 backend = Backend.objects.filter(name = settings.PRIMARY_BACKEND)[0]
+                
                 connection, created = Connection.objects.get_or_create(identity = reporter.telephone_moh, backend = backend)
                 connection.contact = contact
-                connection.backend = backend
-                contact.save()
                 connection.save() 
-                try:    Smser().send_message_via_kannel(reporter.telephone_moh, "Muraho! Minisiteri y'ubuzima iragusaba niba uri umujyanama w'ubuzima kohereza akajambo NDEMEYE wemeze ko uri umujyanama w'ubuzima.")
+                try:
+                    Smser().send_message_via_kannel(reporter.telephone_moh, "Muraho! Minisiteri y'ubuzima iragusaba niba uri umujyanama w'ubuzima kohereza akajambo NDEMEYE wemeze ko uri umujyanama w'ubuzima.")
+                    
                 except Exception, e:
                     e = "Message to start not sent, you can send it manually. Use Group Messages."
+                    
                     pass
                 chw = reporter
                 e =  "SURNAME: %s, " % chw.surname + "GIVEN NAME: %s, " %chw.given_name + "ROLE: %s, " %chw.role + "SEX: %s, " %chw.sex + "EDUCATIONAL LEVEL: %s, " %chw.education_level + "DATE OF BIRTH: %s, " %chw.date_of_birth + "JOINING DATE: %s, " %chw.join_date + "NATIONAL ID: %s, " %chw.national_id + "TELEPHONE: %s, " %chw.telephone_moh + "VILLAGE: %s, " %chw.village + "CELL: %s, " %chw.cell + "SECTOR: %s, " %chw.sector + "HEALTH CENTRE: %s, " %chw.health_centre + "REFERRAL HOSPITAL: %s, " %chw.referral_hospital + "DISTRICT: %s, " %chw.district + "PROVINCE: %s, " %chw.province + "NATION: %s, " %chw.nation + "CREATED: %s, " %chw.created + "UPDATED: %s, " %chw.updated + "LANGUAGE: %s, " %chw.language+ "Connection: %s, " %chw.connection() + "Contact: %s" %chw.contact()
-
+                
             except Exception, e:
                 e = e
+                
                 pass
     except Exception, e:
-        e = e        
+        e = e
         pass    
     ##print e
     return render_to_response("chws/chwreg.html", dict(dsts = dsts, error = e, hcs = hcs, hps = hps, prvs = prvs, scs = scs, clls = clls, vlls = vlls,\
@@ -385,7 +437,7 @@ def view_uploads(request):
             errors = paginator.page(paginator.num_pages)
 
 
-        return render_to_response("chws/uploads.html", dict( errors=errors,reporters = reporters , sup = sup, regs = regs, confirms = confirms, pendings = pendings, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
+        return render_to_response("chws/uploads.html", dict( errors=errors,reporters = reporters , sup = sup, regs = regs, confirms = confirms, pendings = pendings, dsts = dst, hcs = hc, prvs = prvs, user=request.user,postqn = (request.get_full_path().split('?', 2) + [''])[1]), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
 def view_pendings(request):
@@ -444,7 +496,7 @@ def view_pendings(request):
             pendings = paginator.page(paginator.num_pages)
 
 
-        return render_to_response("chws/pendings.html", dict(pendings = pendings, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
+        return render_to_response("chws/pendings.html", dict(pendings = pendings, dsts = dst, hcs = hc, prvs = prvs, user=request.user,postqn = (request.get_full_path().split('?', 2) + [''])[1]), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
 def view_confirms(request):
@@ -499,7 +551,7 @@ def view_confirms(request):
             confirms = paginator.page(page)
         except (InvalidPage, EmptyPage):
             confirms = paginator.page(paginator.num_pages)
-        return render_to_response("chws/confirms.html", dict(confirms = confirms, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
+        return render_to_response("chws/confirms.html", dict(confirms = confirms, dsts = dst, hcs = hc, prvs = prvs, user=request.user, postqn = (request.get_full_path().split('?', 2) + [''])[1]), context_instance=RequestContext(request))
 
 @permission_required('chws.can_view')
 def import_reporters_from_excell(req):
@@ -999,7 +1051,8 @@ def activity_statistics(req):
         
     lox, lxn = 0, location_name(req)
 
-    start = filters['period']['start']
+    #start = filters['period']['start']
+    start = filters['period']['end'] ### Tyler and Dr Friday need only to pick one day, and I cannot rewrite, instead I made start and end the same day
     end = filters['period']['end']
 
     report_type = {}
@@ -1039,13 +1092,14 @@ def activity_statistics(req):
 
             return render_to_response(
             "chws/reporter.html", {
-            "reporters": paginated(req, tracks[req.REQUEST['gr']]), 'title': title,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+            #"reporters": paginated(req, tracks[req.REQUEST['gr']]), 'title': title,'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'),
+            "reporters": paginated(req, tracks[req.REQUEST['gr']]), 'title': title,'start_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),##start = end
              'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
               }, context_instance=RequestContext(req))
         
     return render_to_response(
         "chws/dashboard.html",
-        {'reporters':  tracks['reporters'], 'tracks': SafeString(json.dumps(tracks['total'])), 'report_type': report_type, 'xaxes': [str(x) for x in xaxes],'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'), 'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
+        {'reporters':  tracks['reporters'], 'tracks': SafeString(json.dumps(tracks['total'])), 'report_type': report_type, 'xaxes': [str(x) for x in xaxes],'start_date':date.strftime(filters['period']['end'], '%d.%m.%Y'), 'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]##start=end#'start_date':date.strftime(filters['period']['start'], '%d.%m.%Y'), 'end_date':date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1]
           }, context_instance=RequestContext(req))
 
 
@@ -1436,3 +1490,37 @@ def view_facilitystaff(request):
         except (InvalidPage, EmptyPage):
             facilitystaff = paginator.page(paginator.num_pages)
         return render_to_response("chws/facilitystaff.html", dict(facilitystaff = facilitystaff, dsts = dst, hcs = hc, prvs = prvs, user=request.user), context_instance=RequestContext(request))
+
+"""
+def replace_reporter(old_reporter, nid = None, tel = None):
+    if nid:
+        replaced, created = ReplacedReporter.objects.get_or_create(national_id = nid)        
+    elif tel:
+        replaced, created = ReplacedReporter.objects.get_or_create(telephone_moh = tel)
+    replaced.surname         = old_reporter.surname
+    replaced.given_name      = old_reporter.given_name
+    replaced.role            = old_reporter.role
+    replaced.sex 	        =  old_reporter.sex
+    replaced.education_level = old_reporter.education_level
+    replaced.date_of_birth   =	old_reporter.date_of_birth
+    replaced.join_date		=   old_reporter.join_date
+    replaced.district		=   old_reporter.district
+    replaced.nation			=   old_reporter.nation
+    replaced.province		=   old_reporter.province
+    replaced.health_centre	=   old_reporter.health_centre
+    replaced.sector			=   old_reporter.sector
+
+    replaced.referral_hospital=	old_reporter.referral_hospital
+
+    replaced.cell			=	old_reporter.cell
+    replaced.village		=   old_reporter.village
+    replaced.updated		= timezone.localtime(timezone.now())
+    replaced.language       = old_reporter.language_kinyarwanda
+    replaced.old_reference = old_reporter.pk
+    print "OLD REPORTER PK : %d" % old_reporter.pk
+    if nid: replaced.national_id = old_reporter.national_id
+    elif tel:   replaced.telephone_moh = old_reporter.telephone_moh   
+    replaced.save()
+    old_reporter.delete()
+"""
+    
