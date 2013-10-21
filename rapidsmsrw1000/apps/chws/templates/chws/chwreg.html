@@ -165,7 +165,8 @@ function formatItem(row) {
 		return row[2].replace(/(<.+?>)/gi, '');
 	}
 	function formatResultPhone(row) {
-		$("#pk").value = row[8];
+		$("#pk").val(row[8]);
+		$("#info").val(row[0] + " "+ row[1] + "(National ID: " + row[2] + ", Telephone MoH: " +row[3] + ", Village: " + row[4] + ", Cell: " +row[5] + ", Sector: " +row[6] + ", District: " +row[7]+")");
 		return row[3].replace(/(<.+?>)/gi, '');
 	}
 
@@ -212,7 +213,7 @@ $("#search_telephone_moh").autocomplete('search.chw', {
 });
 
 function chwRegEdit(reporter, info){
-
+			alert(info);
 			window.location = window.location.pathname +'?reporter=' + reporter;
 		}
 
