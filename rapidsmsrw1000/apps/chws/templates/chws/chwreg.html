@@ -217,6 +217,16 @@ function chwRegEdit(reporter, info){
 			window.location = window.location.pathname +'?reporter=' + reporter;
 		}
 
+function activate(reporter){
+			//alert("ACTIVATE");
+			window.location = window.location.pathname +'?activated=' + reporter;
+		}
+
+function deactivate(reporter){
+			//alert("DEACTIVATE");
+			window.location = window.location.pathname +'?deactivated=' + reporter;
+		}
+
 // end of CHW autocomplete
 
 </script>
@@ -381,7 +391,8 @@ function chwRegEdit(reporter, info){
 
 <tr><td colspan = 6></td>
 <td>
-<input type="hidden" name="up_reporter" id="reporter" value ="{{results.pk}}" /> <input type="submit" value="Update" />
+<input type="hidden" name="up_reporter" id="reporter" value ="{{results.pk}}" /> {% if results.deactivated %}<input type="button" value="Activate" onclick = "activate(this.form.up_reporter.value)" /> {%else%}
+<input type="button" value="Deactivate" onclick = "deactivate(this.form.up_reporter.value)" />{%endif%} <input type="submit" value="Update" />
 </td>
 </tr>
 

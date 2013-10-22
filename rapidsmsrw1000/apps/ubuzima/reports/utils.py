@@ -504,7 +504,7 @@ def set_date_string(date_string):
 
 def message_reporter(message):
     try:
-        return Reporter.objects.filter(national_id = message.connection.contact.name )[0]
+        return Reporter.objects.filter(national_id = message.connection.contact.name , deactivated = False)[0]
     except :
         if settings.TRAINING_ENV == True:   return anonymous_reporter(message.connection.identity)
         else:   raise Exception(_("You need to be registered first"))
@@ -609,3 +609,17 @@ def check_is_red(fields):
         return True    
     return False
 
+def valid_ccm_or_cmr(fields, report):
+    not_allowed_keys = ['np']
+    keys = []
+    for f in fields:
+        if f.type.key in not_allowed_keys:
+            return False
+        else:
+            keys.append(f.type.key)
+    #print keys
+    
+    if 'ma' in keys or 'pc' in keys or 'di' in keys:
+        return True
+    
+    return False        

@@ -144,6 +144,22 @@ def chwreg(request):
         if request.REQUEST.has_key('reporter'):
             results = Reporter.objects.get(pk = request.GET['reporter'])
             return render_to_response("chws/chwreg.html", dict(results = results, dsts = dsts, error = e, hcs = hcs, hps = hps, prvs = prvs, scs = scs, \
+                                                                    clls = clls, vlls = vlls, user=request.user), context_instance=RequestContext(request))
+
+        if request.REQUEST.has_key('activated'):
+            results = Reporter.objects.get(pk = request.GET['activated'])
+            results.deactivated = False
+            results.save()
+            results = Reporter.objects.get(pk = request.GET['activated'])
+            return render_to_response("chws/chwreg.html", dict(results = results, dsts = dsts, error = e, hcs = hcs, hps = hps, prvs = prvs, scs = scs, \
+                                                                    clls = clls, vlls = vlls, user=request.user), context_instance=RequestContext(request))
+        
+        if request.REQUEST.has_key('deactivated'):
+            results = Reporter.objects.get(pk = request.GET['deactivated'])
+            results.deactivated = True
+            results.save()
+            results = Reporter.objects.get(pk = request.GET['deactivated'])
+            return render_to_response("chws/chwreg.html", dict(results = results, dsts = dsts, error = e, hcs = hcs, hps = hps, prvs = prvs, scs = scs, \
                                                                     clls = clls, vlls = vlls, user=request.user), context_instance=RequestContext(request))        
                     
         
@@ -209,7 +225,11 @@ def chwreg(request):
                 contact.save()
                 
                 backend = Backend.objects.filter(name = settings.PRIMARY_BACKEND)[0]
-                
+                #Need to reset any previous connection opened for this contact in the same backend
+                reset_conns = Connection.objects.filter(contact = contact, backend = backend).exclude(identity = reporter.telephone_moh)
+                for conn in reset_conns:
+                    conn.contact = None
+                    conn.save()
                 connection, created = Connection.objects.get_or_create(identity = reporter.telephone_moh, backend = backend)
                 connection.contact = contact
                 connection.save() 
@@ -950,13 +970,13 @@ def get_time_string(localtime): ##  localtime   = time.localtime()
 def inactive_reporters(req, rez, group):
     reps = Reporter.objects.filter(role=group, **rez)
     pst = reporter_fresher(req)
-    return reps.filter(**pst).filter(is_active=False)
+    return reps.filter(**pst).filter(is_active=False, deactivated = False)
 
 
 def active_reporters(req, rez, group):
     reps = Reporter.objects.filter(role=group, **rez)
     pst = reporter_fresher(req);print pst,rez
-    return reps.filter(**pst).filter(is_active=True)
+    return reps.filter(**pst).filter(is_active=True, deactivated = False)
 
 
 def matching_filters(req,diced,alllocs=False):

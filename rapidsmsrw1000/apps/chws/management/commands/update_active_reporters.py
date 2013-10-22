@@ -12,7 +12,7 @@ class Command(NoArgsCommand):
     help = "Update is_active status on Reporter based on last active date."
 
     def handle_noargs(self, **options):
-        reporters = Reporter.objects.all()
+        reporters = Reporter.objects.filter(deactivated = False)
         for reporter in reporters:
             active_status = True
             if reporter.is_expired():
