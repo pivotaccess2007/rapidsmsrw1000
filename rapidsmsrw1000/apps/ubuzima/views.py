@@ -111,7 +111,10 @@ def index(req,**flts):
     else:
 
         # TODO start date and end date
-        red_alerts = json.dumps(get_red_alert_data())
+        ### INSTEAD GET RED ARELTS REPORTRS FROM MATCHING ONES
+        red_alerts_reports = reports.filter(type__name__iexact='red alert')#;print red_alerts_reports.count(),filters['district']
+        #red_alerts = json.dumps(get_red_alert_data())
+        red_alerts = json.dumps(get_red_alert_data(reports = red_alerts_reports, filters=filters))
         return render_to_response("ubuzima/index.html", {"reports": paginated(req, reports),'usrloc':UserLocation.objects.get(user=req.user),'start_date': date.strftime(filters['period']['start'], '%d.%m.%Y'),
             'end_date': date.strftime(filters['period']['end'], '%d.%m.%Y'),'filters':filters,'locationname':lxn,'postqn':(req.get_full_path().split('?', 2) + [''])[1], 'red_alerts': red_alerts,
         }, context_instance=RequestContext(req))

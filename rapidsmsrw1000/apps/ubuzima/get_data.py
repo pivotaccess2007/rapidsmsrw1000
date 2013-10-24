@@ -1,4 +1,8 @@
-from rapidsmsrw1000.apps.ubuzima.models import ReportType, Field
+#!/usr/bin/env python
+# vim: ai ts=4 sts=4 et sw=4
+
+
+from rapidsmsrw1000.apps.ubuzima.models import ReportType, Field, FieldType
 from rapidsmsrw1000.apps.chws.models import District
 
 
@@ -28,7 +32,8 @@ def get_report_counts(report_type, start=None, end=None, date_field='date'):
     return data
 
 
-def get_red_alert_data(start=None, end=None, date_field='date'):
+#def get_red_alert_data(start=None, end=None, date_field='date'):
+def get_red_alert_data(reports = None, filters = None):
     """
     Returns a list of dictionaries, one for each district. Each dictionary
     contains:
@@ -38,15 +43,19 @@ def get_red_alert_data(start=None, end=None, date_field='date'):
         counts - a dictionary relating risk field_types and the number of times
             each was reported.
     """
-    filters = {'type': ReportType.objects.get(name__iexact='red alert')}
-    filters.update(_get_date_filters(start, end, date_field))
+    #filters = {'type': ReportType.objects.get(name__iexact='red alert')}
+    #filters.update(_get_date_filters(start, end, date_field))
 
-    risk_field_types = Field.get_risk_fieldtypes()
+    #risk_field_types = Field.get_risk_fieldtypes()
+    risk_field_types = FieldType.objects.filter(category__name = 'Red Alert Codes')
+    districts = filters['district']
     data = []
-    for district in District.objects.all():
+    #for district in District.objects.all():
+    for district in districts:
         province_name = _clean_province_name(district.province.name)
         if province_name:
-            risk_reports = district.reportdistrict.filter(**filters)
+            #risk_reports = district.reportdistrict.filter(**filters)
+            risk_reports = reports.filter(district = district)
             for risk in risk_field_types:
                 for report in risk_reports:
                     data.append({
