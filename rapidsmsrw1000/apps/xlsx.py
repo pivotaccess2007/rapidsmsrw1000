@@ -144,32 +144,36 @@ def export_reports_to_xlsx_on_disk(reports):
         
         details = obj.fields.all()
         #print row,col, "BEFORE"
-        if details:
-            for d in details:
-                lc = [lc for lc in last_col if lc['name'] == d.type.key]
-                mcol = col
-                if lc:
-                    mcol = lc[0]['index']#;print mcol,d
-                    if d.type.has_value:
-                        sheet.write(row,mcol, d.value)
+        try:
+            if details:
+                for d in details:
+                    lc = [lc for lc in last_col if lc['name'] == d.type.key]
+                    mcol = col
+                    if lc:
+                        mcol = lc[0]['index']#;print mcol,d
+                        if d.type.has_value:
+                            sheet.write(row,mcol, d.value)
+                        else:
+                            sheet.write(row,mcol, d.type.description)
+                        
                     else:
-                        sheet.write(row,mcol, d.type.description)
-                    
-                else:
-                    li = [lc for lc in last_col if lc['index'] == col]
-                    
-                    if li:
-                        mcol = last_col[len(last_col)-1]['index']+1
+                        li = [lc for lc in last_col if lc['index'] == col]
+                        
+                        if li:
+                            mcol = last_col[len(last_col)-1]['index']+1
 
-                    #print mcol, d 
-                    last_col.append({'name': d.type.key, 'index': mcol}) 
-                    sheet.write(0, mcol, d.type.key)  
-                    if d.type.has_value:
-                        sheet.write_number(row,mcol, d.value)
-                    else:
-                        sheet.write(row,mcol, d.type.description)
-    
-                col = col+1
+                        #print mcol, d 
+                        last_col.append({'name': d.type.key, 'index': mcol}) 
+                        sheet.write(0, mcol, d.type.key)  
+                        if d.type.has_value:
+                            sheet.write_number(row,mcol, d.value)
+                        else:
+                            sheet.write(row,mcol, d.type.description)
+        
+                    col = col+1
+        except Exception, e:
+            print e
+            continue
         #print last_col
         #print row,col, "AFTER"
         row = row + 1
