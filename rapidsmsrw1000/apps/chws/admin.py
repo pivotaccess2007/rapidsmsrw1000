@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # vim: ai ts=4 sts=4 et sw=4
 
+from flexselect import FlexSelectWidget
 from django.contrib import admin
 from rapidsmsrw1000.apps.chws.models import *
 
@@ -10,6 +11,98 @@ import datetime
 from django.contrib.admin import util as admin_util
 from django.utils.translation import ugettext_lazy as _
 from django.http import HttpResponse
+
+
+class ProvinceWidget(FlexSelectWidget):
+    trigger_fields = ['nation']
+
+    def details(self, base_field_instance, instance):
+        pass
+
+    def queryset(self, instance):
+        nation = instance.nation
+        return Province.objects.filter(nation=nation)
+
+    def empty_choices_text(self, instance):
+        return "Please update the nation field"
+
+class DistrictWidget(FlexSelectWidget):
+    trigger_fields = ['province']
+
+    def details(self, base_field_instance, instance):    
+        pass
+
+    def queryset(self, instance):
+        province = instance.province
+        return District.objects.filter(province=province)
+
+    def empty_choices_text(self, instance):
+        return "Please update the province field"
+
+class SectorWidget(FlexSelectWidget):
+    trigger_fields = ['district']
+
+    def details(self, base_field_instance, instance):    
+        pass
+
+    def queryset(self, instance):
+        district = instance.district
+        return Sector.objects.filter(district=district)
+
+    def empty_choices_text(self, instance):
+        return "Please update the district field"
+
+class HealthCentreWidget(FlexSelectWidget):
+    trigger_fields = ['district']
+
+    def details(self, base_field_instance, instance):    
+        pass
+
+    def queryset(self, instance):
+        district = instance.district
+        return HealthCentre.objects.filter(district=district)
+
+    def empty_choices_text(self, instance):
+        return "Please update the Health Centre field"
+
+class HospitalWidget(FlexSelectWidget):
+    trigger_fields = ['district']
+
+    def details(self, base_field_instance, instance):    
+        pass
+
+    def queryset(self, instance):
+        district = instance.district
+        return Hospital.objects.filter(district=district)
+
+    def empty_choices_text(self, instance):
+        return "Please update the referral hospital field"
+
+class CellWidget(FlexSelectWidget):
+    trigger_fields = ['sector']
+
+    def details(self, base_field_instance, instance):    
+        pass
+
+    def queryset(self, instance):
+        sector = instance.sector
+        return Cell.objects.filter(sector=sector)
+
+    def empty_choices_text(self, instance):
+        return "Please update the sector field"
+
+class VillageWidget(FlexSelectWidget):
+    trigger_fields = ['cell']
+
+    def details(self, base_field_instance, instance):    
+        pass
+
+    def queryset(self, instance):
+        cell = instance.cell
+        return Village.objects.filter(cell=cell)
+
+    def empty_choices_text(self, instance):
+        return "Please update the cell field"
 
 
 def export_model_as_csv(modeladmin, request, queryset):
@@ -92,6 +185,29 @@ class SectorAdmin(admin.ModelAdmin):
     list_display = ('name', 'code', 'district')
     search_fields = ('name','code',)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """
+        Alters the widget displayed for the base field.
+        """
+        if db_field.name == "province":
+            kwargs['widget'] =  ProvinceWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Province'
+
+        if db_field.name == "district":
+            kwargs['widget'] =  DistrictWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'District'
+        
+        return super(SectorAdmin, self).formfield_for_foreignkey(db_field, 
+            request, **kwargs)
+
 class HealthCentreAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
     list_display = ('name', 'code', 'sector', 'district')
@@ -107,6 +223,7 @@ class DistrictAdmin(admin.ModelAdmin):
     list_display = ('name', 'code', 'province')
     search_fields = ('name','code',)
 
+
 class CellAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
     list_display = ('name', 'code', 'sector', 'district')
@@ -117,6 +234,45 @@ class VillageAdmin(admin.ModelAdmin):
     list_display = ('name', 'code', 'cell', 'sector', 'district')
     search_fields = ('name','code',)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """
+        Alters the widget displayed for the base field.
+        """
+        if db_field.name == "province":
+            kwargs['widget'] =  ProvinceWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Province'
+
+        if db_field.name == "district":
+            kwargs['widget'] =  DistrictWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'District'
+        
+        if db_field.name == "sector":
+            kwargs['widget'] =  SectorWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Sector'
+
+        if db_field.name == "cell":
+            kwargs['widget'] =  CellWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Cell'
+        
+        return super(VillageAdmin, self).formfield_for_foreignkey(db_field, 
+            request, **kwargs)
+
 
 class CHWAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)
@@ -124,6 +280,70 @@ class CHWAdmin(admin.ModelAdmin):
     list_display = ('surname', 'given_name', 'national_id', 'telephone_moh', 'village', 'health_centre', 'role')
     list_filter = ('is_active', 'role__name', 'deactivated')
     search_fields = ('national_id','telephone_moh', 'village__name', 'cell__name', 'sector__name', 'health_centre__name', 'referral_hospital__name', 'district__name', 'province__name')
+
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """
+        Alters the widget displayed for the base field.
+        """
+        if db_field.name == "province":
+            kwargs['widget'] =  ProvinceWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Province'
+
+        if db_field.name == "district":
+            kwargs['widget'] =  DistrictWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'District'
+
+        if db_field.name == "health_centre":
+            kwargs['widget'] =  HealthCentreWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Health Centre'
+
+        if db_field.name == "referral_hospital":
+            kwargs['widget'] =  HospitalWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Referral Hospital'
+        
+        if db_field.name == "sector":
+            kwargs['widget'] =  SectorWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Sector'
+
+        if db_field.name == "cell":
+            kwargs['widget'] =  CellWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Cell'
+
+        if db_field.name == "village":
+            kwargs['widget'] =  VillageWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Village'
+        
+        return super(CHWAdmin, self).formfield_for_foreignkey(db_field, 
+            request, **kwargs)
 
 class RegistrationConfirmationAdmin(admin.ModelAdmin):
 
@@ -145,6 +365,53 @@ class FacilityStaffAdmin(admin.ModelAdmin):
     list_display = ('names', 'telephone_moh', 'dob', 'national_id', 'email', 'service', 'village', 'cell', 'sector', 'health_centre', 'referral_hospital', 'district', 'province')
     search_fields = ('telephone_moh', 'email', 'names', 'village__name', 'cell__name', 'sector__name', 'health_centre__name', 'referral_hospital__name', 'district__name', 'province__name')
     list_filter = ('service', 'district__name',)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """
+        Alters the widget displayed for the base field.
+        """
+        if db_field.name == "province":
+            kwargs['widget'] =  ProvinceWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Province'
+
+        if db_field.name == "district":
+            kwargs['widget'] =  DistrictWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'District'
+        
+        if db_field.name == "sector":
+            kwargs['widget'] =  SectorWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Sector'
+
+        if db_field.name == "cell":
+            kwargs['widget'] =  CellWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Cell'
+
+        if db_field.name == "village":
+            kwargs['widget'] =  VillageWidget(
+                base_field=db_field,
+                modeladmin=self,
+                request=request,
+            )
+            kwargs['label'] = 'Village'
+        
+        return super(FacilityStaffAdmin, self).formfield_for_foreignkey(db_field, 
+            request, **kwargs)    
 
 class MonitorEvaluatorAdmin(admin.ModelAdmin):
     actions = (export_model_as_csv,export_model_as_excel)

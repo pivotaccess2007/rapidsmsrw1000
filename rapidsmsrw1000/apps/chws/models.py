@@ -7,6 +7,7 @@ from rapidsms.models import *
 from rapidsms.contrib.messagelog.models import Message
 from django.db.models.signals import post_save
 import datetime
+from django.core.exceptions import ValidationError
 # Create your Django models here, if you need them.
 
 
@@ -58,7 +59,7 @@ class Province(models.Model):
         permissions = (
         ("can_view", "Can view"),
         )
-
+        
     def __unicode__(self):  return self.name
 
 class District(models.Model):
@@ -78,6 +79,10 @@ class District(models.Model):
         ("can_view", "Can view"),
         )
 
+    def clean(self):
+        if self.nation != self.province.nation:
+            raise ValidationError("Invalid data .. please select correctly")
+        
     def __unicode__(self):  return self.name
 
 class Sector(models.Model):
@@ -97,7 +102,10 @@ class Sector(models.Model):
         permissions = (
         ("can_view", "Can view"),
         )
-
+        
+    def clean(self):
+        if self.province != self.district.province or self.nation != self.district.nation:
+            raise ValidationError("Invalid data .. please select correctly")
     def __unicode__(self):  return self.name
 
 class Cell(models.Model):
@@ -119,6 +127,9 @@ class Cell(models.Model):
         ("can_view", "Can view"),
         )
 
+    def clean(self):
+        if self.sector.district != self.district or self.province != self.sector.province or self.nation != self.sector.nation:
+            raise ValidationError("Invalid data .. please select correctly")
     def __unicode__(self):  return self.name
 
 class Village(models.Model):
@@ -142,6 +153,10 @@ class Village(models.Model):
         )
 
     def __unicode__(self):  return self.name
+    
+    def clean(self):
+        if self.cell.sector != self.sector or self.cell.district != self.district or self.province != self.cell.province or self.nation != self.cell.nation:
+            raise ValidationError("Invalid data .. please select correctly") 
 
     @classmethod
     def get_village(cls, name, cell = None, sector = None, district = None):
@@ -243,15 +258,16 @@ class Reporter(models.Model):
     join_date		= models.DateField(blank=True, null = True, help_text="The date you joined the Community Health Worker program")
     national_id		= models.CharField(max_length=16, unique = True, help_text="The National ID as a sixteen digit please")
     telephone_moh		= models.CharField(max_length=13, unique = True, help_text="The telephone number only the one provided by Ministry of Health")
+    nation            = models.ForeignKey(Nation, related_name="chw_nation", null=True, blank=True, help_text=" The country you live in")
+    province        = models.ForeignKey(Province, related_name="chw_province", null=True, blank=True, help_text=" The province you live in")
+    district        = models.ForeignKey(District, related_name="chw_district", null=True, blank=True, help_text=" The district you live in")
+    sector            = models.ForeignKey(Sector, related_name="chw_sector", null=True, blank=True, help_text=" The sector you live in")
+    cell            = models.ForeignKey(Cell, related_name="chw_cell", null=True, blank=True, help_text=" The cell you live in")
     village			= models.ForeignKey(Village, related_name="chw_village", null=True, blank=True, help_text=" The village you live in")
-    cell			= models.ForeignKey(Cell, related_name="chw_cell", null=True, blank=True, help_text=" The cell you live in")
-    sector			= models.ForeignKey(Sector, related_name="chw_sector", null=True, blank=True, help_text=" The sector you live in")
+        
     health_centre		= models.ForeignKey(HealthCentre, related_name="chw_hc", null=True, blank=True, help_text=" The health centre you report to ")
     referral_hospital	= models.ForeignKey(Hospital, related_name="chw_hospital", null=True, blank=True,
-						        help_text=" The referral hospital of the health centre you report to")
-    district		= models.ForeignKey(District, related_name="chw_district", null=True, blank=True, help_text=" The district you live in")
-    province		= models.ForeignKey(Province, related_name="chw_province", null=True, blank=True, help_text=" The province you live in")
-    nation			= models.ForeignKey(Nation, related_name="chw_nation", null=True, blank=True, help_text=" The country you live in")
+						        help_text=" The referral hospital of the health centre you report to")  
     created			= models.DateTimeField(auto_now_add = True, blank=True, null = True, help_text="The date you are registered in the RapidSMS System")
     updated			= models.DateTimeField(blank=True, null = True, help_text="The date of last modification about the current details of CHW")
 
@@ -267,6 +283,9 @@ class Reporter(models.Model):
         ("can_view", "Can view"),
         )
 
+    def clean(self):
+        if self.cell.sector != self.sector or self.cell.district != self.district or self.province != self.cell.province or self.nation != self.cell.nation:
+            raise ValidationError("Invalid data .. please select correctly")
     def __unicode__(self):
         return self.telephone_moh
 
